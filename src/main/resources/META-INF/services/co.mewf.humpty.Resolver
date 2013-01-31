@@ -1,0 +1,3 @@
+co.mewf.humpty.resolvers.WebJarResolver
+co.mewf.humpty.resolvers.ServletContextPathResolver
+co.mewf.humpty.resolvers.ClasspathResolver

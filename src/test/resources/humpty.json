@@ -1,0 +1,18 @@
+{
+	bundles: [
+		{
+			name: "singleAsset.js",
+			assets: ["classpath:/co/mewf/humpty/blocks.coffee"]
+		},
+		{
+			name: "asset1.js",
+			assets: ["classpath:/co/mewf/humpty/blocks.coffee", "classpath:/co/mewf/humpty/web_server.coffee"]
+		}
+	],
+	options: {
+		"co.mewf.humpty.CoffeeScriptPreProcessor": {
+			BARE: true
+		}
+	},
+	mode: "DEVELOPMENT"
+}
