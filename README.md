@@ -38,10 +38,10 @@ By default, configuration is done via a JSON object in a file called `humpty.jso
 
 ````json
 {
-	bundles: [
+	"bundles": [
 		{
-			name: "asset1.js",
-			assets: ["webjar:jquery.js", "path:/assets/app.js"]
+			"name": "asset1.js",
+			"assets": ["webjar:jquery.js", "path:/assets/app.js"]
 		}
 	]
 }
@@ -88,14 +88,14 @@ Each bundle's assets are processed and served together. Each bundle is an object
 
 ````json
 {
-	bundles: [
+	"bundles": [
 		{
-			name: "app.js",
-			assets: ["webjar:jquery.js", "path:/assets/app.js"]
+			"name": "app.js",
+			"assets": ["webjar:jquery.js", "path:/assets/app.js"]
 		},
 		{
-		  name: "app.css",
-		  assets: ["webjar:bootstrap.less", "webjar:theme.css"]
+		  "name": "app.css",
+		  "assets": ["webjar:bootstrap.less", "webjar:theme.css"]
 	  }
 	]
 }
@@ -111,10 +111,10 @@ Example:
 
 ````json
 {
-  bundles: [...],
-  options: {
+  "bundles": [...],
+  "options": {
 	  "co.mewf.humpty.CoffeeScriptPreProcessor": {
-		  BARE: true
+		  "BARE": true
 	  }
   }
 }
@@ -128,9 +128,9 @@ In PRODUCTION mode, all processing is applied. In DEVELOPMENT mode, processors c
 
 ````json
 {
-  bundles: [...],
-  options: {...},
-  mode: "DEVELOPMENT"
+  "bundles": [...],
+  "options": {...},
+  "mode": "DEVELOPMENT"
 }
 ````
 
