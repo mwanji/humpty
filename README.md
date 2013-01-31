@@ -64,7 +64,9 @@ public MyConfigurationProvider implements ConfigurationProvider {
 
 ### Bundles
 
-A Bundle is a set of files that can be processed together: compiled, concatenated, minified, etc. The result is made available at the URL defined by `name`. Each asset has prefix identifying its type:
+A Bundle is a named list of files that are accessed and processed together. The result is made available at the URL defined by the `name` property. The files and the order in which they are processed are set in the `assets` property.
+
+Each asset has a prefix identifying its type:
 
 * `webjar`: The asset is in a WebJar. This can be just a file name if there is no ambiguity, or a longer path if there is, eg. `smoothness/theme.css`.
 * `path`: The asset is available via URL. This must be the full path after the context path.
@@ -72,9 +74,9 @@ A Bundle is a set of files that can be processed together: compiled, concatenate
 
 ### Processors
 
-Processors modify the input they are given in some way. Pre-processors (eg. a compiler) run before the files have been concatenated, post-processors (eg. a minifier) run after.
+Processors modify the assets they are given in some way: compile, concatenate, minify, etc. Pre-processors (eg. a compiler) run before the assets have been concatenated, post-processors (eg. a minifier) run after.
 
-humpty has no built-in processors, but they are easy to add: simply put them on the classpath and they are automatically used.
+humpty has no default processors, but they are easy to add: simply put them on the classpath and they are automatically used.
 
 ### Configuration
 
@@ -82,9 +84,7 @@ The configuration elements are:
 
 #### bundles
 
-Required. An array of named asset groups. Must contain at least one bundle.
-
-Each bundle's assets are processed and served together. Each bundle is an object containing a name and an array of assets.
+Required. Must contain at least one bundle.
 
 ````json
 {
@@ -111,7 +111,7 @@ Example:
 
 ````json
 {
-  "bundles": [...],
+  "bundles": [],
   "options": {
 	  "co.mewf.humpty.CoffeeScriptPreProcessor": {
 		  "BARE": true
@@ -128,8 +128,8 @@ In PRODUCTION mode, all processing is applied. In DEVELOPMENT mode, processors c
 
 ````json
 {
-  "bundles": [...],
-  "options": {...},
+  "bundles": [],
+  "options": {},
   "mode": "DEVELOPMENT"
 }
 ````
@@ -138,8 +138,8 @@ In PRODUCTION mode, all processing is applied. In DEVELOPMENT mode, processors c
 
 The JSON configuration object is easy to use initially, but is not programmable and can be cumbersome. At the cost of a little bit of configuraton, the Java API provides typesafety and easier processor configuration.
 
-* Implement a `ConfigurationProvider` and build up your `Configuration`.
-* Register the `ConfigurationProvider` as a service by putting its fully-qualifed name in `META-INF/services/co.mewf.humpty.config.ConfigurationProvider`. Example:
+1. Implement a `ConfigurationProvider` and build up your `Configuration`.
+1. Register the `ConfigurationProvider` as a service by putting its fully-qualifed name in `META-INF/services/co.mewf.humpty.config.ConfigurationProvider`. Example:
 
 ````
 com.example.myapp.MyConfigurationProvider
