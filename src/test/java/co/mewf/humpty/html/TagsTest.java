@@ -35,7 +35,7 @@ public class TagsTest {
     Configuration configuration = new Configuration(asList(new Bundle("bundle1.js", asList("classpath:/asset1.js"))), Configuration.Mode.DEVELOPMENT);
     String html = new Tags(configuration, asList(new ClasspathResolver())).generate("bundle1.js", rootPath);
 
-    assertEquals("<script src=\"/context/asset1.js?type=classpath\"></script>\n", html);
+    assertEquals("<script src=\"/context/asset1.js?resolver=classpath\"></script>\n", html);
   }
 
   @Test
