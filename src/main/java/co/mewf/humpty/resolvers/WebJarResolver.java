@@ -6,9 +6,10 @@ import co.mewf.humpty.config.Context;
 import java.io.InputStreamReader;
 import java.io.Reader;
 
-import org.webjars.AssetLocator;
+import org.webjars.WebJarAssetLocator;
 
 public class WebJarResolver implements Resolver {
+  private final WebJarAssetLocator webJarAssetLocator = new WebJarAssetLocator();
 
   @Override
   public boolean accepts(String uri) {
@@ -17,14 +18,12 @@ public class WebJarResolver implements Resolver {
 
   @Override
   public Reader resolve(String uri, Context context) {
-    return new InputStreamReader(getClass().getResourceAsStream(AssetLocator.getFullPath(stripPrefix(uri))));
+    return new InputStreamReader(getClass().getResourceAsStream(webJarAssetLocator.getFullPath(stripPrefix(uri))));
   }
 
   @Override
   public String expand(String uri) {
-    String webJarPath = AssetLocator.getWebJarPath(stripPrefix(uri));
-
-    return "/" + webJarPath;
+    return "/" + webJarAssetLocator.getFullPath(webJarAssetLocator.getFullPath(stripPrefix(uri)).substring("META-INF/resources/".length()));
   }
 
   private String stripPrefix(String uri) {
