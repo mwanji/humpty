@@ -18,12 +18,12 @@ public class WebJarResolver implements Resolver {
 
   @Override
   public Reader resolve(String uri, Context context) {
-    return new InputStreamReader(getClass().getResourceAsStream(webJarAssetLocator.getFullPath(stripPrefix(uri))));
+    return new InputStreamReader(Thread.currentThread().getContextClassLoader().getResourceAsStream(webJarAssetLocator.getFullPath(stripPrefix(uri))));
   }
 
   @Override
   public String expand(String uri) {
-    return "/" + webJarAssetLocator.getFullPath(webJarAssetLocator.getFullPath(stripPrefix(uri)).substring("META-INF/resources/".length()));
+    return "/" + webJarAssetLocator.getFullPath(stripPrefix(uri)).substring("META-INF/resources/".length());
   }
 
   private String stripPrefix(String uri) {

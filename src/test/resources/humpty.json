@@ -2,11 +2,11 @@
 	bundles: [
 		{
 			name: "singleAsset.js",
-			assets: ["classpath:/co/mewf/humpty/blocks.coffee"]
+			assets: ["webjar:blocks.coffee"]
 		},
 		{
 			name: "asset1.js",
-			assets: ["classpath:/co/mewf/humpty/blocks.coffee", "classpath:/co/mewf/humpty/web_server.coffee"]
+			assets: ["webjar:blocks.coffee", "webjar:web_server.coffee"]
 		}
 	],
 	options: {

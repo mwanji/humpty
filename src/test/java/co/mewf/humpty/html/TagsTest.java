@@ -4,7 +4,6 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import co.mewf.humpty.config.Bundle;
 import co.mewf.humpty.config.Configuration;
-import co.mewf.humpty.resolvers.ClasspathResolver;
 import co.mewf.humpty.resolvers.ServletContextPathResolver;
 import co.mewf.humpty.resolvers.WebJarResolver;
 
@@ -28,14 +27,6 @@ public class TagsTest {
     String html = new Tags(configuration, asList(new ServletContextPathResolver())).generate("bundle1.css", rootPath);
 
     assertEquals("<link rel=\"stylesheet\" href=\"/context/asset1.css\" />\n<link rel=\"stylesheet\" href=\"/context/asset2.css\" />\n", html);
-  }
-
-  @Test
-  public void should_provide_custom_url_for_unbundled_classpath_asset() {
-    Configuration configuration = new Configuration(asList(new Bundle("bundle1.js", asList("classpath:/asset1.js"))), Configuration.Mode.DEVELOPMENT);
-    String html = new Tags(configuration, asList(new ClasspathResolver())).generate("bundle1.js", rootPath);
-
-    assertEquals("<script src=\"/context/asset1.js?resolver=classpath\"></script>\n", html);
   }
 
   @Test

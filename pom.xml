@@ -66,11 +66,9 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>
-				com.google.code.maven-play-plugin.com.github.yeungda.jcoffeescript
-			</groupId>
-			<artifactId>jcoffeescript-dep</artifactId>
-			<version>1.4.0</version>
+			<groupId>com.moandjiezana.jcoffeescript</groupId>
+			<artifactId>jcoffeescript</artifactId>
+			<version>1.6.3-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
