@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -16,19 +17,19 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 
 public class Pipeline {
-  
+
   private final Configuration configuration;
   private final List<Resolver> resolvers;
   private final List<PreProcessor> preProcessors;
   private final List<PostProcessor> postProcessors;
-  
+
   public Pipeline(Configuration configuration, List<Resolver> resolvers, List<PreProcessor> preProcessors, List<PostProcessor> postProcessors) {
     this.configuration = configuration;
-    this.resolvers = resolvers;
-    this.preProcessors = preProcessors;
-    this.postProcessors = postProcessors;
+    this.resolvers = Collections.unmodifiableList(resolvers);
+    this.preProcessors = Collections.unmodifiableList(preProcessors);
+    this.postProcessors = Collections.unmodifiableList(postProcessors);
   }
-  
+
   public Reader process(String asset, HttpServletRequest request, HttpServletResponse response) {
     Context context = new Context(configuration.getMode(), request, response);
     Bundle matchingBundle = null;
@@ -38,7 +39,7 @@ public class Pipeline {
         break;
       }
     }
-    
+
     List<String> filteredAssets = matchingBundle.getBundleFor(asset);
     StringWriter bundleString = new StringWriter();
     for (String filteredAsset : filteredAssets) {
@@ -49,7 +50,7 @@ public class Pipeline {
           break;
         }
       }
-      
+
       Reader resolvedAsset = matchingResolver.resolve(filteredAsset, context);
       try {
         Reader preProcessedAsset = preProcess(filteredAsset.substring(asset.indexOf(':') + 1), resolvedAsset, context);
@@ -58,7 +59,7 @@ public class Pipeline {
         throw new RuntimeException(e);
       }
     }
-    
+
     return postProcess(new StringReader(bundleString.toString()), context);
   }
 
@@ -71,7 +72,7 @@ public class Pipeline {
     }
     return currentAsset;
   }
-  
+
   private Reader postProcess(Reader asset, Context context) {
     return asset;
   }
