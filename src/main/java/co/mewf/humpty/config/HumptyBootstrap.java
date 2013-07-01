@@ -5,34 +5,32 @@ import co.mewf.humpty.PostProcessor;
 import co.mewf.humpty.PreProcessor;
 import co.mewf.humpty.Resolver;
 
+import com.google.gson.Gson;
+
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.ServiceLoader;
 
-public class ServiceLoaderBootstrap implements Bootstrap {
-  @Override
+public class HumptyBootstrap {
+
+  private final Gson gson = new Gson();
+
   public Pipeline createPipeline() {
     Configuration configuration = getConfiguration();
-    ArrayList<Resolver> resolvers = getResolvers();
-    ArrayList<PreProcessor> preProcessors = getPreProcessors();
-    ArrayList<PostProcessor> postProcessors = getPostProcessors();
+    List<Resolver> resolvers = getResolvers();
+    List<PreProcessor> preProcessors = getPreProcessors();
+    List<PostProcessor> postProcessors = getPostProcessors();
 
     return new Pipeline(configuration, resolvers, preProcessors, postProcessors);
   }
 
-  public Configuration getConfiguration() {
-    ConfigurationProvider configurationProvider = null;
-    Iterator<ConfigurationProvider> iterator = ServiceLoader.load(ConfigurationProvider.class).iterator();
-    if (iterator.hasNext()) {
-      configurationProvider = iterator.next();
-    } else {
-      configurationProvider = new JsonConfigurationProvider();
-    }
-
-    return configurationProvider.getConfiguration();
+  protected Configuration getConfiguration() {
+    return gson.fromJson(new InputStreamReader(getClass().getResourceAsStream("/humpty.json")), Configuration.class);
   }
 
-  public ArrayList<Resolver> getResolvers() {
+  protected List<Resolver> getResolvers() {
     ArrayList<Resolver> resolvers = new ArrayList<Resolver>();
     Iterator<Resolver> resolverIterator = ServiceLoader.load(Resolver.class).iterator();
     while (resolverIterator.hasNext()) {
@@ -41,7 +39,7 @@ public class ServiceLoaderBootstrap implements Bootstrap {
     return resolvers;
   }
 
-  public ArrayList<PreProcessor> getPreProcessors() {
+  protected List<PreProcessor> getPreProcessors() {
     ArrayList<PreProcessor> preProcessors = new ArrayList<PreProcessor>();
     Iterator<PreProcessor> processorIterator = ServiceLoader.load(PreProcessor.class).iterator();
     while (processorIterator.hasNext()) {
@@ -50,7 +48,7 @@ public class ServiceLoaderBootstrap implements Bootstrap {
     return preProcessors;
   }
 
-  public ArrayList<PostProcessor> getPostProcessors() {
+  protected List<PostProcessor> getPostProcessors() {
     ArrayList<PostProcessor> postProcessors = new ArrayList<PostProcessor>();
     Iterator<PostProcessor> postProcessorIterator = ServiceLoader.load(PostProcessor.class).iterator();
     while (postProcessorIterator.hasNext()) {

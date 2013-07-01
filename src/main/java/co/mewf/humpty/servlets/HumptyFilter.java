@@ -1,7 +1,7 @@
 package co.mewf.humpty.servlets;
 
 import co.mewf.humpty.Pipeline;
-import co.mewf.humpty.config.ServiceLoaderBootstrap;
+import co.mewf.humpty.config.HumptyBootstrap;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -24,8 +24,12 @@ public class HumptyFilter implements Filter {
 
   @Override
   public void init(FilterConfig filterConfig) throws ServletException {
-    ServiceLoaderBootstrap bootstrap = new ServiceLoaderBootstrap();
+    HumptyBootstrap bootstrap = createBootstrap();
     pipeline = bootstrap.createPipeline();
+  }
+
+  protected HumptyBootstrap createBootstrap() {
+    return new HumptyBootstrap();
   }
 
   @Override

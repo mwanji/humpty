@@ -3,7 +3,6 @@ package co.mewf.humpty.html;
 import co.mewf.humpty.Resolver;
 import co.mewf.humpty.config.Bundle;
 import co.mewf.humpty.config.Configuration;
-import co.mewf.humpty.config.ServiceLoaderBootstrap;
 
 import java.util.List;
 
@@ -11,12 +10,6 @@ public class Tags {
 
   private final Configuration configuration;
   private final List<? extends Resolver> resolvers;
-
-  public Tags() {
-    ServiceLoaderBootstrap bootstrap = new ServiceLoaderBootstrap();
-    this.configuration = bootstrap.getConfiguration();
-    this.resolvers = bootstrap.getResolvers();
-  }
 
   public Tags(Configuration configuration, List<? extends Resolver> resolvers) {
     this.configuration = configuration;
