@@ -9,7 +9,6 @@ import com.google.gson.Gson;
 
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ServiceLoader;
 
@@ -32,28 +31,31 @@ public class HumptyBootstrap {
 
   protected List<Resolver> getResolvers() {
     ArrayList<Resolver> resolvers = new ArrayList<Resolver>();
-    Iterator<Resolver> resolverIterator = ServiceLoader.load(Resolver.class).iterator();
-    while (resolverIterator.hasNext()) {
-      resolvers.add(resolverIterator.next());
+    ServiceLoader<Resolver> serviceLoader = ServiceLoader.load(Resolver.class);
+    for (Resolver resolver : serviceLoader) {
+      resolvers.add(resolver);
     }
+
     return resolvers;
   }
 
   protected List<PreProcessor> getPreProcessors() {
     ArrayList<PreProcessor> preProcessors = new ArrayList<PreProcessor>();
-    Iterator<PreProcessor> processorIterator = ServiceLoader.load(PreProcessor.class).iterator();
-    while (processorIterator.hasNext()) {
-      preProcessors.add(processorIterator.next());
+    ServiceLoader<PreProcessor> serviceLoader = ServiceLoader.load(PreProcessor.class);
+    for (PreProcessor preProcessor : serviceLoader) {
+      preProcessors.add(preProcessor);
     }
+
     return preProcessors;
   }
 
   protected List<PostProcessor> getPostProcessors() {
     ArrayList<PostProcessor> postProcessors = new ArrayList<PostProcessor>();
-    Iterator<PostProcessor> postProcessorIterator = ServiceLoader.load(PostProcessor.class).iterator();
-    while (postProcessorIterator.hasNext()) {
-      postProcessors.add(postProcessorIterator.next());
+    ServiceLoader<PostProcessor> serviceLoader = ServiceLoader.load(PostProcessor.class);
+    for (PostProcessor postProcessor : serviceLoader) {
+      postProcessors.add(postProcessor);
     }
+
     return postProcessors;
   }
 }
