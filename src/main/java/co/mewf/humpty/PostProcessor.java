@@ -8,5 +8,5 @@ import java.util.Map;
 public interface PostProcessor {
 
   boolean canProcess(String asset);
-  Reader process(Reader reader, Map<String, Object> options, Context context);
+  Reader process(String asset, Reader reader, Map<String, Object> options, Context context);
 }

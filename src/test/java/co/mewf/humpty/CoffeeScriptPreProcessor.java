@@ -19,7 +19,7 @@ public class CoffeeScriptPreProcessor implements PreProcessor {
   }
 
   @Override
-  public Reader process(Reader reader, Map<String, Object> options, Context context) {
+  public Reader process(String asset, Reader reader, Map<String, Object> options, Context context) {
     ArrayList<Option> compilerOptions = new ArrayList<Option>();
     if (Boolean.TRUE.equals(options.get(Option.BARE.name()))) {
       compilerOptions.add(Option.BARE);

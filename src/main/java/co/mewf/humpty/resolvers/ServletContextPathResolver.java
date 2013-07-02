@@ -28,5 +28,4 @@ public class ServletContextPathResolver implements Resolver {
   public String expand(String uri) {
     return uri.substring("path:".length());
   }
-
 }
