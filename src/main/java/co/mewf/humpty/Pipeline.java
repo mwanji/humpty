@@ -23,7 +23,7 @@ public class Pipeline {
   private final List<PreProcessor> preProcessors;
   private final List<PostProcessor> postProcessors;
 
-  public Pipeline(Configuration configuration, List<Resolver> resolvers, List<PreProcessor> preProcessors, List<PostProcessor> postProcessors) {
+  public Pipeline(Configuration configuration, List<? extends Resolver> resolvers, List<? extends PreProcessor> preProcessors, List<? extends PostProcessor> postProcessors) {
     this.configuration = configuration;
     this.resolvers = Collections.unmodifiableList(resolvers);
     this.preProcessors = Collections.unmodifiableList(preProcessors);
