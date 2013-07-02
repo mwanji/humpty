@@ -74,6 +74,12 @@ public class Pipeline {
   }
 
   private Reader postProcess(Reader asset, Context context) {
-    return asset;
+    Reader currentAsset = asset;
+    for (PostProcessor postProcessor : postProcessors) {
+      if (postProcessor.canProcess(context.getAsset())) {
+        currentAsset = postProcessor.process(context.getAsset(), currentAsset, configuration.getOptionsFor(postProcessor.getClass().getName()), context);
+      }
+    }
+    return currentAsset;
   }
 }

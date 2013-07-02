@@ -10,7 +10,6 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.Arrays;
 import java.util.Collections;
 
 import org.apache.commons.io.IOUtils;
@@ -18,7 +17,7 @@ import org.junit.Test;
 
 public class PipelineTest {
   private Configuration configuration = new Gson().fromJson(new InputStreamReader(getClass().getResourceAsStream("/humpty.json")), Configuration.class);
-  private Pipeline pipeline = new Pipeline(configuration, asList((Resolver) new WebJarResolver()), Arrays.asList((PreProcessor) new CoffeeScriptPreProcessor()), Collections.<PostProcessor>emptyList());
+  private Pipeline pipeline = new Pipeline(configuration, asList(new WebJarResolver()), asList(new CoffeeScriptPreProcessor()), Collections.<PostProcessor>emptyList());
 
   @Test
   public void should_pre_process_asset_in_bundle() throws IOException {
@@ -38,5 +37,16 @@ public class PipelineTest {
     String expected = IOUtils.toString(getClass().getResourceAsStream("/co/mewf/humpty/blocks.js")) + IOUtils.toString(getClass().getResourceAsStream("/co/mewf/humpty/web_server.js"));
 
     assertEquals(expected, resultString);
+  }
+
+  @Test
+  public void should_post_process() throws IOException {
+    Pipeline appendingPipeline = new Pipeline(configuration, asList(new WebJarResolver()), asList(new CoffeeScriptPreProcessor()), asList((new AppendingPostProcessor())));
+    Reader reader = appendingPipeline.process("asset1.js", null, null);
+    String result = IOUtils.toString(reader);
+
+    String expected = IOUtils.toString(pipeline.process("asset1.js", null, null));
+
+    assertEquals(expected + "Appended!", result);
   }
 }
