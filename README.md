@@ -4,6 +4,16 @@ humpty puts your web assets back together. It is a small library that is easy to
 
 ## Installation
 
+Add the dependency to your POM:
+
+````xml
+<dependency>
+  <groupId>co.mewf.humpty</groupId>
+  <artifactId>humpty</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+</dependency>
+````
+
 Add a mapping to `web.xml`:
 
 ````xml
@@ -70,13 +80,23 @@ Each asset has a prefix identifying its type:
 
 * `webjar`: The asset is in a WebJar. This can be just a file name if there is no ambiguity, or a longer path if there is, eg. `smoothness/theme.css`.
 * `path`: The asset is available via URL. This must be the full path after the context path.
-* `classpath`: The asset is on the classpath. This can be just a file name if there is no ambiguity, or a longer path if there is.
 
 ### Processors
 
 Processors modify the assets they are given in some way: compile, concatenate, minify, etc. Pre-processors (eg. a compiler) run before the assets have been concatenated, post-processors (eg. a minifier) run after.
 
 humpty has no default processors, but they are easy to add: simply put them on the classpath and they are automatically used.
+
+There are a number of first-party processors:
+
+* [humpty-compression](http://mewf.co/humpty/compression): JS & CSS minification/obfuscation
+* humpty-bootstrap-less: Bootstrap customisation via Less
+
+#### Custom Processors
+
+New processors can be created by implementing either the `PreProcessor` or `PostProcessor` interface. For the processors to be automatically picked up by a `ServiceLoader`, add a file called co.mewf.humpty.(Pre|Post)Processor to META-INF/services, containing one fully-qualified class name per line.
+
+Processors that are configurable and will be distributed publically should offer a friendly Java interface to do so.
 
 ### Configuration
 
@@ -105,7 +125,7 @@ Required. Must contain at least one bundle.
 
 Optional, processor-specific settings.
 
-Processors are configured through a `Map<String, Map<String, Object>>` where the key is the processor's fully-qualified class name and the value is a processor-specific Map. Add an `options` key to the, JSON object described above.
+Processors are configured through a `Map<String, Map<String, Object>>` where the key is the processor's fully-qualified class name and the value is a processor-specific `Map<String, Object>`. Add an `options` key to the, JSON object described above.
 
 Example:
 

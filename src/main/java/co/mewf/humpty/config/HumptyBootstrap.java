@@ -12,6 +12,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
 
+/**
+ * Uses humpty.json at root of classpath to load the Configuration.
+ *
+ * Uses a {@link ServiceLoader} to get the {@link Resolver}s, {@link PreProcessor}s and {@link PostProcessor}s.
+ *
+ * Extend and override the appropriate methods to customise how these resources are located, how they are ordered, etc.
+ */
 public class HumptyBootstrap {
 
   private final Gson gson = new Gson();
