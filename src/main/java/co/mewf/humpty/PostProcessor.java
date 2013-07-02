@@ -7,6 +7,6 @@ import java.util.Map;
 
 public interface PostProcessor {
 
-  boolean canPostProcess(String asset);
-  Reader postProcess(Reader reader, Map<String, Object> options, Context context);
+  boolean canProcess(String asset);
+  Reader process(Reader reader, Map<String, Object> options, Context context);
 }

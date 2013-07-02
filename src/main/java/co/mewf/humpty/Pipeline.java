@@ -66,8 +66,8 @@ public class Pipeline {
   private Reader preProcess(String assetName, Reader asset, Context context) {
     Reader currentAsset = asset;
     for (PreProcessor preProcessor : preProcessors) {
-      if (preProcessor.canPreProcess(assetName)) {
-        currentAsset = preProcessor.preProcess(currentAsset, configuration.getOptionsFor(preProcessor.getClass().getName()), context);
+      if (preProcessor.canProcess(assetName)) {
+        currentAsset = preProcessor.process(currentAsset, configuration.getOptionsFor(preProcessor.getClass().getName()), context);
       }
     }
     return currentAsset;

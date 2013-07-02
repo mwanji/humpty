@@ -14,12 +14,12 @@ import org.jcoffeescript.Option;
 public class CoffeeScriptPreProcessor implements PreProcessor {
 
   @Override
-  public boolean canPreProcess(String asset) {
+  public boolean canProcess(String asset) {
     return asset.endsWith(".coffee");
   }
 
   @Override
-  public Reader preProcess(Reader reader, Map<String, Object> options, Context context) {
+  public Reader process(Reader reader, Map<String, Object> options, Context context) {
     ArrayList<Option> compilerOptions = new ArrayList<Option>();
     if (Boolean.TRUE.equals(options.get(Option.BARE.name()))) {
       compilerOptions.add(Option.BARE);
