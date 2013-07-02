@@ -31,7 +31,7 @@ public class Pipeline {
   }
 
   public Reader process(String asset, HttpServletRequest request, HttpServletResponse response) {
-    Context context = new Context(configuration.getMode(), request, response);
+    Context context = new Context(configuration.getMode(), asset, request, response);
     Bundle matchingBundle = null;
     for (Bundle bundle : configuration.getBundles()) {
       if (bundle.accepts(asset)) {
