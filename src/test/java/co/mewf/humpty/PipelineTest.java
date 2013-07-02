@@ -2,22 +2,24 @@ package co.mewf.humpty;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
-import co.mewf.humpty.config.Configuration;
-import co.mewf.humpty.resolvers.WebJarResolver;
-
-import com.google.gson.Gson;
+import co.mewf.humpty.config.HumptyBootstrap;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.Collections;
+import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 public class PipelineTest {
-  private Configuration configuration = new Gson().fromJson(new InputStreamReader(getClass().getResourceAsStream("/humpty.json")), Configuration.class);
-  private Pipeline pipeline = new Pipeline(configuration, asList(new WebJarResolver()), asList(new CoffeeScriptPreProcessor()), Collections.<PostProcessor>emptyList());
+  private final HumptyBootstrap bootstrap = new HumptyBootstrap() {
+    @Override
+    protected List<? extends PreProcessor> getPreProcessors() {
+      return asList(new CoffeeScriptPreProcessor());
+    };
+  };
+
+  private final Pipeline pipeline = bootstrap.createPipeline();
 
   @Test
   public void should_pre_process_asset_in_bundle() throws IOException {
@@ -41,7 +43,18 @@ public class PipelineTest {
 
   @Test
   public void should_post_process() throws IOException {
-    Pipeline appendingPipeline = new Pipeline(configuration, asList(new WebJarResolver()), asList(new CoffeeScriptPreProcessor()), asList((new AppendingPostProcessor())));
+    HumptyBootstrap appendingBootstrap = new HumptyBootstrap() {
+      @Override
+      protected List<? extends PreProcessor> getPreProcessors() {
+        return asList(new CoffeeScriptPreProcessor());
+      }
+
+      @Override
+      protected List<? extends PostProcessor> getPostProcessors() {
+        return asList((new AppendingPostProcessor()));
+      }
+    };
+    Pipeline appendingPipeline = appendingBootstrap.createPipeline();
     Reader reader = appendingPipeline.process("asset1.js", null, null);
     String result = IOUtils.toString(reader);
 

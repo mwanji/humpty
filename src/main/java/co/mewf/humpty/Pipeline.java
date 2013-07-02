@@ -67,9 +67,10 @@ public class Pipeline {
     Reader currentAsset = asset;
     for (PreProcessor preProcessor : preProcessors) {
       if (preProcessor.canProcess(assetName)) {
-        currentAsset = preProcessor.process(assetName, currentAsset, configuration.getOptionsFor(preProcessor.getClass().getName()), context);
+        currentAsset = preProcessor.process(assetName, currentAsset, configuration.getOptionsFor(preProcessor.getClass()), context);
       }
     }
+
     return currentAsset;
   }
 
@@ -77,9 +78,10 @@ public class Pipeline {
     Reader currentAsset = asset;
     for (PostProcessor postProcessor : postProcessors) {
       if (postProcessor.canProcess(context.getAsset())) {
-        currentAsset = postProcessor.process(context.getAsset(), currentAsset, configuration.getOptionsFor(postProcessor.getClass().getName()), context);
+        currentAsset = postProcessor.process(context.getAsset(), currentAsset, configuration.getOptionsFor(postProcessor.getClass()), context);
       }
     }
+
     return currentAsset;
   }
 }

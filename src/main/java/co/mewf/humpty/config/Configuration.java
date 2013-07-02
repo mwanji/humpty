@@ -13,7 +13,7 @@ public class Configuration {
 
   private List<Bundle> bundles = Collections.emptyList();
   private Mode mode = Mode.PRODUCTION;
-  private Map<String, Map<String, Object>> options = Collections.emptyMap();
+  private Map<Class<?>, Map<String, Object>> options = Collections.emptyMap();
 
   public Configuration() {}
 
@@ -21,7 +21,7 @@ public class Configuration {
     this.bundles = bundles;
   }
 
-  public Configuration(List<Bundle> bundles, Map<String, Map<String, Object>> options) {
+  public Configuration(List<Bundle> bundles, Map<Class<?>, Map<String, Object>> options) {
     this.bundles = bundles;
     this.options = options;
   }
@@ -31,7 +31,7 @@ public class Configuration {
     this.mode = mode;
   }
 
-  public Configuration(List<Bundle> bundles, Map<String, Map<String, Object>> options, Configuration.Mode mode) {
+  public Configuration(List<Bundle> bundles, Map<Class<?>, Map<String, Object>> options, Configuration.Mode mode) {
     this.bundles = bundles;
     this.mode = mode;
     this.options = options;
@@ -45,11 +45,11 @@ public class Configuration {
     return bundles;
   }
 
-  public Map<String, Object> getOptionsFor(String identifier) {
-    if (!options.containsKey(identifier)) {
+  public Map<String, Object> getOptionsFor(Class<?> processorClass) {
+    if (!options.containsKey(processorClass)) {
       return Collections.emptyMap();
     }
 
-    return options.get(identifier);
+    return options.get(processorClass);
   }
 }
