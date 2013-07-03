@@ -24,12 +24,11 @@ public class HumptyFilter implements Filter {
 
   @Override
   public void init(FilterConfig filterConfig) throws ServletException {
-    HumptyBootstrap bootstrap = createBootstrap();
-    pipeline = bootstrap.createPipeline();
+    pipeline = createPipeline();
   }
 
-  protected HumptyBootstrap createBootstrap() {
-    return new HumptyBootstrap();
+  protected Pipeline createPipeline() {
+    return new HumptyBootstrap().createPipeline();
   }
 
   @Override
