@@ -2,6 +2,7 @@ package co.mewf.humpty;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import co.mewf.humpty.config.HumptyBootstrap;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -12,11 +13,11 @@ import org.webjars.WebJarAssetLocator;
 
 public class PipelineTest {
   private final WebJarAssetLocator locator = new WebJarAssetLocator();
-  private final Pipeline pipeline = new ConfigurableHumptyBootstrap(new CoffeeScriptCompilingProcessor()).createPipeline();
+  private final Pipeline pipeline = new HumptyBootstrap(new CoffeeScriptCompilingProcessor()).createPipeline();
 
   @Test
   public void should_process_bundle() throws IOException {
-    Pipeline testPipeline = new ConfigurableHumptyBootstrap(new TestProcessor()).createPipeline();
+    Pipeline testPipeline = new HumptyBootstrap(new TestProcessor()).createPipeline();
     Reader reader = testPipeline.process("singleAsset.js", null, null);
     String result = IOUtils.toString(reader);
 
