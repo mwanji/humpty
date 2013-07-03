@@ -15,8 +15,6 @@ public class Configuration {
   private Mode mode = Mode.PRODUCTION;
   private Map<Class<?>, Map<String, Object>> options = Collections.emptyMap();
 
-  public Configuration() {}
-
   public Configuration(List<Bundle> bundles) {
     this.bundles = bundles;
   }
@@ -36,6 +34,8 @@ public class Configuration {
     this.mode = mode;
     this.options = options;
   }
+
+  Configuration() {}
 
   public Mode getMode() {
     return mode;
