@@ -23,7 +23,7 @@ public class WebJarResolver implements Resolver {
 
   @Override
   public String expand(String uri) {
-    return "/" + webJarAssetLocator.getFullPath(stripPrefix(uri)).substring("META-INF/resources/".length());
+    return webJarAssetLocator.getFullPath(stripPrefix(uri)).substring("META-INF/resources".length());
   }
 
   private String stripPrefix(String uri) {
