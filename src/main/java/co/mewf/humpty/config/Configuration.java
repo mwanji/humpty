@@ -16,16 +16,16 @@ public class Configuration {
   private Mode mode = Mode.PRODUCTION;
   private final Map<Class<?>, Map<String, Object>> options = new HashMap<Class<?>, Map<String,Object>>();
 
-  public Configuration(List<Bundle> bundles, Map<Class<?>, Map<String, Object>>... options) {
-    this(bundles, Configuration.Mode.PRODUCTION, options);
+  public Configuration(List<Bundle> bundles, ConfigurationOptionsProvider... optionProviders) {
+    this(bundles, Configuration.Mode.PRODUCTION, optionProviders);
   }
 
-  public Configuration(List<Bundle> bundles, Configuration.Mode mode, Map<Class<?>, Map<String, Object>>... options) {
+  public Configuration(List<Bundle> bundles, Configuration.Mode mode, ConfigurationOptionsProvider... optionProviders) {
     this.bundles = bundles;
     this.mode = mode;
-    if (options != null) {
-      for (Map<Class<?>, Map<String, Object>> option : options) {
-        for (Map.Entry<Class<?>, Map<String, Object>> entry : option.entrySet()) {
+    if (optionProviders != null) {
+      for (ConfigurationOptionsProvider optionProvider : optionProviders) {
+        for (Map.Entry<Class<?>, Map<String, Object>> entry : optionProvider.getOptions().entrySet()) {
           this.options.put(entry.getKey(), entry.getValue());
         }
       }
