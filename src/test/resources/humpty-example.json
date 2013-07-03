@@ -1,13 +1,18 @@
 {
 	bundles: [
 		{
-			name: "asset1.js",
-			assets: ["path:/users/user.js", "http://mycdn.com/jquery.js", "classpath:com/example/assets/final.js", "webjar:bootstrap.js"]
+			"name": "asset1.js",
+			"assets": ["path:/users/user.js", "http://mycdn.com/jquery.js", "classpath:com/example/assets/final.js", "webjar:bootstrap.js"]
 		},
 		{
 			name: "asset2.css",
 			assets: ["webjar:bootstrap.css", "path:/app/app.css"]
 		}
 	],
+	options: {
+		"co.mewf.humpty.CoffeeScriptCompilingProcessor": {
+			BARE: true
+		}
+	},
 	mode: "DEVELOPMENT"
 }
