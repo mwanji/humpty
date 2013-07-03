@@ -1,8 +1,10 @@
 package co.mewf.humpty.config;
 
+import co.mewf.humpty.CompilingProcessor;
 import co.mewf.humpty.Pipeline;
 import co.mewf.humpty.PostProcessor;
 import co.mewf.humpty.PreProcessor;
+import co.mewf.humpty.Processor;
 import co.mewf.humpty.Resolver;
 import co.mewf.humpty.config.gson.GsonClassAdapter;
 
@@ -15,7 +17,7 @@ import java.util.List;
 import java.util.ServiceLoader;
 
 /**
- * Uses humpty.json at root of classpath to load the Configuration (eg. src/main/resources in a Maven project).
+ * Uses humpty.json at root of classpath to load the {@link Configuration} (eg. src/main/resources in a Maven project).
  *
  * Uses a {@link ServiceLoader} to get the {@link Resolver}s, {@link PreProcessor}s and {@link PostProcessor}s.
  *
@@ -24,14 +26,16 @@ import java.util.ServiceLoader;
 public class HumptyBootstrap {
 
   private final Gson gson = new GsonBuilder().registerTypeAdapter(Class.class, new GsonClassAdapter()).create();
+  private final ServiceLoader<Processor> processors = ServiceLoader.load(Processor.class);
 
   public Pipeline createPipeline() {
     Configuration configuration = getConfiguration();
     List<? extends Resolver> resolvers = getResolvers();
     List<? extends PreProcessor> preProcessors = getPreProcessors();
     List<? extends PostProcessor> postProcessors = getPostProcessors();
+    List<? extends CompilingProcessor> compilingProcessors = getCompilingProcessors();
 
-    return new Pipeline(configuration, resolvers, preProcessors, postProcessors);
+    return new Pipeline(configuration, resolvers, compilingProcessors, preProcessors, postProcessors);
   }
 
   protected Configuration getConfiguration() {
@@ -48,11 +52,24 @@ public class HumptyBootstrap {
     return resolvers;
   }
 
+  protected List<? extends CompilingProcessor> getCompilingProcessors() {
+    List<CompilingProcessor> compilingProcessors = new ArrayList<CompilingProcessor>();
+    for (Processor processor : processors) {
+      if (processor instanceof CompilingProcessor) {
+        compilingProcessors.add((CompilingProcessor) processor);
+      }
+    }
+
+    return compilingProcessors;
+
+  }
+
   protected List<? extends PreProcessor> getPreProcessors() {
     ArrayList<PreProcessor> preProcessors = new ArrayList<PreProcessor>();
-    ServiceLoader<PreProcessor> serviceLoader = ServiceLoader.load(PreProcessor.class);
-    for (PreProcessor preProcessor : serviceLoader) {
-      preProcessors.add(preProcessor);
+    for (Processor processor : processors) {
+      if (processor instanceof PreProcessor) {
+        preProcessors.add((PreProcessor) processor);
+      }
     }
 
     return preProcessors;
@@ -60,9 +77,10 @@ public class HumptyBootstrap {
 
   protected List<? extends PostProcessor> getPostProcessors() {
     ArrayList<PostProcessor> postProcessors = new ArrayList<PostProcessor>();
-    ServiceLoader<PostProcessor> serviceLoader = ServiceLoader.load(PostProcessor.class);
-    for (PostProcessor postProcessor : serviceLoader) {
-      postProcessors.add(postProcessor);
+    for (Processor processor : processors) {
+      if (processor instanceof PostProcessor) {
+        postProcessors.add((PostProcessor) processor);
+      }
     }
 
     return postProcessors;

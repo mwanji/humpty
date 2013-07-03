@@ -5,8 +5,8 @@ import co.mewf.humpty.config.Context;
 import java.io.Reader;
 import java.util.Map;
 
-public interface PostProcessor {
+public interface PostProcessor extends Processor {
 
-  boolean canProcess(String asset);
-  Reader process(String asset, Reader reader, Map<String, Object> options, Context context);
+  boolean accepts(String asset);
+  Reader postProcess(String asset, Reader reader, Map<String, Object> options, Context context);
 }

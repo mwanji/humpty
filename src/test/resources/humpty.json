@@ -2,17 +2,20 @@
 	bundles: [
 		{
 			name: "singleAsset.js",
+			assets: ["webjar:blocks.js"]
+		},
+		{
+			name: "multipleAssets.js",
+			assets: ["webjar:blocks.js", "webjar:web_server.js"]
+		},
+		{
+			name: "compilableAsset.js",
 			assets: ["webjar:blocks.coffee"]
 		},
 		{
-			name: "asset1.js",
+			name: "multipleCompilableAssets.js",
 			assets: ["webjar:blocks.coffee", "webjar:web_server.coffee"]
 		}
 	],
-	options: {
-		"co.mewf.humpty.CoffeeScriptPreProcessor": {
-			BARE: true
-		}
-	},
 	mode: "DEVELOPMENT"
 }

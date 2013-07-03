@@ -5,8 +5,8 @@ import co.mewf.humpty.config.PreProcessorContext;
 import java.io.Reader;
 import java.util.Map;
 
-public interface PreProcessor {
+public interface PreProcessor extends Processor {
 
-  boolean canProcess(String asset);
-  Reader process(String asset, Reader reader, Map<String, Object> options, PreProcessorContext context);
+  boolean accepts(String asset);
+  Reader preProcess(String asset, Reader reader, Map<String, Object> options, PreProcessorContext context);
 }

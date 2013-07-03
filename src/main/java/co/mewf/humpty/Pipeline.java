@@ -22,10 +22,12 @@ public class Pipeline {
   private final List<Resolver> resolvers;
   private final List<PreProcessor> preProcessors;
   private final List<PostProcessor> postProcessors;
+  private final List<CompilingProcessor> compilingProcessors;
 
-  public Pipeline(Configuration configuration, List<? extends Resolver> resolvers, List<? extends PreProcessor> preProcessors, List<? extends PostProcessor> postProcessors) {
+  public Pipeline(Configuration configuration, List<? extends Resolver> resolvers, List<? extends CompilingProcessor> compilingProcessors, List<? extends PreProcessor> preProcessors, List<? extends PostProcessor> postProcessors) {
     this.configuration = configuration;
     this.resolvers = Collections.unmodifiableList(resolvers);
+    this.compilingProcessors = Collections.unmodifiableList(compilingProcessors);
     this.preProcessors = Collections.unmodifiableList(preProcessors);
     this.postProcessors = Collections.unmodifiableList(postProcessors);
   }
@@ -53,11 +55,15 @@ public class Pipeline {
 
       Reader asset = resolver.resolve(filteredAsset, context);
       try {
-        Reader preProcessedAsset = preProcess(filteredAsset.substring(filteredAsset.indexOf(':') + 1), asset, context.getPreprocessorContext(resolver.expand(filteredAsset)));
+        PreProcessorContext preprocessorContext = context.getPreprocessorContext(resolver.expand(filteredAsset));
+
+        CompilingProcessor.CompilationResult compilationResult = compile(filteredAsset.substring(filteredAsset.indexOf(':') + 1), asset, preprocessorContext);
+        Reader preProcessedAsset = preProcess(compilationResult.getAssetName(), compilationResult.getAsset(), preprocessorContext);
         bundleString.append(IOUtils.toString(preProcessedAsset));
         if (bundleString.charAt(bundleString.length() - 1) != '\n') {
           bundleString.append('\n');
         }
+
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -66,11 +72,21 @@ public class Pipeline {
     return postProcess(new StringReader(bundleString.toString()), context);
   }
 
+  private CompilingProcessor.CompilationResult compile(String assetName, Reader asset, PreProcessorContext context) {
+    CompilingProcessor.CompilationResult compilationResult = new CompilingProcessor.CompilationResult(assetName, asset);
+    for (CompilingProcessor processor : compilingProcessors) {
+      if (processor.accepts(compilationResult.getAssetName())) {
+        compilationResult = processor.compile(compilationResult.getAssetName(), compilationResult.getAsset(), configuration.getOptionsFor(processor.getClass()), context);
+      }
+    }
+    return compilationResult;
+  }
+
   private Reader preProcess(String assetName, Reader asset, PreProcessorContext context) {
     Reader currentAsset = asset;
     for (PreProcessor preProcessor : preProcessors) {
-      if (preProcessor.canProcess(assetName)) {
-        currentAsset = preProcessor.process(assetName, currentAsset, configuration.getOptionsFor(preProcessor.getClass()), context);
+      if (preProcessor.accepts(assetName)) {
+        currentAsset = preProcessor.preProcess(assetName, currentAsset, configuration.getOptionsFor(preProcessor.getClass()), context);
       }
     }
 
@@ -80,8 +96,8 @@ public class Pipeline {
   private Reader postProcess(Reader asset, Context context) {
     Reader currentAsset = asset;
     for (PostProcessor postProcessor : postProcessors) {
-      if (postProcessor.canProcess(context.getBundleName())) {
-        currentAsset = postProcessor.process(context.getBundleName(), currentAsset, configuration.getOptionsFor(postProcessor.getClass()), context);
+      if (postProcessor.accepts(context.getBundleName())) {
+        currentAsset = postProcessor.postProcess(context.getBundleName(), currentAsset, configuration.getOptionsFor(postProcessor.getClass()), context);
       }
     }
 

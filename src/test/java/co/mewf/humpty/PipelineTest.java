@@ -1,65 +1,47 @@
 package co.mewf.humpty;
 
-import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
-import co.mewf.humpty.config.HumptyBootstrap;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
+import org.webjars.WebJarAssetLocator;
 
 public class PipelineTest {
-  private final HumptyBootstrap bootstrap = new HumptyBootstrap() {
-    @Override
-    protected List<? extends PreProcessor> getPreProcessors() {
-      return asList(new CoffeeScriptPreProcessor());
-    };
-  };
-
-  private final Pipeline pipeline = bootstrap.createPipeline();
+  private final WebJarAssetLocator locator = new WebJarAssetLocator();
+  private final Pipeline pipeline = new ConfigurableHumptyBootstrap(new CoffeeScriptCompilingProcessor()).createPipeline();
 
   @Test
-  public void should_pre_process_asset_in_bundle() throws IOException {
-    Reader result = pipeline.process("singleAsset.js", null, null);
+  public void should_process_bundle() throws IOException {
+    Pipeline testPipeline = new ConfigurableHumptyBootstrap(new TestProcessor()).createPipeline();
+    Reader reader = testPipeline.process("singleAsset.js", null, null);
+    String result = IOUtils.toString(reader);
 
-    String resultString = IOUtils.toString(result);
-
-    assertEquals(IOUtils.toString(getClass().getResourceAsStream("/co/mewf/humpty/blocks.js")), resultString);
+    assertTrue(result.startsWith("Preprocessed!Compiled!"));
+    assertTrue(result.endsWith("Postprocessed!"));
   }
 
   @Test
-  public void should_concatenate_bundle() throws IOException {
-    Reader result = pipeline.process("asset1.js", null, null);
+  public void should_compile_bundle() throws IOException {
+    Reader result = pipeline.process("compilableAsset.js", null, null);
 
     String resultString = IOUtils.toString(result);
 
-    String expected = IOUtils.toString(getClass().getResourceAsStream("/co/mewf/humpty/blocks.js")) + IOUtils.toString(getClass().getResourceAsStream("/co/mewf/humpty/web_server.js"));
-
+    String expected = IOUtils.toString(getClass().getClassLoader().getResourceAsStream(locator.getFullPath("blocks.js")));
     assertEquals(expected, resultString);
   }
 
   @Test
-  public void should_post_process() throws IOException {
-    HumptyBootstrap appendingBootstrap = new HumptyBootstrap() {
-      @Override
-      protected List<? extends PreProcessor> getPreProcessors() {
-        return asList(new CoffeeScriptPreProcessor());
-      }
+  public void should_concatenate_bundle_with_multiple_assets() throws IOException {
+    Reader result = pipeline.process("multipleAssets.js", null, null);
 
-      @Override
-      protected List<? extends PostProcessor> getPostProcessors() {
-        return asList((new AppendingPostProcessor()));
-      }
-    };
-    Pipeline appendingPipeline = appendingBootstrap.createPipeline();
-    Reader reader = appendingPipeline.process("asset1.js", null, null);
-    String result = IOUtils.toString(reader);
+    String resultString = IOUtils.toString(result);
 
-    String expected = IOUtils.toString(pipeline.process("asset1.js", null, null));
+    String expected = IOUtils.toString(getClass().getClassLoader().getResourceAsStream(locator.getFullPath("blocks.js"))) + IOUtils.toString(getClass().getClassLoader().getResourceAsStream(locator.getFullPath("web_server.js")));
 
-    assertEquals(expected + "Appended!", result);
+    assertEquals(expected, resultString);
   }
 }

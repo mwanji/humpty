@@ -11,22 +11,20 @@ import org.apache.commons.io.IOUtils;
 import org.jcoffeescript.JCoffeeScriptCompiler;
 import org.jcoffeescript.Option;
 
-public class CoffeeScriptPreProcessor implements PreProcessor {
+public class CoffeeScriptCompilingProcessor implements CompilingProcessor {
 
   @Override
-  public boolean canProcess(String asset) {
+  public boolean accepts(String asset) {
     return asset.endsWith(".coffee");
   }
 
   @Override
-  public Reader process(String asset, Reader reader, Map<String, Object> options, PreProcessorContext context) {
+  public CompilationResult compile(String asset, Reader reader, Map<String, Object> options, PreProcessorContext context) {
     ArrayList<Option> compilerOptions = new ArrayList<Option>();
-    if (Boolean.TRUE.equals(options.get(Option.BARE.name()))) {
-      compilerOptions.add(Option.BARE);
-    }
+    compilerOptions.add(Option.BARE);
     try {
       String compiled = new JCoffeeScriptCompiler(compilerOptions).compile(IOUtils.toString(reader));
-      return new StringReader(compiled);
+      return new CompilationResult(asset.replace(".coffee", ".js"), new StringReader(compiled));
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
