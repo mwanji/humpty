@@ -3,11 +3,11 @@ package co.mewf.humpty;
 import co.mewf.humpty.config.Bundle;
 import co.mewf.humpty.config.Configuration;
 import co.mewf.humpty.config.Context;
+import co.mewf.humpty.config.PreProcessorContext;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.io.StringWriter;
 import java.util.Collections;
 import java.util.List;
 
@@ -30,31 +30,34 @@ public class Pipeline {
     this.postProcessors = Collections.unmodifiableList(postProcessors);
   }
 
-  public Reader process(String asset, HttpServletRequest request, HttpServletResponse response) {
-    Context context = new Context(configuration.getMode(), asset, request, response);
-    Bundle matchingBundle = null;
-    for (Bundle bundle : configuration.getBundles()) {
-      if (bundle.accepts(asset)) {
-        matchingBundle = bundle;
+  public Reader process(String bundleName, HttpServletRequest request, HttpServletResponse response) {
+    Context context = new Context(configuration.getMode(), bundleName, request, response);
+    Bundle bundle = null;
+    for (Bundle candidate : configuration.getBundles()) {
+      if (candidate.accepts(bundleName)) {
+        bundle = candidate;
         break;
       }
     }
 
-    List<String> filteredAssets = matchingBundle.getBundleFor(asset);
-    StringWriter bundleString = new StringWriter();
+    List<String> filteredAssets = bundle.getBundleFor(bundleName);
+    StringBuilder bundleString = new StringBuilder();
     for (String filteredAsset : filteredAssets) {
-      Resolver matchingResolver = null;
-      for (Resolver resolver : resolvers) {
-        if (resolver.accepts(filteredAsset)) {
-          matchingResolver = resolver;
+      Resolver resolver = null;
+      for (Resolver candidate : resolvers) {
+        if (candidate.accepts(filteredAsset)) {
+          resolver = candidate;
           break;
         }
       }
 
-      Reader resolvedAsset = matchingResolver.resolve(filteredAsset, context);
+      Reader asset = resolver.resolve(filteredAsset, context);
       try {
-        Reader preProcessedAsset = preProcess(filteredAsset.substring(asset.indexOf(':') + 1), resolvedAsset, context);
-        IOUtils.copy(preProcessedAsset, bundleString);
+        Reader preProcessedAsset = preProcess(filteredAsset.substring(filteredAsset.indexOf(':') + 1), asset, context.getPreprocessorContext(resolver.expand(filteredAsset)));
+        bundleString.append(IOUtils.toString(preProcessedAsset));
+        if (bundleString.charAt(bundleString.length() - 1) != '\n') {
+          bundleString.append('\n');
+        }
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -63,7 +66,7 @@ public class Pipeline {
     return postProcess(new StringReader(bundleString.toString()), context);
   }
 
-  private Reader preProcess(String assetName, Reader asset, Context context) {
+  private Reader preProcess(String assetName, Reader asset, PreProcessorContext context) {
     Reader currentAsset = asset;
     for (PreProcessor preProcessor : preProcessors) {
       if (preProcessor.canProcess(assetName)) {
@@ -77,8 +80,8 @@ public class Pipeline {
   private Reader postProcess(Reader asset, Context context) {
     Reader currentAsset = asset;
     for (PostProcessor postProcessor : postProcessors) {
-      if (postProcessor.canProcess(context.getAsset())) {
-        currentAsset = postProcessor.process(context.getAsset(), currentAsset, configuration.getOptionsFor(postProcessor.getClass()), context);
+      if (postProcessor.canProcess(context.getBundleName())) {
+        currentAsset = postProcessor.process(context.getBundleName(), currentAsset, configuration.getOptionsFor(postProcessor.getClass()), context);
       }
     }
 

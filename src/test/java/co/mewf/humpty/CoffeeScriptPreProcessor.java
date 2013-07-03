@@ -1,6 +1,6 @@
 package co.mewf.humpty;
 
-import co.mewf.humpty.config.Context;
+import co.mewf.humpty.config.PreProcessorContext;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -19,7 +19,7 @@ public class CoffeeScriptPreProcessor implements PreProcessor {
   }
 
   @Override
-  public Reader process(String asset, Reader reader, Map<String, Object> options, Context context) {
+  public Reader process(String asset, Reader reader, Map<String, Object> options, PreProcessorContext context) {
     ArrayList<Option> compilerOptions = new ArrayList<Option>();
     if (Boolean.TRUE.equals(options.get(Option.BARE.name()))) {
       compilerOptions.add(Option.BARE);

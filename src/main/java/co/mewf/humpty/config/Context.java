@@ -8,13 +8,13 @@ import javax.servlet.http.HttpServletResponse;
 public class Context {
 
   private final Configuration.Mode mode;
-  private final String asset;
+  private final String bundleName;
   private final HttpServletRequest request;
   private final HttpServletResponse response;
 
-  public Context(Mode mode, String asset, HttpServletRequest request, HttpServletResponse response) {
+  public Context(Mode mode, String bundleName, HttpServletRequest request, HttpServletResponse response) {
     this.mode = mode;
-    this.asset = asset;
+    this.bundleName = bundleName;
     this.request = request;
     this.response = response;
   }
@@ -23,8 +23,8 @@ public class Context {
     return mode;
   }
 
-  public String getAsset() {
-    return asset;
+  public String getBundleName() {
+    return bundleName;
   }
 
   public HttpServletRequest getRequest() {
@@ -33,5 +33,9 @@ public class Context {
 
   public HttpServletResponse getResponse() {
     return response;
+  }
+
+  public PreProcessorContext getPreprocessorContext(String assetUrl) {
+    return new PreProcessorContext(assetUrl, mode, bundleName, request, response);
   }
 }
