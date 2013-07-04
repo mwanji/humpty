@@ -6,10 +6,8 @@ import co.mewf.humpty.PostProcessor;
 import co.mewf.humpty.PreProcessor;
 import co.mewf.humpty.Processor;
 import co.mewf.humpty.Resolver;
-import co.mewf.humpty.config.gson.GsonClassAdapter;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -22,21 +20,46 @@ import java.util.ServiceLoader;
  *
  * Uses a {@link ServiceLoader} to get the {@link Resolver}s, {@link PreProcessor}s and {@link PostProcessor}s.
  *
- * Extend and override the appropriate methods to customise how these resources are located, how they are ordered, etc.</p>
+ * <p>Extend and override the appropriate methods to customise how these resources are located, how they are ordered, etc.</p>
  *
- * <b>Constructor configuration</b>
- * <p>{@link HumptyBootstrap#HumptyBootstrap(Object...)} can be used to specify which Configuration, Resolvers and Processors to use,
- * as well as their order.</p>
+ * <b>Configuration</b>
+ * <p>Use {@link HumptyBootstrap.Builder} to construct a custom bootstrapper, e.g. to specify the order in which processors must be used.</p>
+ * <p>Falls back to {@link ServiceLoader} on a per-resource type basis if none is provided.</p>
  *
  */
 public class HumptyBootstrap {
 
-  private final Gson gson = new GsonBuilder().registerTypeAdapter(Class.class, new GsonClassAdapter()).create();
+  public static class Builder {
+    private Config config = new Config();
+
+    /**
+     * @param humptyFile The path to the humpty configuration file on the classpath. Must start with a slash, e.g. /app/config/my-humpty.json
+     */
+    public Builder humptyFile(String humptyFile) {
+      config.humptyFile = humptyFile;
+      return this;
+    }
+
+    /**
+     * @param resources Can contain a {@link Configuration}, {@link Resolver}s, {@link PreProcessor}s and {@link PostProcessor}s.
+     * At runtime, the resources are used in declaration order.
+     */
+    public HumptyBootstrap build(Object... resources) {
+      return new HumptyBootstrap(config, resources);
+    }
+  }
+
+  static class Config {
+    String humptyFile = "/humpty.json";
+  }
+
+  private final Gson gson = new Gson();
   private final ServiceLoader<Processor> processors = ServiceLoader.load(Processor.class);
   private final Object[] resources;
+  private final Config config;
 
   public HumptyBootstrap(Object... resources) {
-    this.resources = resources;
+    this(new Config(), resources);
   }
 
   public Pipeline createPipeline() {
@@ -56,7 +79,7 @@ public class HumptyBootstrap {
       }
     }
 
-    return gson.fromJson(new InputStreamReader(getClass().getResourceAsStream("/humpty.json")), Configuration.class);
+    return gson.fromJson(new InputStreamReader(getClass().getResourceAsStream(config.humptyFile)), Configuration.class);
   }
 
   protected List<? extends Resolver> getResolvers() {
@@ -145,5 +168,10 @@ public class HumptyBootstrap {
     }
 
     return postProcessors;
+  }
+
+  HumptyBootstrap(Config config, Object... resources) {
+    this.config = config;
+    this.resources = resources;
   }
 }
