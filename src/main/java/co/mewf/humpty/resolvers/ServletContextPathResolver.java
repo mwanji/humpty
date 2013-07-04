@@ -8,11 +8,16 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.Reader;
 
+import javax.servlet.ServletContext;
+
+/**
+ * Looks up assets using the {@link ServletContext}. It accepts assets starting with <code>/</code>, e.g. /scripts/app.js
+ */
 public class ServletContextPathResolver implements Resolver {
 
   @Override
   public boolean accepts(String uri) {
-    return uri.startsWith("path:");
+    return uri.startsWith("/");
   }
 
   @Override
@@ -26,6 +31,6 @@ public class ServletContextPathResolver implements Resolver {
 
   @Override
   public String expand(String uri) {
-    return uri.substring("path:".length());
+    return uri;
   }
 }
