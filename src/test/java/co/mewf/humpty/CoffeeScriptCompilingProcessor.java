@@ -5,7 +5,6 @@ import co.mewf.humpty.config.PreProcessorContext;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.jcoffeescript.JCoffeeScriptCompiler;
@@ -19,7 +18,7 @@ public class CoffeeScriptCompilingProcessor implements CompilingProcessor {
   }
 
   @Override
-  public CompilationResult compile(String asset, Reader reader, Map<String, Object> options, PreProcessorContext context) {
+  public CompilationResult compile(String asset, Reader reader, PreProcessorContext context) {
     ArrayList<Option> compilerOptions = new ArrayList<Option>();
     compilerOptions.add(Option.BARE);
     try {

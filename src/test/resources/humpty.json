@@ -17,5 +17,10 @@
 			assets: ["webjar:blocks.coffee", "webjar:web_server.coffee"]
 		}
 	],
+	options: {
+		testConfigurable: {
+			message: "aliased from JSON!"
+		}
+	},
 	mode: "DEVELOPMENT"
 }

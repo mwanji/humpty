@@ -1,6 +1,7 @@
 package co.mewf.humpty;
 
 import co.mewf.humpty.config.Bundle;
+import co.mewf.humpty.config.Configurable;
 import co.mewf.humpty.config.Configuration;
 import co.mewf.humpty.config.Context;
 import co.mewf.humpty.config.PreProcessorContext;
@@ -8,6 +9,7 @@ import co.mewf.humpty.config.PreProcessorContext;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -30,6 +32,7 @@ public class Pipeline {
     this.compilingProcessors = Collections.unmodifiableList(compilingProcessors);
     this.preProcessors = Collections.unmodifiableList(preProcessors);
     this.postProcessors = Collections.unmodifiableList(postProcessors);
+    configure();
   }
 
   public Reader process(String bundleName, HttpServletRequest request, HttpServletResponse response) {
@@ -72,11 +75,25 @@ public class Pipeline {
     return postProcess(new StringReader(bundleString.toString()), context);
   }
 
+  private void configure() {
+    ArrayList<Processor> resources = new ArrayList<Processor>();
+    resources.addAll(compilingProcessors);
+    resources.addAll(preProcessors);
+    resources.addAll(postProcessors);
+
+    for (Processor resource : resources) {
+      if (resource instanceof Configurable) {
+        Configurable configurable = (Configurable) resource;
+        configurable.configure(configuration.getOptionsFor(configurable));
+      }
+    }
+  }
+
   private CompilingProcessor.CompilationResult compile(String assetName, Reader asset, PreProcessorContext context) {
     CompilingProcessor.CompilationResult compilationResult = new CompilingProcessor.CompilationResult(assetName, asset);
     for (CompilingProcessor processor : compilingProcessors) {
       if (processor.accepts(compilationResult.getAssetName())) {
-        compilationResult = processor.compile(compilationResult.getAssetName(), compilationResult.getAsset(), configuration.getOptionsFor(processor.getClass()), context);
+        compilationResult = processor.compile(compilationResult.getAssetName(), compilationResult.getAsset(), context);
       }
     }
     return compilationResult;
@@ -86,7 +103,7 @@ public class Pipeline {
     Reader currentAsset = asset;
     for (PreProcessor preProcessor : preProcessors) {
       if (preProcessor.accepts(assetName)) {
-        currentAsset = preProcessor.preProcess(assetName, currentAsset, configuration.getOptionsFor(preProcessor.getClass()), context);
+        currentAsset = preProcessor.preProcess(assetName, currentAsset, context);
       }
     }
 
@@ -97,7 +114,7 @@ public class Pipeline {
     Reader currentAsset = asset;
     for (PostProcessor postProcessor : postProcessors) {
       if (postProcessor.accepts(context.getBundleName())) {
-        currentAsset = postProcessor.postProcess(context.getBundleName(), currentAsset, configuration.getOptionsFor(postProcessor.getClass()), context);
+        currentAsset = postProcessor.postProcess(context.getBundleName(), currentAsset, context);
       }
     }
 

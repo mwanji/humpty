@@ -1,0 +1,14 @@
+{
+	bundles: [
+		{
+			name: "singleAsset.js",
+			assets: ["webjar:blocks.js"]
+		}
+	],
+	options: {
+		"co.mewf.humpty.TestConfigurable": {
+			message: "configured from JSON!"
+		}
+	},
+	mode: "DEVELOPMENT"
+}

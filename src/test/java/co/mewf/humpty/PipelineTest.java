@@ -1,7 +1,10 @@
 package co.mewf.humpty;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import co.mewf.humpty.config.Bundle;
+import co.mewf.humpty.config.Configuration;
 import co.mewf.humpty.config.HumptyBootstrap;
 
 import java.io.IOException;
@@ -44,5 +47,34 @@ public class PipelineTest {
     String expected = IOUtils.toString(getClass().getClassLoader().getResourceAsStream(locator.getFullPath("blocks.js"))) + IOUtils.toString(getClass().getClassLoader().getResourceAsStream(locator.getFullPath("web_server.js")));
 
     assertEquals(expected, resultString);
+  }
+
+  @Test
+  public void should_pass_configuration_options() throws IOException {
+    TestConfigurable testConfigurable = new TestConfigurable();
+    Pipeline configurablePipeline = new HumptyBootstrap(new Configuration(asList(new Bundle("singleAsset.js", asList("webjar:blocks.js"))), testConfigurable), testConfigurable).createPipeline();
+
+    String actual = IOUtils.toString(configurablePipeline.process("singleAsset.js", null, null));
+
+    assertEquals("passed!passed!\npassed!", actual);
+  }
+
+  @Test
+  public void should_pass_configuration_options_via_json() throws IOException {
+    HumptyBootstrap bootstrap = new HumptyBootstrap.Builder().humptyFile("/humpty-no-alias.json").build(new TestConfigurable());
+    Pipeline configurablePipeline = bootstrap.createPipeline();
+
+    String actual = IOUtils.toString(configurablePipeline.process("singleAsset.js", null, null));
+
+    assertEquals("configured from JSON!configured from JSON!\nconfigured from JSON!", actual);
+  }
+
+  @Test
+  public void should_pass_aliased_configuration_via_json() throws IOException {
+    Pipeline aliasedPipeline = new HumptyBootstrap(new TestConfigurable()).createPipeline();
+
+    String actual = IOUtils.toString(aliasedPipeline.process("singleAsset.js", null, null));
+
+    assertEquals("aliased from JSON!aliased from JSON!\naliased from JSON!", actual);
   }
 }

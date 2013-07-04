@@ -6,7 +6,6 @@ import co.mewf.humpty.config.PreProcessorContext;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 
@@ -18,7 +17,7 @@ public class TestProcessor implements PostProcessor, PreProcessor, CompilingProc
   }
 
   @Override
-  public CompilationResult compile(String assetName, Reader asset, Map<String, Object> options, PreProcessorContext context) {
+  public CompilationResult compile(String assetName, Reader asset, PreProcessorContext context) {
     try {
       return new CompilationResult(assetName, new StringReader("Compiled!" + IOUtils.toString(asset)));
     } catch (IOException e) {
@@ -27,7 +26,7 @@ public class TestProcessor implements PostProcessor, PreProcessor, CompilingProc
   }
 
   @Override
-  public Reader preProcess(String asset, Reader reader, Map<String, Object> options, PreProcessorContext context) {
+  public Reader preProcess(String asset, Reader reader, PreProcessorContext context) {
     try {
       return new StringReader("Preprocessed!" + IOUtils.toString(reader));
     } catch (IOException e) {
@@ -36,7 +35,7 @@ public class TestProcessor implements PostProcessor, PreProcessor, CompilingProc
   }
 
   @Override
-  public Reader postProcess(String asset, Reader reader, Map<String, Object> options, Context context) {
+  public Reader postProcess(String asset, Reader reader, Context context) {
     try {
       return new StringReader(IOUtils.toString(reader) + "Postprocessed!");
     } catch (IOException e) {

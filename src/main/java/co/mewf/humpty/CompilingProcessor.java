@@ -3,12 +3,11 @@ package co.mewf.humpty;
 import co.mewf.humpty.config.PreProcessorContext;
 
 import java.io.Reader;
-import java.util.Map;
 
 public interface CompilingProcessor extends Processor {
 
   boolean accepts(String assetName);
-  CompilingProcessor.CompilationResult compile(String assetName, Reader asset, Map<String, Object> options, PreProcessorContext context);
+  CompilingProcessor.CompilationResult compile(String assetName, Reader asset, PreProcessorContext context);
 
   public static class CompilationResult {
     private final Reader asset;
