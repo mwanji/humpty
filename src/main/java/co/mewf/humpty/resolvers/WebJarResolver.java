@@ -13,7 +13,7 @@ public class WebJarResolver implements Resolver {
 
   @Override
   public boolean accepts(String uri) {
-    return uri.startsWith("webjar:");
+    return uri.startsWith("webjar:") || (!uri.contains(":") && !uri.startsWith("/"));
   }
 
   @Override
