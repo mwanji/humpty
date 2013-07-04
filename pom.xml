@@ -83,4 +83,49 @@
 			<version>0.5</version>
 		</dependency>
 	</dependencies>
+  <licenses>
+    <license>
+      <name>The MIT License</name>
+      <url>http://www.opensource.org/licenses/mit-license.php</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <scm>
+    <connection>scm:git:git@github.com:mewf/humpty.git</connection>
+    <developerConnection>scm:git:git@github.com:mewf/humpty.git</developerConnection>
+    <url>https://github.com/mewf/formaliser</url>
+  </scm>
+  <issueManagement>
+    <system>Github Issues</system>
+    <url>https://github.com/mewf/humpty/issues</url>
+  </issueManagement>
+  <profiles>
+    <profile>
+      <id>release-sign-artifacts</id>
+      <activation>
+        <property>
+          <name>performRelease</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.4</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
