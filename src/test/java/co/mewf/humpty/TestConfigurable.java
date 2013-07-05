@@ -1,6 +1,6 @@
 package co.mewf.humpty;
 
-import co.mewf.humpty.config.Aliasable;
+import co.mewf.humpty.config.Alias;
 import co.mewf.humpty.config.Configurable;
 import co.mewf.humpty.config.ConfigurationOptionsProvider;
 import co.mewf.humpty.config.Context;
@@ -14,7 +14,8 @@ import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 
-public class TestConfigurable implements PostProcessor, PreProcessor, CompilingProcessor, Configurable, ConfigurationOptionsProvider, Aliasable {
+@Alias("testConfigurable")
+public class TestConfigurable implements PostProcessor, PreProcessor, CompilingProcessor, Configurable, ConfigurationOptionsProvider {
 
   private String message = "failed!";
 
@@ -59,10 +60,5 @@ public class TestConfigurable implements PostProcessor, PreProcessor, CompilingP
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  @Override
-  public String getAlias() {
-    return "testConfigurable";
   }
 }

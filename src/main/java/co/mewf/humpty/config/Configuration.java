@@ -43,9 +43,8 @@ public class Configuration {
   }
 
   public Map<String, Object> getOptionsFor(Configurable configurable) {
-    if (configurable instanceof Aliasable) {
-      Aliasable aliasable = (Aliasable) configurable;
-      String key = aliasable.getAlias();
+    if (configurable.getClass().isAnnotationPresent(Alias.class)) {
+      String key = configurable.getClass().getAnnotation(Alias.class).value();
 
       if (options.containsKey(key)) {
         return options.get(key);
