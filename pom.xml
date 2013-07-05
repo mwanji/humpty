@@ -10,7 +10,21 @@
 	<artifactId>humpty</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<name>Humpty</name>
+  <url>http://mewf.co/humpty</url>
 	<description>Puts your web assets together</description>
+  <developers>
+    <developer>
+      <id>moandji.ezana</id>
+      <name>Moandji Ezana</name>
+      <email>mwanji@gmail.com</email>
+      <roles>
+        <role>Developer</role>
+      </roles>
+      <timezone>+2</timezone>
+      <organization>mewf</organization>
+      <organizationUrl>http://mewf.co</organizationUrl>
+    </developer>
+  </developers>
 	<build>
 		<plugins>
 			<plugin>
@@ -58,6 +72,12 @@
 			<artifactId>mockito-core</artifactId>
 			<version>1.9.5</version>
 			<scope>test</scope>
+			<exclusions>
+			  <exclusion>
+			    <artifactId>hamcrest-core</artifactId>
+			    <groupId>org.hamcrest</groupId>
+			  </exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
