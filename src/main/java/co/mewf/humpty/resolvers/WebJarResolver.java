@@ -8,7 +8,6 @@ import java.io.Reader;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
-import org.apache.commons.io.FilenameUtils;
 import org.webjars.WebJarAssetLocator;
 
 public class WebJarResolver implements Resolver {
@@ -16,20 +15,14 @@ public class WebJarResolver implements Resolver {
 
   @Override
   public boolean accepts(String uri) {
-    return uri.startsWith("webjar:") || (!uri.contains(":") && !uri.startsWith("/"));
+    return !uri.contains(":") && !uri.startsWith("/");
   }
 
   @Override
   public LinkedHashMap<String, ? extends Reader> resolve(String uri, Context context) {
     LinkedHashMap<String, Reader> readers = new LinkedHashMap<String, Reader>();
-    uri = stripPrefix(uri);
-    WildcardHelper helper = new WildcardHelper(uri, context);
+    WildcardHelper helper = new WildcardHelper(stripPrefix(uri), context);
 
-    String extension = FilenameUtils.getExtension(uri);
-    boolean extensionMissing = extension.isEmpty();
-    if (extensionMissing) {
-      extension = FilenameUtils.getExtension(context.getBundleName());
-    }
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     if (!helper.hasWildcard()) {
       String fullUri = helper.getFull();
@@ -40,7 +33,7 @@ public class WebJarResolver implements Resolver {
 
     Set<String> assets = webJarAssetLocator.listAssets(helper.getRootDir());
     for (String asset : assets) {
-      if (FilenameUtils.getExtension(asset).equals(extension)) {
+      if (helper.matches(asset)) {
         readers.put(stripPrefix(asset), new InputStreamReader(classLoader.getResourceAsStream(asset)));
       }
     }

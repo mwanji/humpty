@@ -2,11 +2,11 @@
 	bundles: [
 		{
 			"name": "asset1.js",
-			"assets": ["path:/users/user.js", "http://mycdn.com/jquery.js", "classpath:com/example/assets/final.js", "webjar:bootstrap.js"]
+			"assets": ["/users/user.js", "http://mycdn.com/jquery.js", "classcom/example/assets/final.js", "bootstrap.js"]
 		},
 		{
 			name: "asset2.css",
-			assets: ["webjar:bootstrap.css", "path:/app/app.css"]
+			assets: ["bootstrap.css", "/app/app.css"]
 		}
 	],
 	options: {

@@ -15,7 +15,7 @@ public class TagsTest {
 
   @Test
   public void should_unbundle_js_assets_in_dev_mode() {
-    Configuration configuration = new Configuration(asList(new Bundle("bundle1.js", asList("webjar:jquery.js", "/asset2.js"))), Configuration.Mode.DEVELOPMENT);
+    Configuration configuration = new Configuration(asList(new Bundle("bundle1.js", asList("jquery.js", "/asset2.js"))), Configuration.Mode.DEVELOPMENT);
     String html = new Tags(configuration, asList(new WebJarResolver(), new ServletContextPathResolver())).generate("bundle1.js", rootPath);
 
     assertEquals("<script src=\"/context/webjars/jquery/1.8.2/jquery.js\"></script>\n<script src=\"/context/asset2.js\"></script>\n", html);

@@ -53,7 +53,7 @@ public class PipelineTest {
   @Test
   public void should_pass_configuration_options_via_java() throws IOException {
     TestConfigurable testConfigurable = new TestConfigurable();
-    Pipeline configurablePipeline = new HumptyBootstrap(new Configuration(asList(new Bundle("singleAsset.js", asList("webjar:blocks.js"))), testConfigurable), testConfigurable).createPipeline();
+    Pipeline configurablePipeline = new HumptyBootstrap(new Configuration(asList(new Bundle("singleAsset.js", asList("blocks.js"))), testConfigurable), testConfigurable).createPipeline();
 
     String actual = IOUtils.toString(configurablePipeline.process("singleAsset.js", null, null));
 

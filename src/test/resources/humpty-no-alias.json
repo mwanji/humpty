@@ -2,7 +2,7 @@
 	bundles: [
 		{
 			name: "singleAsset.js",
-			assets: ["webjar:blocks.js"]
+			assets: ["blocks.js"]
 		}
 	],
 	options: {

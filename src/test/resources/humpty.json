@@ -2,19 +2,19 @@
 	bundles: [
 		{
 			name: "singleAsset.js",
-			assets: ["webjar:blocks.js"]
+			assets: ["blocks.js"]
 		},
 		{
 			name: "multipleAssets.js",
-			assets: ["webjar:blocks.js", "webjar:web_server.js"]
+			assets: ["blocks.js", "web_server.js"]
 		},
 		{
 			name: "compilableAsset.js",
-			assets: ["webjar:blocks.coffee"]
+			assets: ["blocks.coffee"]
 		},
 		{
 			name: "multipleCompilableAssets.js",
-			assets: ["webjar:blocks.coffee", "webjar:web_server.coffee"]
+			assets: ["blocks.coffee", "web_server.coffee"]
 		}
 	],
 	options: {

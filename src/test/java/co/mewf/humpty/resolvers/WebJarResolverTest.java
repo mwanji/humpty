@@ -11,17 +11,12 @@ public class WebJarResolverTest {
   private final WebJarResolver resolver = new WebJarResolver();
 
   @Test
-  public void should_accept_uri_with_no_scheme() {
+  public void should_accept_uri_without_scheme() {
     assertTrue(resolver.accepts("jquery.js"));
   }
 
   @Test
-  public void should_accept_uri_with_webjar_scheme() {
-    assertTrue(resolver.accepts("webjar:jquery.js"));
-  }
-
-  @Test
-  public void should_reject_uri_with_other_scheme() {
+  public void should_reject_uri_with_scheme() {
     assertFalse(resolver.accepts("other:jquery.js"));
   }
 
@@ -31,7 +26,7 @@ public class WebJarResolverTest {
   }
 
   @Test
-  public void should_expand_uri_without_scheme() {
+  public void should_expand_uri() {
     assertEquals("/webjars/jquery/1.8.2/jquery.js", resolver.expand("jquery.js"));
   }
 }
