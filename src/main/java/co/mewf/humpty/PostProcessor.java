@@ -6,6 +6,6 @@ import java.io.Reader;
 
 public interface PostProcessor extends Processor {
 
-  boolean accepts(String asset);
+  boolean accepts(String assetName);
   Reader postProcess(String assetName, Reader asset, Context context);
 }
