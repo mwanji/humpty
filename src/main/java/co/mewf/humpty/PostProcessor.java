@@ -7,5 +7,5 @@ import java.io.Reader;
 public interface PostProcessor extends Processor {
 
   boolean accepts(String asset);
-  Reader postProcess(String asset, Reader reader, Context context);
+  Reader postProcess(String assetName, Reader asset, Context context);
 }

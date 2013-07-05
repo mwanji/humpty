@@ -6,5 +6,5 @@ import java.io.Reader;
 
 public interface PreProcessor extends Processor {
   boolean accepts(String asset);
-  Reader preProcess(String asset, Reader reader, PreProcessorContext context);
+  Reader preProcess(String assetName, Reader asset, PreProcessorContext context);
 }
