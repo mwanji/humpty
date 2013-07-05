@@ -3,6 +3,7 @@ package co.mewf.humpty;
 import co.mewf.humpty.config.Context;
 
 import java.io.Reader;
+import java.util.LinkedHashMap;
 import java.util.ServiceLoader;
 
 /**
@@ -13,6 +14,6 @@ import java.util.ServiceLoader;
 public interface Resolver {
 
   boolean accepts(String uri);
-  Reader resolve(String uri, Context context);
+  LinkedHashMap<String, ? extends Reader> resolve(String uri, Context context);
   String expand(String uri);
 }

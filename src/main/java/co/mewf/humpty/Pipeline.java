@@ -11,7 +11,9 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -56,23 +58,32 @@ public class Pipeline {
         }
       }
 
-      Reader asset = resolver.resolve(filteredAsset, context);
-      try {
-        PreProcessorContext preprocessorContext = context.getPreprocessorContext(resolver.expand(filteredAsset));
+      LinkedHashMap<String, ? extends Reader> assets = resolver.resolve(filteredAsset, context);
 
-        CompilingProcessor.CompilationResult compilationResult = compile(filteredAsset.substring(filteredAsset.indexOf(':') + 1), asset, preprocessorContext);
-        Reader preProcessedAsset = preProcess(compilationResult.getAssetName(), compilationResult.getAsset(), preprocessorContext);
-        bundleString.append(IOUtils.toString(preProcessedAsset));
-        if (bundleString.charAt(bundleString.length() - 1) != '\n') {
-          bundleString.append('\n');
+      for (Map.Entry<String, ? extends Reader> entry : assets.entrySet()) {
+        try {
+          String assetName = entry.getKey();
+          Reader asset = entry.getValue();
+          PreProcessorContext preprocessorContext = context.getPreprocessorContext(assetName);
+
+          CompilingProcessor.CompilationResult compilationResult = compile(assetName, asset, preprocessorContext);
+          Reader preProcessedAsset = preProcess(compilationResult.getAssetName(), compilationResult.getAsset(), preprocessorContext);
+          bundleString.append(IOUtils.toString(preProcessedAsset));
+          if (bundleString.charAt(bundleString.length() - 1) != '\n') {
+            bundleString.append('\n');
+          }
+
+        } catch (IOException e) {
+          throw new RuntimeException(e);
         }
-
-      } catch (IOException e) {
-        throw new RuntimeException(e);
       }
     }
 
     return postProcess(new StringReader(bundleString.toString()), context);
+  }
+
+  private List<String> expandAssetName(String filteredAsset) {
+    return new ArrayList<String>();
   }
 
   private void configure() {
