@@ -15,7 +15,7 @@ import java.util.Map;
 import org.apache.commons.io.IOUtils;
 
 @Alias("testConfigurable")
-public class TestConfigurable implements PostProcessor, PreProcessor, CompilingProcessor, Configurable, ConfigurationOptionsProvider {
+public class TestConfigurable implements BundleProcessor, AssetProcessor, CompilingProcessor, Configurable, ConfigurationOptionsProvider {
 
   private String message = "failed!";
 
@@ -45,7 +45,7 @@ public class TestConfigurable implements PostProcessor, PreProcessor, CompilingP
   }
 
   @Override
-  public Reader preProcess(String asset, Reader reader, PreProcessorContext context) {
+  public Reader processAsset(String asset, Reader reader, PreProcessorContext context) {
     try {
       return new StringReader(IOUtils.toString(reader) + message);
     } catch (IOException e) {
@@ -54,7 +54,7 @@ public class TestConfigurable implements PostProcessor, PreProcessor, CompilingP
   }
 
   @Override
-  public Reader postProcess(String asset, Reader reader, Context context) {
+  public Reader processBundle(String asset, Reader reader, Context context) {
     try {
       return new StringReader(IOUtils.toString(reader) + message);
     } catch (IOException e) {

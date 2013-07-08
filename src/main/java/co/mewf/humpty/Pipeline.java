@@ -24,16 +24,16 @@ public class Pipeline {
 
   private final Configuration configuration;
   private final List<Resolver> resolvers;
-  private final List<PreProcessor> preProcessors;
-  private final List<PostProcessor> postProcessors;
+  private final List<AssetProcessor> assetProcessors;
+  private final List<BundleProcessor> bundleProcessors;
   private final List<CompilingProcessor> compilingProcessors;
 
-  public Pipeline(Configuration configuration, List<? extends Resolver> resolvers, List<? extends CompilingProcessor> compilingProcessors, List<? extends PreProcessor> preProcessors, List<? extends PostProcessor> postProcessors) {
+  public Pipeline(Configuration configuration, List<? extends Resolver> resolvers, List<? extends CompilingProcessor> compilingProcessors, List<? extends AssetProcessor> assetProcessors, List<? extends BundleProcessor> bundleProcessors) {
     this.configuration = configuration;
     this.resolvers = Collections.unmodifiableList(resolvers);
     this.compilingProcessors = Collections.unmodifiableList(compilingProcessors);
-    this.preProcessors = Collections.unmodifiableList(preProcessors);
-    this.postProcessors = Collections.unmodifiableList(postProcessors);
+    this.assetProcessors = Collections.unmodifiableList(assetProcessors);
+    this.bundleProcessors = Collections.unmodifiableList(bundleProcessors);
     configure();
   }
 
@@ -67,7 +67,7 @@ public class Pipeline {
           PreProcessorContext preprocessorContext = context.getPreprocessorContext(assetName);
 
           CompilingProcessor.CompilationResult compilationResult = compile(assetName, asset, preprocessorContext);
-          Reader preProcessedAsset = preProcess(compilationResult.getAssetName(), compilationResult.getAsset(), preprocessorContext);
+          Reader preProcessedAsset = processAsset(compilationResult.getAssetName(), compilationResult.getAsset(), preprocessorContext);
           bundleString.append(IOUtils.toString(preProcessedAsset));
           if (bundleString.charAt(bundleString.length() - 1) != '\n') {
             bundleString.append('\n');
@@ -79,18 +79,14 @@ public class Pipeline {
       }
     }
 
-    return postProcess(new StringReader(bundleString.toString()), context);
-  }
-
-  private List<String> expandAssetName(String filteredAsset) {
-    return new ArrayList<String>();
+    return processBundle(new StringReader(bundleString.toString()), context);
   }
 
   private void configure() {
     ArrayList<Processor> resources = new ArrayList<Processor>();
     resources.addAll(compilingProcessors);
-    resources.addAll(preProcessors);
-    resources.addAll(postProcessors);
+    resources.addAll(assetProcessors);
+    resources.addAll(bundleProcessors);
 
     for (Processor resource : resources) {
       if (resource instanceof Configurable) {
@@ -110,22 +106,22 @@ public class Pipeline {
     return compilationResult;
   }
 
-  private Reader preProcess(String assetName, Reader asset, PreProcessorContext context) {
+  private Reader processAsset(String assetName, Reader asset, PreProcessorContext context) {
     Reader currentAsset = asset;
-    for (PreProcessor preProcessor : preProcessors) {
+    for (AssetProcessor preProcessor : assetProcessors) {
       if (preProcessor.accepts(assetName)) {
-        currentAsset = preProcessor.preProcess(assetName, currentAsset, context);
+        currentAsset = preProcessor.processAsset(assetName, currentAsset, context);
       }
     }
 
     return currentAsset;
   }
 
-  private Reader postProcess(Reader asset, Context context) {
+  private Reader processBundle(Reader asset, Context context) {
     Reader currentAsset = asset;
-    for (PostProcessor postProcessor : postProcessors) {
+    for (BundleProcessor postProcessor : bundleProcessors) {
       if (postProcessor.accepts(context.getBundleName())) {
-        currentAsset = postProcessor.postProcess(context.getBundleName(), currentAsset, context);
+        currentAsset = postProcessor.processBundle(context.getBundleName(), currentAsset, context);
       }
     }
 

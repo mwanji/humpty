@@ -21,7 +21,7 @@ public class PipelineTest {
 
   @Test
   public void should_process_bundle() throws IOException {
-    Pipeline testPipeline = new HumptyBootstrap(new TestProcessor()).createPipeline();
+    Pipeline testPipeline = new HumptyBootstrap.Builder().build(new TestProcessor()).createPipeline();
     Reader reader = testPipeline.process("singleAsset.js", null, null);
     String result = IOUtils.toString(reader);
 
@@ -31,7 +31,7 @@ public class PipelineTest {
 
   @Test
   public void should_compile_bundle() throws IOException {
-    Reader result = new HumptyBootstrap(new CoffeeScriptCompilingProcessor()).createPipeline().process("compilableAsset.js", null, null);
+    Reader result = new HumptyBootstrap.Builder().build(new CoffeeScriptCompilingProcessor()).createPipeline().process("compilableAsset.js", null, null);
 
     String resultString = IOUtils.toString(result);
 
@@ -41,7 +41,7 @@ public class PipelineTest {
 
   @Test
   public void should_concatenate_bundle_with_multiple_assets() throws IOException {
-    Reader result = new HumptyBootstrap().createPipeline().process("multipleAssets.js", null, null);
+    Reader result = new HumptyBootstrap.Builder().build().createPipeline().process("multipleAssets.js", null, null);
 
     String resultString = IOUtils.toString(result);
 
@@ -53,7 +53,7 @@ public class PipelineTest {
   @Test
   public void should_pass_configuration_options_via_java() throws IOException {
     TestConfigurable testConfigurable = new TestConfigurable();
-    Pipeline configurablePipeline = new HumptyBootstrap(new Configuration(asList(new Bundle("singleAsset.js", asList("blocks.js"))), testConfigurable), testConfigurable).createPipeline();
+    Pipeline configurablePipeline = new HumptyBootstrap.Builder().build(new Configuration(asList(new Bundle("singleAsset.js", asList("blocks.js"))), testConfigurable), testConfigurable).createPipeline();
 
     String actual = IOUtils.toString(configurablePipeline.process("singleAsset.js", null, null));
 
@@ -72,7 +72,7 @@ public class PipelineTest {
 
   @Test
   public void should_pass_aliased_configuration_via_json() throws IOException {
-    Pipeline aliasedPipeline = new HumptyBootstrap(new TestConfigurable()).createPipeline();
+    Pipeline aliasedPipeline = new HumptyBootstrap.Builder().build(new TestConfigurable()).createPipeline();
 
     String actual = IOUtils.toString(aliasedPipeline.process("singleAsset.js", null, null));
 
@@ -82,7 +82,7 @@ public class PipelineTest {
   @Test
   public void should_take_extension_from_bundle_when_not_specified_by_asset() throws IOException {
     ClassLoader classLoader = getClass().getClassLoader();
-    Pipeline pipeline = new HumptyBootstrap.Builder().humptyFile("/humpty-wildcard.json").build(new EchoPreProcessor()).createPipeline();
+    Pipeline pipeline = new HumptyBootstrap.Builder().humptyFile("/humpty-wildcard.json").build(new EchoProcessor()).createPipeline();
 
     String output = IOUtils.toString(pipeline.process("no_extension.js", null, null));
 
@@ -93,7 +93,7 @@ public class PipelineTest {
   @Test
   public void should_expand_wildcard_for_single_folder_with_extension() throws IOException {
     ClassLoader classLoader = getClass().getClassLoader();
-    Pipeline pipeline = new HumptyBootstrap.Builder().humptyFile("/humpty-wildcard.json").build(new EchoPreProcessor()).createPipeline();
+    Pipeline pipeline = new HumptyBootstrap.Builder().humptyFile("/humpty-wildcard.json").build(new EchoProcessor()).createPipeline();
 
     String output = IOUtils.toString(pipeline.process("folder_and_extension.js", null, null));
 
@@ -104,7 +104,7 @@ public class PipelineTest {
   @Test
   public void should_expand_wildcard_for_single_folder_without_extension() throws IOException {
     ClassLoader classLoader = getClass().getClassLoader();
-    Pipeline pipeline = new HumptyBootstrap.Builder().humptyFile("/humpty-wildcard.json").build(new EchoPreProcessor()).createPipeline();
+    Pipeline pipeline = new HumptyBootstrap.Builder().humptyFile("/humpty-wildcard.json").build(new EchoProcessor()).createPipeline();
 
     String output = IOUtils.toString(pipeline.process("folder_without_extension.coffee", null, null));
 

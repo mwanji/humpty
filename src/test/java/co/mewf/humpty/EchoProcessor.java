@@ -4,7 +4,7 @@ import co.mewf.humpty.config.PreProcessorContext;
 
 import java.io.Reader;
 
-public class EchoPreProcessor implements PreProcessor {
+public class EchoProcessor implements AssetProcessor {
 
   @Override
   public boolean accepts(String asset) {
@@ -12,7 +12,7 @@ public class EchoPreProcessor implements PreProcessor {
   }
 
   @Override
-  public Reader preProcess(String asset, Reader reader, PreProcessorContext context) {
+  public Reader processAsset(String asset, Reader reader, PreProcessorContext context) {
     return reader;
   }
 }

@@ -1,9 +1,9 @@
 package co.mewf.humpty.config;
 
+import co.mewf.humpty.AssetProcessor;
+import co.mewf.humpty.BundleProcessor;
 import co.mewf.humpty.CompilingProcessor;
 import co.mewf.humpty.Pipeline;
-import co.mewf.humpty.PostProcessor;
-import co.mewf.humpty.PreProcessor;
 import co.mewf.humpty.Processor;
 import co.mewf.humpty.Resolver;
 
@@ -23,7 +23,7 @@ import org.webjars.WebJarAssetLocator;
  * <b>By default</b>
  * <p>Uses humpty.json at root of classpath to load the {@link Configuration} (eg. src/main/resources in a Maven project).
  *
- * Uses a {@link ServiceLoader} to get the {@link Resolver}s, {@link PreProcessor}s and {@link PostProcessor}s.
+ * Uses a {@link ServiceLoader} to get the {@link Resolver}s, {@link AssetProcessor}s and {@link BundleProcessor}s.
  *
  * <p>Extend and override the appropriate methods to customise how these resources are located, how they are ordered, etc.</p>
  *
@@ -46,7 +46,7 @@ public class HumptyBootstrap {
     }
 
     /**
-     * @param resources Can contain a {@link Configuration}, {@link Resolver}s, {@link PreProcessor}s and {@link PostProcessor}s.
+     * @param resources Can contain a {@link Configuration}, {@link Resolver}s, {@link AssetProcessor}s and {@link BundleProcessor}s.
      * At runtime, the resources are used in declaration order.
      */
     public HumptyBootstrap build(Object... resources) {
@@ -63,15 +63,15 @@ public class HumptyBootstrap {
   private final Object[] resources;
   private final Config config;
 
-  public HumptyBootstrap(Object... resources) {
+  HumptyBootstrap(Object... resources) {
     this(new Config(), resources);
   }
 
   public Pipeline createPipeline() {
     Configuration configuration = getConfiguration();
     List<? extends Resolver> resolvers = getResolvers();
-    List<? extends PreProcessor> preProcessors = getPreProcessors();
-    List<? extends PostProcessor> postProcessors = getPostProcessors();
+    List<? extends AssetProcessor> assetProcessors = getAssetProcessors();
+    List<? extends BundleProcessor> bundleProcessors = getBundleProcessors();
     List<? extends CompilingProcessor> compilingProcessors = getCompilingProcessors();
 
     Injector injector = Guice.createInjector(new AbstractModule() {
@@ -84,14 +84,14 @@ public class HumptyBootstrap {
     List<Object> all = new ArrayList<Object>();
     all.addAll(resolvers);
     all.addAll(compilingProcessors);
-    all.addAll(preProcessors);
-    all.addAll(postProcessors);
+    all.addAll(assetProcessors);
+    all.addAll(bundleProcessors);
 
     for (Object resource : all) {
       injector.injectMembers(resource);
     }
 
-    return new Pipeline(configuration, resolvers, compilingProcessors, preProcessors, postProcessors);
+    return new Pipeline(configuration, resolvers, compilingProcessors, assetProcessors, bundleProcessors);
   }
 
   protected Configuration getConfiguration() {
@@ -148,12 +148,12 @@ public class HumptyBootstrap {
 
   }
 
-  protected List<? extends PreProcessor> getPreProcessors() {
-    ArrayList<PreProcessor> preProcessors = new ArrayList<PreProcessor>();
+  protected List<? extends AssetProcessor> getAssetProcessors() {
+    ArrayList<AssetProcessor> preProcessors = new ArrayList<AssetProcessor>();
 
     for (Object resource : resources) {
-      if (resource instanceof PreProcessor) {
-        preProcessors.add((PreProcessor) resource);
+      if (resource instanceof AssetProcessor) {
+        preProcessors.add((AssetProcessor) resource);
       }
     }
 
@@ -162,20 +162,20 @@ public class HumptyBootstrap {
     }
 
     for (Processor processor : processors) {
-      if (processor instanceof PreProcessor) {
-        preProcessors.add((PreProcessor) processor);
+      if (processor instanceof AssetProcessor) {
+        preProcessors.add((AssetProcessor) processor);
       }
     }
 
     return preProcessors;
   }
 
-  protected List<? extends PostProcessor> getPostProcessors() {
-    ArrayList<PostProcessor> postProcessors = new ArrayList<PostProcessor>();
+  protected List<? extends BundleProcessor> getBundleProcessors() {
+    ArrayList<BundleProcessor> postProcessors = new ArrayList<BundleProcessor>();
 
     for (Object resource : resources) {
-      if (resource instanceof PostProcessor) {
-        postProcessors.add((PostProcessor) resource);
+      if (resource instanceof BundleProcessor) {
+        postProcessors.add((BundleProcessor) resource);
       }
     }
 
@@ -184,8 +184,8 @@ public class HumptyBootstrap {
     }
 
     for (Processor processor : processors) {
-      if (processor instanceof PostProcessor) {
-        postProcessors.add((PostProcessor) processor);
+      if (processor instanceof BundleProcessor) {
+        postProcessors.add((BundleProcessor) processor);
       }
     }
 

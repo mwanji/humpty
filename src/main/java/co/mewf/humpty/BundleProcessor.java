@@ -4,8 +4,8 @@ import co.mewf.humpty.config.Context;
 
 import java.io.Reader;
 
-public interface PostProcessor extends Processor {
+public interface BundleProcessor extends Processor {
 
   boolean accepts(String assetName);
-  Reader postProcess(String assetName, Reader asset, Context context);
+  Reader processBundle(String assetName, Reader asset, Context context);
 }

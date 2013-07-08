@@ -28,7 +28,7 @@ public class HumptyFilter implements Filter {
   }
 
   protected Pipeline createPipeline() {
-    return new HumptyBootstrap().createPipeline();
+    return new HumptyBootstrap.Builder().build().createPipeline();
   }
 
   @Override

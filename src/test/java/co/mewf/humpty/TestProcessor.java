@@ -9,7 +9,7 @@ import java.io.StringReader;
 
 import org.apache.commons.io.IOUtils;
 
-public class TestProcessor implements PostProcessor, PreProcessor, CompilingProcessor {
+public class TestProcessor implements BundleProcessor, AssetProcessor, CompilingProcessor {
 
   @Override
   public boolean accepts(String asset) {
@@ -26,7 +26,7 @@ public class TestProcessor implements PostProcessor, PreProcessor, CompilingProc
   }
 
   @Override
-  public Reader preProcess(String asset, Reader reader, PreProcessorContext context) {
+  public Reader processAsset(String asset, Reader reader, PreProcessorContext context) {
     try {
       return new StringReader("Preprocessed!" + IOUtils.toString(reader));
     } catch (IOException e) {
@@ -35,7 +35,7 @@ public class TestProcessor implements PostProcessor, PreProcessor, CompilingProc
   }
 
   @Override
-  public Reader postProcess(String asset, Reader reader, Context context) {
+  public Reader processBundle(String asset, Reader reader, Context context) {
     try {
       return new StringReader(IOUtils.toString(reader) + "Postprocessed!");
     } catch (IOException e) {
