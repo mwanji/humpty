@@ -8,11 +8,16 @@ import co.mewf.humpty.Processor;
 import co.mewf.humpty.Resolver;
 
 import com.google.gson.Gson;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
+
+import org.webjars.WebJarAssetLocator;
 
 /**
  * <b>By default</b>
@@ -68,6 +73,23 @@ public class HumptyBootstrap {
     List<? extends PreProcessor> preProcessors = getPreProcessors();
     List<? extends PostProcessor> postProcessors = getPostProcessors();
     List<? extends CompilingProcessor> compilingProcessors = getCompilingProcessors();
+
+    Injector injector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(WebJarAssetLocator.class).toInstance(new WebJarAssetLocator());
+      }
+    });
+
+    List<Object> all = new ArrayList<Object>();
+    all.addAll(resolvers);
+    all.addAll(compilingProcessors);
+    all.addAll(preProcessors);
+    all.addAll(postProcessors);
+
+    for (Object resource : all) {
+      injector.injectMembers(resource);
+    }
 
     return new Pipeline(configuration, resolvers, compilingProcessors, preProcessors, postProcessors);
   }
