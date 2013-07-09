@@ -56,12 +56,6 @@
 			<artifactId>junit</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.moandjiezana.jcoffeescript</groupId>
-			<artifactId>jcoffeescript</artifactId>
-			<version>1.6.3-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>jquery</artifactId>
 			<version>1.8.2</version>
@@ -75,6 +69,17 @@
 		  <groupId>javax.inject</groupId>
 		  <artifactId>javax.inject</artifactId>
 		  <version>1</version>
+		</dependency>
+		<dependency>
+		  <groupId>org.mozilla</groupId>
+		  <artifactId>rhino</artifactId>
+		  <scope>test</scope>
+		</dependency>
+		<dependency>
+		  <groupId>org.webjars</groupId>
+		  <artifactId>coffee-script</artifactId>
+		  <version>1.6.3</version>
+		  <scope>test</scope>
 		</dependency>
 	</dependencies>
   <scm>

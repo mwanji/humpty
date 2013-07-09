@@ -2,15 +2,20 @@ package co.mewf.humpty;
 
 import co.mewf.humpty.config.PreProcessorContext;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.ArrayList;
 
 import org.apache.commons.io.IOUtils;
-import org.jcoffeescript.JCoffeeScriptCompiler;
-import org.jcoffeescript.Option;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Scriptable;
+import org.webjars.WebJarAssetLocator;
 
 public class CoffeeScriptCompilingProcessor implements CompilingProcessor {
+
+  private static final String COFFEE_SCRIPT_JS = new WebJarAssetLocator().getFullPath("coffee-script.min.js");
 
   @Override
   public boolean accepts(String asset) {
@@ -18,14 +23,28 @@ public class CoffeeScriptCompilingProcessor implements CompilingProcessor {
   }
 
   @Override
-  public CompilationResult compile(String asset, Reader reader, PreProcessorContext context) {
-    ArrayList<Option> compilerOptions = new ArrayList<Option>();
-    compilerOptions.add(Option.BARE);
+  public CompilationResult compile(String assetName, Reader asset, PreProcessorContext context) {
+    ClassLoader classLoader = getClass().getClassLoader();
+    InputStream inputStream = classLoader.getResourceAsStream(COFFEE_SCRIPT_JS);
     try {
-      String compiled = new JCoffeeScriptCompiler(compilerOptions).compile(IOUtils.toString(reader));
-      return new CompilationResult(asset.replace(".coffee", ".js"), new StringReader(compiled));
-    } catch (Exception e) {
+      Reader csReader = new InputStreamReader(inputStream, "UTF-8");
+      Context rhinoContext = Context.enter();
+      Scriptable globalScope = rhinoContext.initStandardObjects();
+      rhinoContext.evaluateReader(globalScope, csReader, "coffee-script.js", 0, null);
+
+      Scriptable compileScope = rhinoContext.newObject(globalScope);
+      compileScope.setParentScope(globalScope);
+      compileScope.put("coffeeScriptSource", compileScope, IOUtils.toString(asset));
+
+      StringReader compiledReader = new StringReader((String) rhinoContext.evaluateString(compileScope,
+          "CoffeeScript.compile(coffeeScriptSource, { bare: true });", "JCoffeeScriptCompiler", 0, null));
+
+      return new CompilationResult(assetName.replace(".coffee", ".js"), compiledReader);
+    } catch (IOException e) {
       throw new RuntimeException(e);
+    } finally {
+      IOUtils.closeQuietly(inputStream);
+      Context.exit();
     }
   }
 }
