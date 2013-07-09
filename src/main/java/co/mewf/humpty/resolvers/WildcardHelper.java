@@ -4,12 +4,12 @@ import co.mewf.humpty.config.Context;
 
 import org.apache.commons.io.FilenameUtils;
 
-public class WildcardHelper {
+class WildcardHelper {
 
   private final String uri;
   private final Context context;
 
-  public WildcardHelper(String uri, Context context) {
+  WildcardHelper(String uri, Context context) {
     this.uri = uri;
     this.context = context;
   }
