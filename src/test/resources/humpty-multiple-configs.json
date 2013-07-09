@@ -1,0 +1,17 @@
+{
+	bundles: [
+		{
+			name: "singleAsset.js",
+			assets: ["blocks.js"]
+		}
+	],
+	options: {
+		testConfigurable: {
+			message: "correct"
+		},
+		"co.mewf.humpty.EchoProcessor": {
+			echoMessage: "incorrect"
+		}
+	},
+	mode: "DEVELOPMENT"
+}

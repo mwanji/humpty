@@ -1,7 +1,7 @@
 package co.mewf.humpty;
 
 import co.mewf.humpty.config.Alias;
-import co.mewf.humpty.config.Configurable;
+import co.mewf.humpty.config.Configuration;
 import co.mewf.humpty.config.ConfigurationOptionsProvider;
 import co.mewf.humpty.config.Context;
 import co.mewf.humpty.config.PreProcessorContext;
@@ -12,12 +12,15 @@ import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.inject.Inject;
+
 import org.apache.commons.io.IOUtils;
 
 @Alias("testConfigurable")
-public class TestConfigurable implements BundleProcessor, AssetProcessor, CompilingProcessor, Configurable, ConfigurationOptionsProvider {
+public class TestConfigurable implements BundleProcessor, AssetProcessor, CompilingProcessor, ConfigurationOptionsProvider {
 
   private String message = "failed!";
+  public Configuration.Options options;
 
   @Override
   public Map<Class<?>, Map<String, Object>> getOptions() {
@@ -29,8 +32,9 @@ public class TestConfigurable implements BundleProcessor, AssetProcessor, Compil
     return configuration;
   }
 
-  @Override
-  public void configure(Map<String, Object> options) {
+  @Inject
+  public void init(Configuration.Options options) {
+    this.options = options;
     message = (String) options.get("message");
   }
 

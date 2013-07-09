@@ -8,14 +8,14 @@ import co.mewf.humpty.Processor;
 import co.mewf.humpty.Resolver;
 
 import com.google.gson.Gson;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 
 import java.io.InputStreamReader;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
+
+import javax.inject.Inject;
 
 import org.webjars.WebJarAssetLocator;
 
@@ -54,7 +54,7 @@ public class HumptyBootstrap {
     }
   }
 
-  static class Config {
+  private static class Config {
     String humptyFile = "/humpty.json";
   }
 
@@ -68,18 +68,13 @@ public class HumptyBootstrap {
   }
 
   public Pipeline createPipeline() {
-    Configuration configuration = getConfiguration();
+    final Configuration configuration = getConfiguration();
     List<? extends Resolver> resolvers = getResolvers();
     List<? extends AssetProcessor> assetProcessors = getAssetProcessors();
     List<? extends BundleProcessor> bundleProcessors = getBundleProcessors();
     List<? extends CompilingProcessor> compilingProcessors = getCompilingProcessors();
 
-    Injector injector = Guice.createInjector(new AbstractModule() {
-      @Override
-      protected void configure() {
-        bind(WebJarAssetLocator.class).toInstance(new WebJarAssetLocator());
-      }
-    });
+    WebJarAssetLocator locator = new WebJarAssetLocator();
 
     List<Object> all = new ArrayList<Object>();
     all.addAll(resolvers);
@@ -88,7 +83,30 @@ public class HumptyBootstrap {
     all.addAll(bundleProcessors);
 
     for (Object resource : all) {
-      injector.injectMembers(resource);
+      for (Method method : resource.getClass().getMethods()) {
+        if (!method.isAnnotationPresent(Inject.class)) {
+          continue;
+        }
+
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        Object[] args = new Object[parameterTypes.length];
+        for (int i = 0; i < parameterTypes.length; i++) {
+          if (parameterTypes[i] == WebJarAssetLocator.class) {
+            args[i] = locator;
+          } else if (parameterTypes[i] == Configuration.Options.class) {
+            args[i] = configuration.getOptionsFor(resource.getClass());
+          } else {
+            throw new IllegalArgumentException("Cannot inject the type " + parameterTypes[i].getName() + " into " + resource.getClass().getName());
+          }
+        }
+
+        try {
+          method.invoke(resource, args);
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+        break;
+      }
     }
 
     return new Pipeline(configuration, resolvers, compilingProcessors, assetProcessors, bundleProcessors);

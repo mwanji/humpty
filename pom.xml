@@ -28,7 +28,6 @@
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
@@ -55,7 +54,6 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.moandjiezana.jcoffeescript</groupId>
@@ -74,9 +72,9 @@
 			<artifactId>webjars-locator</artifactId>
 		</dependency>
 		<dependency>
-		  <groupId>com.google.inject</groupId>
-		  <artifactId>guice</artifactId>
-		  <version>3.0</version>
+		  <groupId>javax.inject</groupId>
+		  <artifactId>javax.inject</artifactId>
+		  <version>1</version>
 		</dependency>
 	</dependencies>
   <scm>

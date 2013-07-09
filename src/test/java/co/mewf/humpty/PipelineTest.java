@@ -3,6 +3,7 @@ package co.mewf.humpty;
 import static java.util.Arrays.asList;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import co.mewf.humpty.config.Bundle;
@@ -77,6 +78,15 @@ public class PipelineTest {
     String actual = IOUtils.toString(aliasedPipeline.process("singleAsset.js", null, null));
 
     assertEquals("aliased from JSON!aliased from JSON!\naliased from JSON!", actual);
+  }
+
+  @Test
+  public void should_only_pass_configuration_for_current_processor() {
+    TestConfigurable resource = new TestConfigurable();
+    new HumptyBootstrap.Builder().humptyFile("/humpty-multiple-configs.json").build(resource, new EchoProcessor()).createPipeline();
+
+    assertEquals(resource.options.get("message"), "correct");
+    assertNull(resource.options.get("echoMessage"));
   }
 
   @Test

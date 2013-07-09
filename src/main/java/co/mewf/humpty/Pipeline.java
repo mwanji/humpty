@@ -1,7 +1,6 @@
 package co.mewf.humpty;
 
 import co.mewf.humpty.config.Bundle;
-import co.mewf.humpty.config.Configurable;
 import co.mewf.humpty.config.Configuration;
 import co.mewf.humpty.config.Context;
 import co.mewf.humpty.config.PreProcessorContext;
@@ -9,7 +8,6 @@ import co.mewf.humpty.config.PreProcessorContext;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -34,7 +32,6 @@ public class Pipeline {
     this.compilingProcessors = Collections.unmodifiableList(compilingProcessors);
     this.assetProcessors = Collections.unmodifiableList(assetProcessors);
     this.bundleProcessors = Collections.unmodifiableList(bundleProcessors);
-    configure();
   }
 
   public Reader process(String bundleName, HttpServletRequest request, HttpServletResponse response) {
@@ -80,20 +77,6 @@ public class Pipeline {
     }
 
     return processBundle(new StringReader(bundleString.toString()), context);
-  }
-
-  private void configure() {
-    ArrayList<Processor> resources = new ArrayList<Processor>();
-    resources.addAll(compilingProcessors);
-    resources.addAll(assetProcessors);
-    resources.addAll(bundleProcessors);
-
-    for (Processor resource : resources) {
-      if (resource instanceof Configurable) {
-        Configurable configurable = (Configurable) resource;
-        configurable.configure(configuration.getOptionsFor(configurable));
-      }
-    }
   }
 
   private CompilingProcessor.CompilationResult compile(String assetName, Reader asset, PreProcessorContext context) {

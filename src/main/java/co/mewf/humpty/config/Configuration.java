@@ -8,6 +8,30 @@ import java.util.Map;
 
 public class Configuration {
 
+  public static class Options {
+
+    private final Map<String, Object> options;
+    private final Configuration.Mode mode;
+
+    public Options(Map<String, Object> options, Configuration.Mode mode) {
+      this.options = options;
+      this.mode = mode;
+    }
+
+    public Object get(String key) {
+      return options.get(key);
+    }
+
+    public boolean containsKey(String key) {
+      return options.containsKey(key);
+    }
+
+    public Configuration.Mode getMode() {
+      return mode;
+    }
+
+  }
+
   public static enum Mode {
     PRODUCTION, DEVELOPMENT;
   }
@@ -42,21 +66,21 @@ public class Configuration {
     return bundles;
   }
 
-  public Map<String, Object> getOptionsFor(Configurable configurable) {
-    if (configurable.getClass().isAnnotationPresent(Alias.class)) {
-      String key = configurable.getClass().getAnnotation(Alias.class).value();
+  public Configuration.Options getOptionsFor(Class<?> configurable) {
+    if (configurable.isAnnotationPresent(Alias.class)) {
+      String key = configurable.getAnnotation(Alias.class).value();
 
       if (options.containsKey(key)) {
-        return options.get(key);
+        return new Options(options.get(key), mode);
       }
     }
 
-    String key = configurable.getClass().getName();
+    String key = configurable.getName();
 
     if (!options.containsKey(key)) {
-      return Collections.emptyMap();
+      return new Options(Collections.<String, Object>emptyMap(), mode);
     }
 
-    return options.get(key);
+    return new Options(options.get(key), mode);
   }
 }
