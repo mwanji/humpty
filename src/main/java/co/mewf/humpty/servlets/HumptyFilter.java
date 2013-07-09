@@ -18,6 +18,12 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
 
+/**
+ * Builds a {@link Pipeline} configured via the default JSON file.
+ *
+ * For different behaviour, override {@link #createPipeline()}.
+ *
+ */
 public class HumptyFilter implements Filter {
 
   private Pipeline pipeline;
