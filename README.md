@@ -1,12 +1,16 @@
 # humpty
 
-humpty puts your web assets back together. It is a small library that is easy to understand, embed, configure and extend.
+humpty puts your web assets back together. It is a small library that is easy to understand, configure and extend.
 
-## Installation
+humpty works best with [WebJars](http://webjars.org) for 3rd-party libraries and application code in folders accessible via URL. Configuring its behaviour is as simple as dropping a JAR on the classpath.
 
 Requires Java 6 and Servlet 3.
 
-Add the dependency to your POM:
+## Getting Started
+
+In this example, we will use Jquery, underscore and Bootstrap and bundle them together into a single, minified file, along with application code.
+
+Add humpty to your dependencies:
 
 ````xml
 <dependency>
@@ -16,7 +20,34 @@ Add the dependency to your POM:
 </dependency>
 ````
 
-Add a mapping to `web.xml`:
+We want to minify our assets, so add humpty-compression:
+
+````xml
+<dependency>
+  <groupId>co.mewf.humpty</groupId>
+  <artifactId>humpty-compression</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+</dependency>
+````
+
+(As humpty-compression depends on humpty, it is not strictly necessary to declare humpty as a dependency.)
+
+Add the following dependencies to make the web libraries available:
+
+````xml
+<dependency>
+  <groupId>org.webjars</groupId>
+  <artifactId>bootstrap</artifactId> <!-- includes Jquery transitively -->
+  <version>2.3.2</version>
+</dependency>
+<dependency>
+  <groupId>org.webjars</groupId>
+  <artifactId>underscore</artifactId>
+  <version>1.4.4</version>
+</dependency>
+````
+
+Add a filter mapping in `web.xml`:
 
 ````xml
 <filter-mapping>
@@ -27,35 +58,45 @@ Add a mapping to `web.xml`:
 
 The `url-pattern` can be anything you want, but only humpty-managed bundle names should be passed to it.
 
-````xml
-<filter>
-	<filter-name>HumptyFilter</filter-name>
-	<filter-class>co.mewf.humpty.servlets.HumptyFilter</filter-class>
-</filter>
-````
-
-## Usage
-
-The best way to use humpty is with [WebJars](http://webjars.org) for 3rd-party libraries and application code in folders accessible via URL.
-
-### Example
-
-Let's say you've added a dependency to the [jquery WebJar](https://github.com/webjars/jquery) and want to combine jquery.js with your own app.js, found at /assets/app.js.
-
-By default, configuration is done via a JSON object in a file called `humpty.json` at the root of the classpath (eg. in src/main/resources):
+Create a file called `humpty.json` in `src/main/resources`:
 
 ````json
 {
-	"bundles": [
-		{
-			"name": "asset1.js",
-			"assets": ["jquery", "/assets/app"]
-		}
-	]
+  bundles: [
+    {
+      name: "example.js",
+      assets: ["jquery", "underscore", "bootstrap", "app"] // will be concatenated into a single JS file
+    },
+    {
+      name: "example.css",
+      assets: ["bootstrap", "bootstrap-responsive", "app"] // will be concatenated into a CSS file
+    }
+  ],
+  options: {
+    compression: {
+      compress: true // this is the default, included only for demonstration purposes
+    }
+  },
+  mode: "PRODUCTION" // this is the default
 }
 ````
 
-Exactly what happens to these assets depends on what is on your classpath.
+Now we can include our concatenated and minified files in index.html:
+
+````html
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="humpty/example.js"></script>
+    <link href="humpty/example.css" type="text/css" rel="stylesheet" />
+  </head>
+  <body>
+    Hello, humpty!
+  </body>
+</html>
+````
+
+## Usage
 
 ### Bundles and Assets
 
@@ -99,7 +140,7 @@ Creating custom resovlers is discussed in the [Extension Points](#extension-poin
 
 ## JSON Configuration Reference
 
-The configuration elements are:
+By default, configuration is done via a JSON object in a file called `humpty.json` at the root of the classpath. The configuration's properties are:
 
 ### bundles
 
