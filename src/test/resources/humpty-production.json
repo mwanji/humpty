@@ -22,7 +22,7 @@
 		},
 		{
 			name: "tags.css",
-			assets: ["/app1", "/app2"]
+			assets: ["/app1", "app2"]
 		}
 	],
 	options: {
@@ -30,5 +30,5 @@
 			message: "aliased from JSON!"
 		}
 	},
-	mode: "DEVELOPMENT"
+	mode: "PRODUCTION"
 }

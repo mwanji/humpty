@@ -8,6 +8,7 @@ import java.io.Reader;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
+import org.apache.commons.io.FilenameUtils;
 import org.webjars.WebJarAssetLocator;
 
 public class WebJarResolver implements Resolver {
@@ -21,12 +22,12 @@ public class WebJarResolver implements Resolver {
   @Override
   public LinkedHashMap<String, ? extends Reader> resolve(String uri, Context context) {
     LinkedHashMap<String, Reader> readers = new LinkedHashMap<String, Reader>();
-    WildcardHelper helper = new WildcardHelper(stripPrefix(uri), context);
+    WildcardHelper helper = new WildcardHelper(uri, context);
 
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     if (!helper.hasWildcard()) {
       String fullUri = helper.getFull();
-      readers.put(expand(fullUri), new InputStreamReader(classLoader.getResourceAsStream(webJarAssetLocator.getFullPath(fullUri))));
+      readers.put(expand(fullUri, context.getBundleName()), new InputStreamReader(classLoader.getResourceAsStream(webJarAssetLocator.getFullPath(fullUri))));
 
       return readers;
     }
@@ -42,12 +43,15 @@ public class WebJarResolver implements Resolver {
   }
 
   @Override
-  public String expand(String uri) {
-    return stripPrefix(webJarAssetLocator.getFullPath(stripPrefix(uri)));
+  public String expand(String uri, String bundleName) {
+    if (FilenameUtils.getExtension(uri).isEmpty()) {
+      uri += "." + FilenameUtils.getExtension(bundleName);
+    }
+
+    return stripPrefix(webJarAssetLocator.getFullPath(uri));
   }
 
   private String stripPrefix(String uri) {
-    uri = uri.startsWith("webjar:") ? uri.substring("webjar:".length()) : uri;
     if (uri.startsWith("META-INF/resources")) {
       uri = uri.substring("META-INF/resources".length());
     }

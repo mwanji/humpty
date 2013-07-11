@@ -1,46 +1,43 @@
 package co.mewf.humpty.html;
 
-import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
-import co.mewf.humpty.config.Bundle;
-import co.mewf.humpty.config.Configuration;
-import co.mewf.humpty.resolvers.ServletContextPathResolver;
-import co.mewf.humpty.resolvers.WebJarResolver;
+import co.mewf.humpty.config.HumptyBootstrap;
 
 import org.junit.Test;
 
 public class TagsTest {
 
   private String rootPath = "/context";
+  private final Tags tags = new HumptyBootstrap.Builder().build().createTags();
 
   @Test
-  public void should_unbundle_js_assets_in_dev_mode() {
-    Configuration configuration = new Configuration(asList(new Bundle("bundle1.js", asList("jquery.js", "/asset2.js"))), Configuration.Mode.DEVELOPMENT);
-    String html = new Tags(configuration, asList(new WebJarResolver(), new ServletContextPathResolver())).generate("bundle1.js", rootPath);
+  public void should_unbundle_assets_in_dev_mode() {
+    String jsHtml = tags.generate("tags.js", rootPath);
+    String cssHtml = tags.generate("tags.css", rootPath);
 
-    assertEquals("<script src=\"/context/webjars/jquery/1.8.2/jquery.js\"></script>\n<script src=\"/context/asset2.js\"></script>\n", html);
-  }
-
-  @Test
-  public void should_unbundle_css_assets_in_dev_mode() {
-    Configuration configuration = new Configuration(asList(new Bundle("bundle1.css", asList("/asset1.css", "/asset2.css"))), Configuration.Mode.DEVELOPMENT);
-    String html = new Tags(configuration, asList(new ServletContextPathResolver())).generate("bundle1.css", rootPath);
-
-    assertEquals("<link rel=\"stylesheet\" href=\"/context/asset1.css\" />\n<link rel=\"stylesheet\" href=\"/context/asset2.css\" />\n", html);
+    assertEquals("<script src=\"/context/webjars/jquery/1.8.2/jquery.js\"></script>\n<script src=\"/context/app.js\"></script>\n", jsHtml);
+    assertEquals("<link rel=\"stylesheet\" href=\"/context/app1.css\" />\n<link rel=\"stylesheet\" href=\"/context/app2.css\" />\n", cssHtml);
   }
 
   @Test
   public void should_bundle_assets_in_production_mode() {
-    Bundle jsBundle = new Bundle("bundle1.js", asList("webjar:jquery", "/asset2.js"));
-    Bundle cssBundle = new Bundle("bundle1.css", asList("/asset1.css", "/asset2.css"));
+    Tags tags = new HumptyBootstrap.Builder().humptyFile("/humpty-production.json").build().createTags();
 
-    Configuration configuration = new Configuration(asList(jsBundle, cssBundle));
-    Tags tags = new Tags(configuration, asList(new WebJarResolver(), new ServletContextPathResolver()));
+    String jsHtml = tags.generate("tags.js", rootPath);
+    String cssHtml = tags.generate("tags.css", rootPath);
 
-    String jsHtml = tags.generate("bundle1.js", rootPath);
-    String cssHtml = tags.generate("bundle1.css", rootPath);
+    assertEquals("<script src=\"/context/tags.js\"></script>\n", jsHtml);
+    assertEquals("<link rel=\"stylesheet\" href=\"/context/tags.css\" />\n", cssHtml);
+  }
 
-    assertEquals("<script src=\"/context/bundle1.js\"></script>\n", jsHtml);
-    assertEquals("<link rel=\"stylesheet\" href=\"/context/bundle1.css\" />\n", cssHtml);
+  @Test
+  public void should_bundle_assets_in_production_mode_with_no_context_path() {
+    Tags tags = new HumptyBootstrap.Builder().humptyFile("/humpty-production.json").build().createTags();
+
+    String jsHtml = tags.generate("tags.js", "/");
+    String cssHtml = tags.generate("tags.css", "/");
+
+    assertEquals("<script src=\"/tags.js\"></script>\n", jsHtml);
+    assertEquals("<link rel=\"stylesheet\" href=\"/tags.css\" />\n", cssHtml);
   }
 }

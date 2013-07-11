@@ -27,6 +27,11 @@ public class WebJarResolverTest {
 
   @Test
   public void should_expand_uri() {
-    assertEquals("/webjars/jquery/1.8.2/jquery.js", resolver.expand("jquery.js"));
+    assertEquals("/webjars/jquery/1.8.2/jquery.js", resolver.expand("jquery.js", ""));
+  }
+
+  @Test
+  public void should_expand_uri_without_extension() {
+    assertEquals("/webjars/jquery/1.8.2/jquery.js", resolver.expand("jquery", "bundle.js"));
   }
 }

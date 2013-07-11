@@ -15,5 +15,5 @@ public interface Resolver {
 
   boolean accepts(String uri);
   LinkedHashMap<String, ? extends Reader> resolve(String uri, Context context);
-  String expand(String uri);
+  String expand(String uri, String bundleName);
 }

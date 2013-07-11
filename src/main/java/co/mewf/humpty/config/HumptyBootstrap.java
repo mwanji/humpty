@@ -6,6 +6,7 @@ import co.mewf.humpty.CompilingProcessor;
 import co.mewf.humpty.Pipeline;
 import co.mewf.humpty.Processor;
 import co.mewf.humpty.Resolver;
+import co.mewf.humpty.html.Tags;
 
 import com.google.gson.Gson;
 
@@ -110,6 +111,10 @@ public class HumptyBootstrap {
     }
 
     return new Pipeline(configuration, resolvers, compilingProcessors, assetProcessors, bundleProcessors);
+  }
+
+  public Tags createTags() {
+    return new Tags(getConfiguration(), getResolvers());
   }
 
   protected Configuration getConfiguration() {

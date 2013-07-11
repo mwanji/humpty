@@ -16,11 +16,11 @@ public class Tags {
     this.resolvers = resolvers;
   }
 
-  public String generate(String bundleName, String rootPath) {
+  public String generate(String bundleName, String contextPath) {
     StringBuilder html = new StringBuilder();
 
     if (Configuration.Mode.PRODUCTION == configuration.getMode()) {
-      toHtml(rootPath, "/" + bundleName, html);
+      toHtml(contextPath, "/" + bundleName, html);
 
       return html.toString();
     }
@@ -36,8 +36,8 @@ public class Tags {
     for (String asset : bundle.getBundleFor(bundleName)) {
       for (Resolver resolver : resolvers) {
         if (resolver.accepts(asset)) {
-          String expandedAsset = resolver.expand(asset);
-          toHtml(rootPath, expandedAsset, html);
+          String expandedAsset = resolver.expand(asset, bundleName);
+          toHtml(contextPath, expandedAsset, html);
           break;
         }
       }
@@ -46,18 +46,17 @@ public class Tags {
     return html.toString();
   }
 
-  private void toHtml(String rootPath, String expandedAsset, StringBuilder html) {
+  private void toHtml(String contextPath, String expandedAsset, StringBuilder html) {
     String assetBaseName = expandedAsset;
-    if (assetBaseName.contains("?")) {
-      assetBaseName = expandedAsset.substring(0, expandedAsset.indexOf('?'));
-    }
-
     if (assetBaseName.endsWith(".js")) {
       html.append("<script src=\"");
     } else if (assetBaseName.endsWith(".css")) {
       html.append("<link rel=\"stylesheet\" href=\"");
     }
-    html.append(rootPath);
+    html.append(contextPath);
+    if (contextPath.endsWith("/") && expandedAsset.startsWith("/")) {
+      html.deleteCharAt(html.length() - 1);
+    }
     html.append(expandedAsset);
     if (assetBaseName.endsWith(".js")) {
       html.append("\"></script>");

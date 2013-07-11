@@ -12,6 +12,8 @@ import java.util.LinkedHashMap;
 
 import javax.servlet.ServletContext;
 
+import org.apache.commons.io.FilenameUtils;
+
 /**
  * Looks up assets using the {@link ServletContext}. It accepts assets starting with <code>/</code>, e.g. /scripts/app.js
  */
@@ -30,7 +32,8 @@ public class ServletContextPathResolver implements Resolver {
 
       if (!helper.hasWildcard()) {
         uri = helper.getFull();
-        readers.put(expand(uri), new FileReader(new File(context.getRequest().getServletContext().getRealPath(expand(uri)))));
+        String expandedUri = expand(uri, context.getBundleName());
+        readers.put(expandedUri, new FileReader(new File(context.getRequest().getServletContext().getRealPath(expandedUri))));
 
         return readers;
       }
@@ -56,7 +59,8 @@ public class ServletContextPathResolver implements Resolver {
   }
 
   @Override
-  public String expand(String uri) {
-    return uri;
+  public String expand(String uri, String bundleName) {
+    String extension = FilenameUtils.getExtension(uri);
+    return !extension.isEmpty() ? uri : uri + "." + FilenameUtils.getExtension(bundleName);
   }
 }
