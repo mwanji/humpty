@@ -12,6 +12,8 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,6 +27,7 @@ public class Pipeline {
   private final List<AssetProcessor> assetProcessors;
   private final List<BundleProcessor> bundleProcessors;
   private final List<CompilingProcessor> compilingProcessors;
+  private final ConcurrentMap<String, String> cache = new ConcurrentHashMap<String, String>();
 
   public Pipeline(Configuration configuration, List<? extends Resolver> resolvers, List<? extends CompilingProcessor> compilingProcessors, List<? extends AssetProcessor> assetProcessors, List<? extends BundleProcessor> bundleProcessors) {
     this.configuration = configuration;
@@ -35,6 +38,10 @@ public class Pipeline {
   }
 
   public Reader process(String bundleName, HttpServletRequest request, HttpServletResponse response) {
+    if (cache.containsKey(bundleName)) {
+      return new StringReader(cache.get(bundleName));
+    }
+
     Context context = new Context(configuration.getMode(), bundleName, request, response);
     Bundle bundle = null;
     for (Bundle candidate : configuration.getBundles()) {
@@ -76,7 +83,15 @@ public class Pipeline {
       }
     }
 
-    return processBundle(new StringReader(bundleString.toString()), context);
+    Reader processedBundle = processBundle(new StringReader(bundleString.toString()), context);
+
+    try {
+      String processedBundleString = IOUtils.toString(processedBundle);
+      cache.putIfAbsent(bundleName, processedBundleString);
+      return new StringReader(processedBundleString);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private CompilingProcessor.CompilationResult compile(String assetName, Reader asset, PreProcessorContext context) {
