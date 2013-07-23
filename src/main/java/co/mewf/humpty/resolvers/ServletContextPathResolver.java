@@ -10,6 +10,7 @@ import java.io.FilenameFilter;
 import java.io.Reader;
 import java.util.LinkedHashMap;
 
+import javax.inject.Inject;
 import javax.servlet.ServletContext;
 
 import org.apache.commons.io.FilenameUtils;
@@ -18,6 +19,8 @@ import org.apache.commons.io.FilenameUtils;
  * Looks up assets using the {@link ServletContext}. It accepts assets starting with <code>/</code>, e.g. /scripts/app.js
  */
 public class ServletContextPathResolver implements Resolver {
+
+  private ServletContext servletContext;
 
   @Override
   public boolean accepts(String uri) {
@@ -33,13 +36,13 @@ public class ServletContextPathResolver implements Resolver {
       if (!helper.hasWildcard()) {
         uri = helper.getFull();
         String expandedUri = expand(uri, context.getBundleName());
-        readers.put(expandedUri, new FileReader(new File(context.getRequest().getServletContext().getRealPath(expandedUri))));
+        readers.put(expandedUri, new FileReader(new File(servletContext.getRealPath(expandedUri))));
 
         return readers;
       }
 
       String rootDirPath = helper.getRootDir();
-      File rootDir = new File(context.getRequest().getServletContext().getRealPath(rootDirPath));
+      File rootDir = new File(servletContext.getRealPath(rootDirPath));
 
       File[] fileNames = rootDir.listFiles(new FilenameFilter() {
         @Override
@@ -62,5 +65,10 @@ public class ServletContextPathResolver implements Resolver {
   public String expand(String uri, String bundleName) {
     String extension = FilenameUtils.getExtension(uri);
     return !extension.isEmpty() ? uri : uri + "." + FilenameUtils.getExtension(bundleName);
+  }
+
+  @Inject
+  public void configure(ServletContext servletContext) {
+    this.servletContext = servletContext;
   }
 }

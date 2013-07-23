@@ -26,7 +26,7 @@ public class PipelineTest {
   @Test
   public void should_process_bundle() throws IOException {
     Pipeline testPipeline = new HumptyBootstrap.Builder().build(new TestProcessor()).createPipeline();
-    Reader reader = testPipeline.process("singleAsset.js", null, null);
+    Reader reader = testPipeline.process("singleAsset.js");
     String result = IOUtils.toString(reader);
 
     assertTrue(result.startsWith("Preprocessed!Compiled!"));
@@ -35,7 +35,7 @@ public class PipelineTest {
 
   @Test
   public void should_compile_bundle() throws IOException {
-    Reader result = new HumptyBootstrap.Builder().build(new CoffeeScriptCompilingProcessor()).createPipeline().process("compilableAsset.js", null, null);
+    Reader result = new HumptyBootstrap.Builder().build(new CoffeeScriptCompilingProcessor()).createPipeline().process("compilableAsset.js");
 
     String resultString = IOUtils.toString(result);
 
@@ -45,7 +45,7 @@ public class PipelineTest {
 
   @Test
   public void should_concatenate_bundle_with_multiple_assets() throws IOException {
-    Reader result = new HumptyBootstrap.Builder().build().createPipeline().process("multipleAssets.js", null, null);
+    Reader result = new HumptyBootstrap.Builder().build().createPipeline().process("multipleAssets.js");
 
     String resultString = IOUtils.toString(result);
 
@@ -59,7 +59,7 @@ public class PipelineTest {
     TestConfigurable testConfigurable = new TestConfigurable();
     Pipeline configurablePipeline = new HumptyBootstrap.Builder().build(new Configuration(asList(new Bundle("singleAsset.js", asList("blocks.js"))), testConfigurable), testConfigurable).createPipeline();
 
-    String actual = IOUtils.toString(configurablePipeline.process("singleAsset.js", null, null));
+    String actual = IOUtils.toString(configurablePipeline.process("singleAsset.js"));
 
     assertEquals("passed!passed!\npassed!", actual);
   }
@@ -69,7 +69,7 @@ public class PipelineTest {
     HumptyBootstrap bootstrap = new HumptyBootstrap.Builder().humptyFile("/humpty-no-alias.json").build(new TestConfigurable());
     Pipeline configurablePipeline = bootstrap.createPipeline();
 
-    String actual = IOUtils.toString(configurablePipeline.process("singleAsset.js", null, null));
+    String actual = IOUtils.toString(configurablePipeline.process("singleAsset.js"));
 
     assertEquals("configured from JSON!configured from JSON!\nconfigured from JSON!", actual);
   }
@@ -78,7 +78,7 @@ public class PipelineTest {
   public void should_pass_aliased_configuration_via_json() throws IOException {
     Pipeline aliasedPipeline = new HumptyBootstrap.Builder().build(new TestConfigurable()).createPipeline();
 
-    String actual = IOUtils.toString(aliasedPipeline.process("singleAsset.js", null, null));
+    String actual = IOUtils.toString(aliasedPipeline.process("singleAsset.js"));
 
     assertEquals("aliased from JSON!aliased from JSON!\naliased from JSON!", actual);
   }
@@ -97,7 +97,7 @@ public class PipelineTest {
     ClassLoader classLoader = getClass().getClassLoader();
     Pipeline pipeline = new HumptyBootstrap.Builder().humptyFile("/humpty-wildcard.json").build(new EchoProcessor()).createPipeline();
 
-    String output = IOUtils.toString(pipeline.process("no_extension.js", null, null));
+    String output = IOUtils.toString(pipeline.process("no_extension.js"));
 
     assertThat("Did not include blocks.js", output, containsString(IOUtils.toString(classLoader.getResourceAsStream(locator.getFullPath("blocks.js")))));
     assertThat("Did not include web_server.js", output, containsString(IOUtils.toString(classLoader.getResourceAsStream(locator.getFullPath("web_server.js")))));
@@ -108,7 +108,7 @@ public class PipelineTest {
     ClassLoader classLoader = getClass().getClassLoader();
     Pipeline pipeline = new HumptyBootstrap.Builder().humptyFile("/humpty-wildcard.json").build(new EchoProcessor()).createPipeline();
 
-    String output = IOUtils.toString(pipeline.process("folder_and_extension.js", null, null));
+    String output = IOUtils.toString(pipeline.process("folder_and_extension.js"));
 
     assertThat("Did not include blocks.js", output, containsString(IOUtils.toString(classLoader.getResourceAsStream(locator.getFullPath("blocks.js")))));
     assertThat("Did not include web_server.js", output, containsString(IOUtils.toString(classLoader.getResourceAsStream(locator.getFullPath("web_server.js")))));
@@ -119,7 +119,7 @@ public class PipelineTest {
     ClassLoader classLoader = getClass().getClassLoader();
     Pipeline pipeline = new HumptyBootstrap.Builder().humptyFile("/humpty-wildcard.json").build(new EchoProcessor()).createPipeline();
 
-    String output = IOUtils.toString(pipeline.process("folder_without_extension.coffee", null, null));
+    String output = IOUtils.toString(pipeline.process("folder_without_extension.coffee"));
 
     assertThat("Did not include blocks.coffee", output, containsString(IOUtils.toString(classLoader.getResourceAsStream(locator.getFullPath("blocks.coffee")))));
     assertThat("Did not include web_server.coffee", output, containsString(IOUtils.toString(classLoader.getResourceAsStream(locator.getFullPath("web_server.coffee")))));
@@ -153,8 +153,8 @@ public class PipelineTest {
       }
     }).createPipeline();
 
-    pipeline.process("bundle.js", null, null);
-    pipeline.process("bundle.js", null, null);
+    pipeline.process("bundle.js");
+    pipeline.process("bundle.js");
 
     assertEquals("Asset processor was called more than once", 1, assetProcessorCount.intValue());
     assertEquals("Bundle processor was called more than once", 1, bundleProcessorCount.intValue());

@@ -10,6 +10,7 @@ import java.io.Reader;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -27,14 +28,16 @@ import org.apache.commons.io.IOUtils;
 public class HumptyFilter implements Filter {
 
   private Pipeline pipeline;
+  private ServletContext servletContext;
 
   @Override
   public void init(FilterConfig filterConfig) throws ServletException {
     pipeline = createPipeline();
+    servletContext = filterConfig.getServletContext();
   }
 
   protected Pipeline createPipeline() {
-    return new HumptyBootstrap.Builder().build().createPipeline();
+    return new HumptyBootstrap.Builder().build(servletContext).createPipeline();
   }
 
   @Override
@@ -44,7 +47,7 @@ public class HumptyFilter implements Filter {
     HttpServletResponse httpResponse = ((HttpServletResponse) response);
     httpResponse.setContentType(httpRequest.getRequestURI().endsWith(".js") ? "text/javascript" : "text/css");
     assetUri = assetUri.substring(assetUri.lastIndexOf('/') + 1);
-    Reader processedAsset = pipeline.process(assetUri, httpRequest, httpResponse);
+    Reader processedAsset = pipeline.process(assetUri);
 
     PrintWriter responseWriter = httpResponse.getWriter();
     IOUtils.copy(processedAsset, responseWriter);

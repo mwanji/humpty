@@ -15,8 +15,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
 
@@ -37,12 +35,12 @@ public class Pipeline {
     this.bundleProcessors = Collections.unmodifiableList(bundleProcessors);
   }
 
-  public Reader process(String bundleName, HttpServletRequest request, HttpServletResponse response) {
+  public Reader process(String bundleName) {
     if (cache.containsKey(bundleName)) {
       return new StringReader(cache.get(bundleName));
     }
 
-    Context context = new Context(configuration.getMode(), bundleName, request, response);
+    Context context = new Context(configuration.getMode(), bundleName);
     Bundle bundle = null;
     for (Bundle candidate : configuration.getBundles()) {
       if (candidate.accepts(bundleName)) {

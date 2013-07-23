@@ -207,12 +207,11 @@ humpty makes two interfaces available, as well as a limited form of dependency i
 
 ### Injection
 
-While constructor injection is not allowed because resources must be instantiatable by a ServiceLoader, field and method injection may be used by using the javax.inject.Inject annotation.
-
-Dependencies that can be injected:
+While constructor injection is not allowed because resources must be instantiatable by a ServiceLoader, a limited form of dependency injection is available. One method may be annotated with the javax.inject.Inject annotation. Dependencies that can be injected:
 
 * `WebJarAssetLocator` to find assets in a WebJar
 * `Configuration.Options` contains user-provided options
+* `ServletContext` from the Servlet 3 API
 
 ### Custom Processors
 

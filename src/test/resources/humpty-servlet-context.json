@@ -1,0 +1,8 @@
+{
+	bundles: [
+		{
+			name: "single.js",
+			assets: ["/asset"]
+		}
+	]
+}

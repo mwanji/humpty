@@ -74,6 +74,7 @@ public class HumptyBootstrap {
     List<? extends AssetProcessor> assetProcessors = getAssetProcessors();
     List<? extends BundleProcessor> bundleProcessors = getBundleProcessors();
     List<? extends CompilingProcessor> compilingProcessors = getCompilingProcessors();
+    List<Object> extras = getExtras();
 
     WebJarAssetLocator locator = new WebJarAssetLocator();
 
@@ -92,12 +93,15 @@ public class HumptyBootstrap {
         Class<?>[] parameterTypes = method.getParameterTypes();
         Object[] args = new Object[parameterTypes.length];
         for (int i = 0; i < parameterTypes.length; i++) {
-          if (parameterTypes[i] == WebJarAssetLocator.class) {
+          Class<?> parameterType = parameterTypes[i];
+          if (parameterType == WebJarAssetLocator.class) {
             args[i] = locator;
-          } else if (parameterTypes[i] == Configuration.Options.class) {
+          } else if (parameterType == Configuration.Options.class) {
             args[i] = configuration.getOptionsFor(resource.getClass());
+          } else if (getExtra(extras, parameterType) != null) {
+            args[i] = getExtra(extras, parameterType);
           } else {
-            throw new IllegalArgumentException("Cannot inject the type " + parameterTypes[i].getName() + " into " + resource.getClass().getName());
+            throw new IllegalArgumentException("Cannot inject the type " + parameterType.getName() + " into " + resource.getClass().getName());
           }
         }
 
@@ -218,5 +222,27 @@ public class HumptyBootstrap {
   HumptyBootstrap(Config config, Object... resources) {
     this.config = config;
     this.resources = resources;
+  }
+
+  private List<Object> getExtras() {
+    ArrayList<Object> extras = new ArrayList<Object>();
+
+    for (Object resource : resources) {
+      if (!(resource instanceof Processor || resource instanceof Configuration || resource instanceof Resolver)) {
+        extras.add(resource);
+      }
+    }
+
+    return extras;
+  }
+
+  private Object getExtra(List<Object> extras, Class<?> extra) {
+    for (Object candidate : extras) {
+      if (extra.isAssignableFrom(candidate.getClass())) {
+        return candidate;
+      }
+    }
+
+    return null;
   }
 }

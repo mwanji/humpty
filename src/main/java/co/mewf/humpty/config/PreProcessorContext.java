@@ -2,8 +2,6 @@ package co.mewf.humpty.config;
 
 import co.mewf.humpty.config.Configuration.Mode;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 public class PreProcessorContext extends Context {
 
@@ -13,8 +11,8 @@ public class PreProcessorContext extends Context {
     return assetUrl;
   }
 
-  PreProcessorContext(String assetUrl, Mode mode, String bundleName, HttpServletRequest request, HttpServletResponse response) {
-    super(mode, bundleName, request, response);
+  PreProcessorContext(String assetUrl, Mode mode, String bundleName) {
+    super(mode, bundleName);
     this.assetUrl = assetUrl;
   }
 }
