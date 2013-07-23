@@ -6,6 +6,9 @@ import co.mewf.humpty.config.Configuration;
 
 import java.util.List;
 
+import org.apache.commons.io.FilenameUtils;
+import org.joda.time.DateTimeUtils;
+
 public class Tags {
 
   private final Configuration configuration;
@@ -54,10 +57,15 @@ public class Tags {
       html.append("<link rel=\"stylesheet\" href=\"");
     }
     html.append(contextPath);
-    if (contextPath.endsWith("/") && expandedAsset.startsWith("/")) {
-      html.deleteCharAt(html.length() - 1);
+    if (html.charAt(html.length() - 1) != '/') {
+      html.append('/');
     }
-    html.append(expandedAsset);
+    html.append(FilenameUtils.getPath(expandedAsset));
+    html.append(FilenameUtils.getBaseName(expandedAsset));
+    if (configuration.isTimestamped()) {
+      html.append("-humpty" + DateTimeUtils.currentTimeMillis());
+    }
+    html.append('.').append(FilenameUtils.getExtension(expandedAsset));
     if (assetBaseName.endsWith(".js")) {
       html.append("\"></script>");
     } else if (assetBaseName.endsWith(".css")) {

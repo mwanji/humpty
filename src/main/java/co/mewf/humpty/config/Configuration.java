@@ -66,6 +66,10 @@ public class Configuration {
     return bundles;
   }
 
+  public boolean isTimestamped() {
+    return mode == Mode.PRODUCTION;
+  }
+
   public Configuration.Options getOptionsFor(Class<?> configurable) {
     if (configurable.isAnnotationPresent(Alias.class)) {
       String key = configurable.getAnnotation(Alias.class).value();

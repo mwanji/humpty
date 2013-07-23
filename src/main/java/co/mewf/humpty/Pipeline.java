@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
 public class Pipeline {
@@ -35,9 +35,14 @@ public class Pipeline {
     this.bundleProcessors = Collections.unmodifiableList(bundleProcessors);
   }
 
-  public Reader process(String bundleName) {
-    if (cache.containsKey(bundleName)) {
-      return new StringReader(cache.get(bundleName));
+  public Reader process(String originalAssetName) {
+    if (cache.containsKey(originalAssetName)) {
+      return new StringReader(cache.get(originalAssetName));
+    }
+
+    String bundleName = originalAssetName;
+    if (configuration.isTimestamped()) {
+      bundleName = stripTimestamp(originalAssetName);
     }
 
     Context context = new Context(configuration.getMode(), bundleName);
@@ -85,11 +90,29 @@ public class Pipeline {
 
     try {
       String processedBundleString = IOUtils.toString(processedBundle);
-      cache.putIfAbsent(bundleName, processedBundleString);
+      cache.putIfAbsent(originalAssetName, processedBundleString);
       return new StringReader(processedBundleString);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private String stripTimestamp(String name) {
+    String baseName = FilenameUtils.getBaseName(name);
+    String extension = FilenameUtils.getExtension(name);
+
+    int dashLastIndex = baseName.lastIndexOf('-');
+    if (dashLastIndex == -1) {
+      return name;
+    }
+
+    String timestamp = baseName.substring(dashLastIndex + 1);
+
+    if (!timestamp.startsWith("humpty")) {
+      return name;
+    }
+
+    return baseName.substring(0, dashLastIndex) + "." + extension;
   }
 
   private CompilingProcessor.CompilationResult compile(String assetName, Reader asset, PreProcessorContext context) {

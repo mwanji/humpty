@@ -8,24 +8,26 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import co.mewf.humpty.config.Bundle;
 import co.mewf.humpty.config.Configuration;
-import co.mewf.humpty.config.Context;
 import co.mewf.humpty.config.HumptyBootstrap;
-import co.mewf.humpty.config.PreProcessorContext;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Date;
+
+import javax.servlet.ServletContext;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.webjars.WebJarAssetLocator;
 
 public class PipelineTest {
   private final WebJarAssetLocator locator = new WebJarAssetLocator();
+  private final ServletContext servletContext = Mockito.mock(ServletContext.class);
 
   @Test
   public void should_process_bundle() throws IOException {
-    Pipeline testPipeline = new HumptyBootstrap.Builder().build(new TestProcessor()).createPipeline();
+    Pipeline testPipeline = new HumptyBootstrap.Builder().build(new TestProcessor(), servletContext).createPipeline();
     Reader reader = testPipeline.process("singleAsset.js");
     String result = IOUtils.toString(reader);
 
@@ -35,7 +37,7 @@ public class PipelineTest {
 
   @Test
   public void should_compile_bundle() throws IOException {
-    Reader result = new HumptyBootstrap.Builder().build(new CoffeeScriptCompilingProcessor()).createPipeline().process("compilableAsset.js");
+    Reader result = new HumptyBootstrap.Builder().build(new CoffeeScriptCompilingProcessor(), servletContext).createPipeline().process("compilableAsset.js");
 
     String resultString = IOUtils.toString(result);
 
@@ -45,7 +47,7 @@ public class PipelineTest {
 
   @Test
   public void should_concatenate_bundle_with_multiple_assets() throws IOException {
-    Reader result = new HumptyBootstrap.Builder().build().createPipeline().process("multipleAssets.js");
+    Reader result = new HumptyBootstrap.Builder().build(servletContext).createPipeline().process("multipleAssets.js");
 
     String resultString = IOUtils.toString(result);
 
@@ -57,7 +59,7 @@ public class PipelineTest {
   @Test
   public void should_pass_configuration_options_via_java() throws IOException {
     TestConfigurable testConfigurable = new TestConfigurable();
-    Pipeline configurablePipeline = new HumptyBootstrap.Builder().build(new Configuration(asList(new Bundle("singleAsset.js", asList("blocks.js"))), testConfigurable), testConfigurable).createPipeline();
+    Pipeline configurablePipeline = new HumptyBootstrap.Builder().build(new Configuration(asList(new Bundle("singleAsset.js", asList("blocks.js"))), testConfigurable), testConfigurable, servletContext).createPipeline();
 
     String actual = IOUtils.toString(configurablePipeline.process("singleAsset.js"));
 
@@ -66,7 +68,7 @@ public class PipelineTest {
 
   @Test
   public void should_pass_configuration_options_via_json() throws IOException {
-    HumptyBootstrap bootstrap = new HumptyBootstrap.Builder().humptyFile("/humpty-no-alias.json").build(new TestConfigurable());
+    HumptyBootstrap bootstrap = new HumptyBootstrap.Builder().humptyFile("/humpty-no-alias.json").build(new TestConfigurable(), servletContext);
     Pipeline configurablePipeline = bootstrap.createPipeline();
 
     String actual = IOUtils.toString(configurablePipeline.process("singleAsset.js"));
@@ -76,7 +78,7 @@ public class PipelineTest {
 
   @Test
   public void should_pass_aliased_configuration_via_json() throws IOException {
-    Pipeline aliasedPipeline = new HumptyBootstrap.Builder().build(new TestConfigurable()).createPipeline();
+    Pipeline aliasedPipeline = new HumptyBootstrap.Builder().build(new TestConfigurable(), servletContext).createPipeline();
 
     String actual = IOUtils.toString(aliasedPipeline.process("singleAsset.js"));
 
@@ -86,7 +88,7 @@ public class PipelineTest {
   @Test
   public void should_only_pass_configuration_for_current_processor() {
     TestConfigurable resource = new TestConfigurable();
-    new HumptyBootstrap.Builder().humptyFile("/humpty-multiple-configs.json").build(resource, new EchoProcessor()).createPipeline();
+    new HumptyBootstrap.Builder().humptyFile("/humpty-multiple-configs.json").build(resource, new EchoProcessor(), servletContext).createPipeline();
 
     assertEquals(resource.options.get("message"), "correct");
     assertNull(resource.options.get("echoMessage"));
@@ -95,7 +97,7 @@ public class PipelineTest {
   @Test
   public void should_take_extension_from_bundle_when_not_specified_by_asset() throws IOException {
     ClassLoader classLoader = getClass().getClassLoader();
-    Pipeline pipeline = new HumptyBootstrap.Builder().humptyFile("/humpty-wildcard.json").build(new EchoProcessor()).createPipeline();
+    Pipeline pipeline = new HumptyBootstrap.Builder().humptyFile("/humpty-wildcard.json").build(new EchoProcessor(), servletContext).createPipeline();
 
     String output = IOUtils.toString(pipeline.process("no_extension.js"));
 
@@ -106,7 +108,7 @@ public class PipelineTest {
   @Test
   public void should_expand_wildcard_for_single_folder_with_extension() throws IOException {
     ClassLoader classLoader = getClass().getClassLoader();
-    Pipeline pipeline = new HumptyBootstrap.Builder().humptyFile("/humpty-wildcard.json").build(new EchoProcessor()).createPipeline();
+    Pipeline pipeline = new HumptyBootstrap.Builder().humptyFile("/humpty-wildcard.json").build(new EchoProcessor(), servletContext).createPipeline();
 
     String output = IOUtils.toString(pipeline.process("folder_and_extension.js"));
 
@@ -117,7 +119,7 @@ public class PipelineTest {
   @Test
   public void should_expand_wildcard_for_single_folder_without_extension() throws IOException {
     ClassLoader classLoader = getClass().getClassLoader();
-    Pipeline pipeline = new HumptyBootstrap.Builder().humptyFile("/humpty-wildcard.json").build(new EchoProcessor()).createPipeline();
+    Pipeline pipeline = new HumptyBootstrap.Builder().humptyFile("/humpty-wildcard.json").build(new EchoProcessor(), servletContext).createPipeline();
 
     String output = IOUtils.toString(pipeline.process("folder_without_extension.coffee"));
 
@@ -127,36 +129,40 @@ public class PipelineTest {
 
   @Test
   public void should_cache_results() {
-    final AtomicInteger assetProcessorCount = new AtomicInteger();
-    final AtomicInteger bundleProcessorCount = new AtomicInteger();
-    Pipeline pipeline = new HumptyBootstrap.Builder().build(new Configuration(asList(new Bundle("bundle.js", asList("blocks.js")))), new AssetProcessor() {
-      @Override
-      public Reader processAsset(String assetName, Reader asset, PreProcessorContext context) {
-        assetProcessorCount.incrementAndGet();
-        return asset;
-      }
-
-      @Override
-      public boolean accepts(String assetName) {
-        return true;
-      }
-    }, new BundleProcessor() {
-      @Override
-      public Reader processBundle(String assetName, Reader asset, Context context) {
-        bundleProcessorCount.incrementAndGet();
-        return asset;
-      }
-
-      @Override
-      public boolean accepts(String assetName) {
-        return true;
-      }
-    }).createPipeline();
+    CountingProcessor countingProcessor = new CountingProcessor();
+    Pipeline pipeline = new HumptyBootstrap.Builder().build(new Configuration(asList(new Bundle("bundle.js", asList("blocks.js")))), servletContext, countingProcessor).createPipeline();
 
     pipeline.process("bundle.js");
     pipeline.process("bundle.js");
 
-    assertEquals("Asset processor was called more than once", 1, assetProcessorCount.intValue());
-    assertEquals("Bundle processor was called more than once", 1, bundleProcessorCount.intValue());
+    assertEquals("Asset processor was called more than once", 1, countingProcessor.getAssetCount());
+    assertEquals("Bundle processor was called more than once", 1, countingProcessor.getBundleCount());
+  }
+
+  @Test
+  public void should_handle_timestamped_bundle_name() {
+    CountingProcessor countingProcessor = new CountingProcessor();
+    HumptyBootstrap bootstrap = new HumptyBootstrap.Builder().humptyFile("/humpty-production.json").build(servletContext, countingProcessor);
+    Pipeline pipeline = bootstrap.createPipeline();
+
+    String assetName = "singleAsset-humpty" + new Date().getTime() + ".js";
+    pipeline.process(assetName);
+    pipeline.process(assetName);
+
+    assertEquals("Asset processor was called more than once", 1, countingProcessor.getAssetCount());
+    assertEquals("Bundle processor was called more than once", 1, countingProcessor.getBundleCount());
+  }
+
+  @Test
+  public void should_reprocess_when_timestamp_changes() {
+    CountingProcessor countingProcessor = new CountingProcessor();
+    HumptyBootstrap bootstrap = new HumptyBootstrap.Builder().humptyFile("/humpty-production.json").build(servletContext, countingProcessor);
+    Pipeline pipeline = bootstrap.createPipeline();
+
+    pipeline.process("singleAsset-humpty" + (new Date().getTime() - 1000) + ".js");
+    pipeline.process("singleAsset-humpty" + new Date().getTime() + ".js");
+
+    assertEquals("Asset processor should have been called twice", 2, countingProcessor.getAssetCount());
+    assertEquals("Bundle processor should have been called twice", 2, countingProcessor.getBundleCount());
   }
 }
