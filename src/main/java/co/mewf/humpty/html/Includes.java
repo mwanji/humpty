@@ -1,10 +1,10 @@
 package co.mewf.humpty.html;
 
-import co.mewf.humpty.Resolver;
 import co.mewf.humpty.config.Bundle;
 import co.mewf.humpty.config.Configuration;
 import co.mewf.humpty.config.Context;
 import co.mewf.humpty.resolvers.AssetFile;
+import co.mewf.humpty.resolvers.Resolver;
 
 import java.util.List;
 

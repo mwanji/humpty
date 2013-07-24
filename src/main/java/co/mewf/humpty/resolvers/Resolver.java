@@ -1,7 +1,6 @@
-package co.mewf.humpty;
+package co.mewf.humpty.resolvers;
 
 import co.mewf.humpty.config.Context;
-import co.mewf.humpty.resolvers.AssetFile;
 
 import java.util.List;
 import java.util.ServiceLoader;

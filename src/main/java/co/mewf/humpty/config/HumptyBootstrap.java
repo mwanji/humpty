@@ -5,11 +5,11 @@ import co.mewf.humpty.BundleProcessor;
 import co.mewf.humpty.CompilingProcessor;
 import co.mewf.humpty.Pipeline;
 import co.mewf.humpty.Processor;
-import co.mewf.humpty.Resolver;
 import co.mewf.humpty.caches.AssetCache;
 import co.mewf.humpty.caches.SimpleAssetCache;
 import co.mewf.humpty.caches.WatchingAssetCache;
 import co.mewf.humpty.html.Includes;
+import co.mewf.humpty.resolvers.Resolver;
 
 import com.google.gson.Gson;
 

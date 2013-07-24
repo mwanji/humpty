@@ -6,6 +6,7 @@ import co.mewf.humpty.config.Configuration;
 import co.mewf.humpty.config.Context;
 import co.mewf.humpty.config.PreProcessorContext;
 import co.mewf.humpty.resolvers.AssetFile;
+import co.mewf.humpty.resolvers.Resolver;
 
 import java.io.IOException;
 import java.io.Reader;

@@ -243,7 +243,7 @@ Processors that are configurable and will be distributed publicly may offer a fr
 
 #### Custom Resolvers
 
-Implement the `Resolver` interface. For the resolver to be picked up by a `ServiceLoader`, add a file called co.mewf.humpty.Resolver to META-INF/services, containing one fully-qualified class name per line.
+Implement the `Resolver` interface. For the resolver to be picked up by a `ServiceLoader`, add a file called co.mewf.humpty.resolvers.Resolver to META-INF/services, containing one fully-qualified class name per line.
 
 ## Licensing
 

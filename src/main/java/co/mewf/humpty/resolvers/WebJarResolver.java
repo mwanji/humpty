@@ -1,6 +1,5 @@
 package co.mewf.humpty.resolvers;
 
-import co.mewf.humpty.Resolver;
 import co.mewf.humpty.config.Context;
 
 import java.io.InputStreamReader;
