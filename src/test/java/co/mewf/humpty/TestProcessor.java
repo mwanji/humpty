@@ -2,6 +2,9 @@ package co.mewf.humpty;
 
 import co.mewf.humpty.config.Context;
 import co.mewf.humpty.config.PreProcessorContext;
+import co.mewf.humpty.processors.AssetProcessor;
+import co.mewf.humpty.processors.BundleProcessor;
+import co.mewf.humpty.processors.CompilingProcessor;
 
 import java.io.IOException;
 import java.io.Reader;

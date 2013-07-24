@@ -5,6 +5,9 @@ import co.mewf.humpty.config.Configuration;
 import co.mewf.humpty.config.ConfigurationOptionsProvider;
 import co.mewf.humpty.config.Context;
 import co.mewf.humpty.config.PreProcessorContext;
+import co.mewf.humpty.processors.AssetProcessor;
+import co.mewf.humpty.processors.BundleProcessor;
+import co.mewf.humpty.processors.CompilingProcessor;
 
 import java.io.IOException;
 import java.io.Reader;

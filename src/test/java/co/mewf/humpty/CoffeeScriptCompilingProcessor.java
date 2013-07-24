@@ -1,6 +1,7 @@
 package co.mewf.humpty;
 
 import co.mewf.humpty.config.PreProcessorContext;
+import co.mewf.humpty.processors.CompilingProcessor;
 
 import java.io.IOException;
 import java.io.InputStream;

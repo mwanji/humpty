@@ -1,6 +1,7 @@
 package co.mewf.humpty;
 
 import co.mewf.humpty.config.PreProcessorContext;
+import co.mewf.humpty.processors.AssetProcessor;
 
 import java.io.Reader;
 

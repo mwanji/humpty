@@ -233,7 +233,7 @@ While constructor injection is not allowed because resources must be instantiata
 
 ### Custom Processors
 
-New processors can be created by implementing one of the interfaces extending the `Processor` interface. For the processor to be picked up by a `ServiceLoader`, add a file called co.mewf.humpty.Processor to META-INF/services, containing one fully-qualified class name per line.
+New processors can be created by implementing one of the interfaces extending the `Processor` interface. For the processor to be picked up by a `ServiceLoader`, add a file called co.mewf.humpty.processors.Processor to META-INF/services, containing one fully-qualified class name per line.
 
 If the processor is configurable, implement the `Configurable` interface. `Configurable#configure(Map<String, Object>)` is called before the processor is used.
 

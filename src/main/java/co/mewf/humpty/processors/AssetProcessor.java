@@ -1,4 +1,4 @@
-package co.mewf.humpty;
+package co.mewf.humpty.processors;
 
 import co.mewf.humpty.config.PreProcessorContext;
 

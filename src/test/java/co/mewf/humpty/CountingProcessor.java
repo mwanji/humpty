@@ -2,6 +2,8 @@ package co.mewf.humpty;
 
 import co.mewf.humpty.config.Context;
 import co.mewf.humpty.config.PreProcessorContext;
+import co.mewf.humpty.processors.AssetProcessor;
+import co.mewf.humpty.processors.BundleProcessor;
 
 import java.io.Reader;
 import java.util.concurrent.atomic.AtomicInteger;
