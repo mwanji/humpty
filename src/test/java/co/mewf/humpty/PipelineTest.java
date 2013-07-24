@@ -10,6 +10,7 @@ import co.mewf.humpty.config.Bundle;
 import co.mewf.humpty.config.Configuration;
 import co.mewf.humpty.config.HumptyBootstrap;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Date;
@@ -17,13 +18,21 @@ import java.util.Date;
 import javax.servlet.ServletContext;
 
 import org.apache.commons.io.IOUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.webjars.WebJarAssetLocator;
 
 public class PipelineTest {
   private final WebJarAssetLocator locator = new WebJarAssetLocator();
   private final ServletContext servletContext = Mockito.mock(ServletContext.class);
+
+  @Before
+  public void before() {
+    Mockito.when(servletContext.getRealPath(Mockito.anyString())).thenReturn("/real/path");
+  }
 
   @Test
   public void should_process_bundle() throws IOException {
@@ -163,6 +172,33 @@ public class PipelineTest {
     pipeline.process("singleAsset-humpty" + new Date().getTime() + ".js");
 
     assertEquals("Asset processor should have been called twice", 2, countingProcessor.getAssetCount());
+    assertEquals("Bundle processor should have been called twice", 2, countingProcessor.getBundleCount());
+  }
+
+  @Test
+  public void should_invalidate_cache_when_file_modified() throws Exception {
+    final File parent = new File("src/test/resources");
+    ServletContext servletContext = Mockito.mock(ServletContext.class);
+    Mockito.when(servletContext.getRealPath(Mockito.anyString())).thenAnswer(new Answer<String>() {
+      @Override
+      public String answer(InvocationOnMock invocation) throws Throwable {
+        return parent.getAbsolutePath() + invocation.getArguments()[0];
+      }
+    });
+    CountingProcessor countingProcessor = new CountingProcessor();
+    HumptyBootstrap bootstrap = new HumptyBootstrap.Builder().humptyFile("/humpty-watch.json").build(servletContext, countingProcessor);
+    Pipeline pipeline = bootstrap.createPipeline();
+
+    pipeline.process("bundle.js");
+
+    File file = new File(parent, "asset1.js");
+    file.setLastModified(System.currentTimeMillis());
+
+    Thread.sleep(6000);
+
+    pipeline.process("bundle.js");
+
+    assertEquals("Asset processor should have been called twice", 3, countingProcessor.getAssetCount());
     assertEquals("Bundle processor should have been called twice", 2, countingProcessor.getBundleCount());
   }
 }

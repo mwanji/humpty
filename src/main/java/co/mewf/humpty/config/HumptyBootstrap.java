@@ -6,6 +6,9 @@ import co.mewf.humpty.CompilingProcessor;
 import co.mewf.humpty.Pipeline;
 import co.mewf.humpty.Processor;
 import co.mewf.humpty.Resolver;
+import co.mewf.humpty.caches.AssetCache;
+import co.mewf.humpty.caches.SimpleAssetCache;
+import co.mewf.humpty.caches.WatchingAssetCache;
 import co.mewf.humpty.html.Tags;
 
 import com.google.gson.Gson;
@@ -63,62 +66,24 @@ public class HumptyBootstrap {
   private final ServiceLoader<Processor> processors = ServiceLoader.load(Processor.class);
   private final Object[] resources;
   private final Config config;
+  private Configuration configuration;
+  private AssetCache assetCache;
+  private List<? extends Resolver> resolvers;
+  private List<Object> extras;
+  private List<? extends CompilingProcessor> compilingProcessors;
+  private List<? extends BundleProcessor> bundleProcessors;
+  private List<? extends AssetProcessor> assetProcessors;
 
   HumptyBootstrap(Object... resources) {
     this(new Config(), resources);
   }
 
   public Pipeline createPipeline() {
-    final Configuration configuration = getConfiguration();
-    List<? extends Resolver> resolvers = getResolvers();
-    List<? extends AssetProcessor> assetProcessors = getAssetProcessors();
-    List<? extends BundleProcessor> bundleProcessors = getBundleProcessors();
-    List<? extends CompilingProcessor> compilingProcessors = getCompilingProcessors();
-    List<Object> extras = getExtras();
-
-    WebJarAssetLocator locator = new WebJarAssetLocator();
-
-    List<Object> all = new ArrayList<Object>();
-    all.addAll(resolvers);
-    all.addAll(compilingProcessors);
-    all.addAll(assetProcessors);
-    all.addAll(bundleProcessors);
-
-    for (Object resource : all) {
-      for (Method method : resource.getClass().getMethods()) {
-        if (!method.isAnnotationPresent(Inject.class)) {
-          continue;
-        }
-
-        Class<?>[] parameterTypes = method.getParameterTypes();
-        Object[] args = new Object[parameterTypes.length];
-        for (int i = 0; i < parameterTypes.length; i++) {
-          Class<?> parameterType = parameterTypes[i];
-          if (parameterType == WebJarAssetLocator.class) {
-            args[i] = locator;
-          } else if (parameterType == Configuration.Options.class) {
-            args[i] = configuration.getOptionsFor(resource.getClass());
-          } else if (getExtra(extras, parameterType) != null) {
-            args[i] = getExtra(extras, parameterType);
-          } else {
-            throw new IllegalArgumentException("Cannot inject the type " + parameterType.getName() + " into " + resource.getClass().getName());
-          }
-        }
-
-        try {
-          method.invoke(resource, args);
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
-        break;
-      }
-    }
-
-    return new Pipeline(configuration, resolvers, compilingProcessors, assetProcessors, bundleProcessors);
+    return new Pipeline(configuration, assetCache, resolvers, compilingProcessors, assetProcessors, bundleProcessors);
   }
 
   public Tags createTags() {
-    return new Tags(getConfiguration(), getResolvers());
+    return new Tags(configuration, resolvers);
   }
 
   protected Configuration getConfiguration() {
@@ -129,6 +94,10 @@ public class HumptyBootstrap {
     }
 
     return gson.fromJson(new InputStreamReader(getClass().getResourceAsStream(config.humptyFile)), Configuration.class);
+  }
+
+  protected AssetCache getAssetCache(Configuration configuration) {
+    return configuration.getMode() == Configuration.Mode.PRODUCTION ? new SimpleAssetCache() : new WatchingAssetCache();
   }
 
   protected List<? extends Resolver> getResolvers() {
@@ -222,6 +191,53 @@ public class HumptyBootstrap {
   HumptyBootstrap(Config config, Object... resources) {
     this.config = config;
     this.resources = resources;
+
+    this.configuration = getConfiguration();
+    this.assetCache = getAssetCache(configuration);
+    this.resolvers = getResolvers();
+    this.assetProcessors = getAssetProcessors();
+    this.bundleProcessors = getBundleProcessors();
+    this.compilingProcessors = getCompilingProcessors();
+    this.extras = getExtras();
+
+    WebJarAssetLocator locator = new WebJarAssetLocator();
+
+    List<Object> all = new ArrayList<Object>();
+    all.add(assetCache);
+    all.addAll(resolvers);
+    all.addAll(compilingProcessors);
+    all.addAll(assetProcessors);
+    all.addAll(bundleProcessors);
+
+    for (Object resource : all) {
+      for (Method method : resource.getClass().getMethods()) {
+        if (!method.isAnnotationPresent(Inject.class)) {
+          continue;
+        }
+
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        Object[] args = new Object[parameterTypes.length];
+        for (int i = 0; i < parameterTypes.length; i++) {
+          Class<?> parameterType = parameterTypes[i];
+          if (parameterType == WebJarAssetLocator.class) {
+            args[i] = locator;
+          } else if (parameterType == Configuration.Options.class) {
+            args[i] = configuration.getOptionsFor(resource.getClass());
+          } else if (getExtra(extras, parameterType) != null) {
+            args[i] = getExtra(extras, parameterType);
+          } else {
+            throw new IllegalArgumentException("Cannot inject the type " + parameterType.getName() + " into " + resource.getClass().getName());
+          }
+        }
+
+        try {
+          method.invoke(resource, args);
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+        break;
+      }
+    }
   }
 
   private List<Object> getExtras() {

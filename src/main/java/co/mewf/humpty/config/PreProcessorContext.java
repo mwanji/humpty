@@ -11,8 +11,8 @@ public class PreProcessorContext extends Context {
     return assetUrl;
   }
 
-  PreProcessorContext(String assetUrl, Mode mode, String bundleName) {
-    super(mode, bundleName);
+  PreProcessorContext(String assetUrl, Mode mode, Bundle bundle) {
+    super(mode, bundle);
     this.assetUrl = assetUrl;
   }
 }

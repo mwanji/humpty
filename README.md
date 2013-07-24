@@ -60,11 +60,11 @@ The `url-pattern` can be anything you want, but only humpty-managed bundle names
 
 Create a file called `humpty.json` in `src/main/resources`:
 
-````json
+````
 {
   bundles: [
     {
-      name: "example.js",
+      name: "example.js", // the file extension is required
       assets: ["jquery", "underscore", "bootstrap", "app"] // will be concatenated into a single JS file
     },
     {
@@ -96,16 +96,18 @@ Now we can include our concatenated and minified files in index.html:
 </html>
 ````
 
-## Usage
+## Resources
+
+humpty is a modular system composed of resources. There are several kinds of resources: Bundles and Assets, Processors, Resolvers and Caches. 
 
 ### Bundles and Assets
 
-A Bundle is a named list of files that are accessed and processed together. The result is made available at the URL defined by the `name` property. The files and the order in which they are processed are set in the `assets` property.
+A Bundle is a named list of files that are accessed and processed together. The result is made available at the URL defined by the `name` property. The `name` must contain a file extension. The files and the order in which they are processed are set in the `assets` array.
 
 Each asset may have a prefix identifying its type:
 
-* `<no prefix>`: This is the default, meaning the asset is in a WebJar. This can be just a file name if there is no ambiguity, or a longer path if the are other files with the same name, eg. `smoothness/theme.css` in the case of JqueryUI.
-* `/`: The asset is available via URL. This must be the full path after the context path.
+* `<no prefix>`: This is the default and indicates that the asset is in a [WebJar](http://webjars.org). This can be just a file name if there is no ambiguity, or a longer path if the are other files with the same name, eg. `smoothness/theme.css` in the case of JqueryUI.
+* `/`: The asset is available via URL. This must be the full path, relative to the context path.
 
 If an asset does not have an extension, it will use the one in the name of the bundle.
 
@@ -124,6 +126,7 @@ humpty has no default processors, but they are easy to add: simply put them on t
 There are a number of processors available:
 
 * [humpty-compression](http://mewf.co/humpty/compression): JS & CSS minification/obfuscation
+* [humpty-coffeescript](http://mewf.co/humpty/coffeescript): CoffeeScript compilation
 * [humpty-bootstrap-less](http://mewf.co/humpty/bootstrap-less): Bootstrap and Font Awesome customisation via LESS
 * [humpty-emberjs](http://mewf.co/humpty/emberjs): Compile Ember.Handlebars templates
 
@@ -133,10 +136,25 @@ Creating custom processors is discussed in the [Extension Points](#extension-poi
 
 Resolvers take an asset's name and turn it into one or more (in case of wildcards) named `Reader`s. There are 2 resolvers bundled with humpty:
 
-* `WebJarResolver` is the default and looks up resources in a WebJar
+* `WebJarResolver` is the default and looks up resources in a [WebJar](http://webjars.org)
 * `ServletContextPathResolver` finds assets relative to the Servlet context path. Is used when an asset's name starts with `/`
 
 Creating custom resovlers is discussed in the [Extension Points](#extension-points) section.
+
+### Caches
+
+Processed assets and bundles are cached to speed up subsequent requests. Two caches are provided:
+
+* `SimpleAssetCache`: used in production mode. Entries never expire.
+* `WatchingAssetCache`: used in development mode. Entries are invalidated when the underlying file is changed.
+
+## Development Mode
+
+By setting mode to "DEVELOPMENT", the code-deploy-refresh cycle is sped up.
+
+Bundles are updated as soon as an asset they contain is modified, so you can edit a file, refresh the browser and see the change.
+
+Other resources, especially Processors, may behave differently in development mode. For example, humpty-compress will not minify.
 
 ## JSON Configuration Reference
 
@@ -190,7 +208,7 @@ In PRODUCTION mode, all processing is applied. In DEVELOPMENT mode, processors c
 
 ## Java Configuration Reference
 
-The JSON configuration object is easy to use initially, but is not programmable and can be cumbersome. At the cost of a little bit of configuraton, the Java API provides typesafety and easier processor configuration.
+The JSON configuration object is easy to use, but is not programmable and can be cumbersome. At the cost of a little bit of configuraton, the Java API provides typesafety and easier processor configuration.
 
 ### HumptyBootstrap
 
@@ -199,11 +217,11 @@ Use `HumptyBootstrap.Builder` to:
 * use a file located elsewhere than `/humpty.json`
 * use a specific set of processors and resolvers, rather than using the ServiceLoader mechanism
 
-To use a custom `HumptyBootstrap`, extend `HumptyFilter` and override `createPipeline()`.
+To use a custom `HumptyBootstrap`, extend `HumptyFilter` and override `createPipeline(FilterConfig)`.
 
 ## Extension Points
 
-humpty makes two interfaces available, as well as a limited form of dependency injection.
+humpty makes several interfaces available, as well as a limited form of dependency injection.
 
 ### Injection
 

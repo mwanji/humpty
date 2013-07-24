@@ -1,9 +1,9 @@
 package co.mewf.humpty;
 
 import co.mewf.humpty.config.Context;
+import co.mewf.humpty.resolvers.AssetFile;
 
-import java.io.Reader;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.ServiceLoader;
 
 /**
@@ -14,6 +14,5 @@ import java.util.ServiceLoader;
 public interface Resolver {
 
   boolean accepts(String uri);
-  LinkedHashMap<String, ? extends Reader> resolve(String uri, Context context);
-  String expand(String uri, String bundleName);
+  List<AssetFile> resolve(String uri, Context context);
 }

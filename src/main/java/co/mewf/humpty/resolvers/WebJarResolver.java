@@ -4,11 +4,12 @@ import co.mewf.humpty.Resolver;
 import co.mewf.humpty.config.Context;
 
 import java.io.InputStreamReader;
-import java.io.Reader;
-import java.util.LinkedHashMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.webjars.WebJarAssetLocator;
 
 public class WebJarResolver implements Resolver {
@@ -20,35 +21,30 @@ public class WebJarResolver implements Resolver {
   }
 
   @Override
-  public LinkedHashMap<String, ? extends Reader> resolve(String uri, Context context) {
-    LinkedHashMap<String, Reader> readers = new LinkedHashMap<String, Reader>();
-    WildcardHelper helper = new WildcardHelper(uri, context);
+  public List<AssetFile> resolve(String uri, Context context) {
+    try {
+      WildcardHelper helper = new WildcardHelper(uri, context);
 
-    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    if (!helper.hasWildcard()) {
-      String fullUri = helper.getFull();
-      readers.put(expand(fullUri, context.getBundleName()), new InputStreamReader(classLoader.getResourceAsStream(webJarAssetLocator.getFullPath(fullUri))));
+      ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+      if (!helper.hasWildcard()) {
+        String fullPath = webJarAssetLocator.getFullPath(uri);
+        AssetFile assetFile = new AssetFile(context.getBundle(), stripPrefix(fullPath), IOUtils.toString(new InputStreamReader(classLoader.getResourceAsStream(fullPath))));
 
-      return readers;
-    }
-
-    Set<String> assets = webJarAssetLocator.listAssets(helper.getRootDir());
-    for (String asset : assets) {
-      if (helper.matches(asset)) {
-        readers.put(stripPrefix(asset), new InputStreamReader(classLoader.getResourceAsStream(asset)));
+        return Collections.singletonList(assetFile);
       }
+
+      List<AssetFile> assetFiles = new ArrayList<AssetFile>();
+      Set<String> assetPaths = webJarAssetLocator.listAssets(helper.getRootDir());
+      for (String assetPath : assetPaths) {
+        if (helper.matches(assetPath)) {
+          assetFiles.add(new AssetFile(context.getBundle(), stripPrefix(assetPath), IOUtils.toString(new InputStreamReader(classLoader.getResourceAsStream(assetPath)))));
+        }
+      }
+
+      return assetFiles;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
-
-    return readers;
-  }
-
-  @Override
-  public String expand(String uri, String bundleName) {
-    if (FilenameUtils.getExtension(uri).isEmpty()) {
-      uri += "." + FilenameUtils.getExtension(bundleName);
-    }
-
-    return stripPrefix(webJarAssetLocator.getFullPath(uri));
   }
 
   private String stripPrefix(String uri) {

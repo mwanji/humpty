@@ -3,6 +3,8 @@ package co.mewf.humpty.html;
 import co.mewf.humpty.Resolver;
 import co.mewf.humpty.config.Bundle;
 import co.mewf.humpty.config.Configuration;
+import co.mewf.humpty.config.Context;
+import co.mewf.humpty.resolvers.AssetFile;
 
 import java.util.List;
 
@@ -36,11 +38,14 @@ public class Tags {
       }
     }
 
+		Context context = new Context(configuration.getMode(), bundle);
     for (String asset : bundle.getBundleFor(bundleName)) {
       for (Resolver resolver : resolvers) {
         if (resolver.accepts(asset)) {
-          String expandedAsset = resolver.expand(asset, bundleName);
-          toHtml(contextPath, expandedAsset, html);
+          List<AssetFile> assetFiles = resolver.resolve(asset, context);
+          for (AssetFile assetFile : assetFiles) {
+            toHtml(contextPath, assetFile.getPath(), html);
+          }
           break;
         }
       }

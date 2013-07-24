@@ -8,21 +8,16 @@ class WildcardHelper {
 
   private final String uri;
   private final Context context;
+  private final String extension;
 
   WildcardHelper(String uri, Context context) {
     this.uri = uri;
     this.context = context;
+    this.extension = FilenameUtils.getExtension(uri).isEmpty() ? FilenameUtils.getExtension(uri) : FilenameUtils.getExtension(context.getBundleName());
   }
 
   public boolean hasWildcard() {
     return uri.contains("*");
-  }
-
-  /**
-   * @return uri with an extension, taken from bundle name if necessary
-   */
-  public String getFull() {
-    return isExtensionMissing() ? uri + "." + FilenameUtils.getExtension(context.getBundleName()) : uri;
   }
 
   /**
@@ -41,18 +36,6 @@ class WildcardHelper {
    * @return true if fileName is acceptable within the context of this uri and bundle
    */
   public boolean matches(String fileName) {
-    return FilenameUtils.getExtension(fileName).equals(getExtension());
-  }
-
-  private String getExtension() {
-    return isExtensionMissing() ? FilenameUtils.getExtension(context.getBundleName()) : getUriExtension();
-  }
-
-  private boolean isExtensionMissing() {
-    return getUriExtension().isEmpty();
-  }
-
-  private String getUriExtension() {
-    return FilenameUtils.getExtension(uri);
+    return FilenameUtils.isExtension(fileName, extension);
   }
 }

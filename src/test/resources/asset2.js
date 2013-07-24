@@ -1,0 +1,1 @@
+alert("asset2");

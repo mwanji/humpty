@@ -1,0 +1,9 @@
+{
+	bundles: [
+		{
+			name: "bundle.js",
+			assets: ["/asset1", "/asset2"]
+		}
+	],
+	mode: "DEVELOPMENT"
+}

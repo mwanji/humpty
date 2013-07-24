@@ -1,19 +1,17 @@
 package co.mewf.humpty;
 
+import co.mewf.humpty.caches.AssetCache;
 import co.mewf.humpty.config.Bundle;
 import co.mewf.humpty.config.Configuration;
 import co.mewf.humpty.config.Context;
 import co.mewf.humpty.config.PreProcessorContext;
+import co.mewf.humpty.resolvers.AssetFile;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -25,10 +23,11 @@ public class Pipeline {
   private final List<AssetProcessor> assetProcessors;
   private final List<BundleProcessor> bundleProcessors;
   private final List<CompilingProcessor> compilingProcessors;
-  private final ConcurrentMap<String, String> cache = new ConcurrentHashMap<String, String>();
+  private final AssetCache cache;
 
-  public Pipeline(Configuration configuration, List<? extends Resolver> resolvers, List<? extends CompilingProcessor> compilingProcessors, List<? extends AssetProcessor> assetProcessors, List<? extends BundleProcessor> bundleProcessors) {
+  public Pipeline(Configuration configuration, AssetCache cache, List<? extends Resolver> resolvers, List<? extends CompilingProcessor> compilingProcessors, List<? extends AssetProcessor> assetProcessors, List<? extends BundleProcessor> bundleProcessors) {
     this.configuration = configuration;
+    this.cache = cache;
     this.resolvers = Collections.unmodifiableList(resolvers);
     this.compilingProcessors = Collections.unmodifiableList(compilingProcessors);
     this.assetProcessors = Collections.unmodifiableList(assetProcessors);
@@ -36,8 +35,8 @@ public class Pipeline {
   }
 
   public Reader process(String originalAssetName) {
-    if (cache.containsKey(originalAssetName)) {
-      return new StringReader(cache.get(originalAssetName));
+    if (cache.contains(originalAssetName)) {
+      return cache.get(originalAssetName);
     }
 
     String bundleName = originalAssetName;
@@ -45,7 +44,6 @@ public class Pipeline {
       bundleName = stripTimestamp(originalAssetName);
     }
 
-    Context context = new Context(configuration.getMode(), bundleName);
     Bundle bundle = null;
     for (Bundle candidate : configuration.getBundles()) {
       if (candidate.accepts(bundleName)) {
@@ -54,6 +52,7 @@ public class Pipeline {
       }
     }
 
+    Context context = new Context(configuration.getMode(), bundle);
     List<String> filteredAssets = bundle.getBundleFor(bundleName);
     StringBuilder bundleString = new StringBuilder();
     for (String filteredAsset : filteredAssets) {
@@ -65,21 +64,30 @@ public class Pipeline {
         }
       }
 
-      LinkedHashMap<String, ? extends Reader> assets = resolver.resolve(filteredAsset, context);
+      List<AssetFile> assetFiles = resolver.resolve(filteredAsset, context);
 
-      for (Map.Entry<String, ? extends Reader> entry : assets.entrySet()) {
+      for (AssetFile assetFile : assetFiles) {
         try {
-          String assetName = entry.getKey();
-          Reader asset = entry.getValue();
-          PreProcessorContext preprocessorContext = context.getPreprocessorContext(assetName);
+          String assetName = assetFile.getPath();
+          if (configuration.isTimestamped()) {
+            assetName = FilenameUtils.getPath(assetName) + FilenameUtils.getBaseName(assetName) + "-humpty" + originalAssetName.substring(originalAssetName.indexOf("-humpty") + "-humpty".length()) + "." + FilenameUtils.getExtension(assetName);
+          }
+          String processedAssetString;
+          if (cache.contains(assetName)) {
+            processedAssetString = IOUtils.toString(cache.get(assetName));
+          } else {
+            Reader asset = assetFile.getReader();
+            PreProcessorContext preprocessorContext = context.getPreprocessorContext(assetName);
 
-          CompilingProcessor.CompilationResult compilationResult = compile(assetName, asset, preprocessorContext);
-          Reader preProcessedAsset = processAsset(compilationResult.getAssetName(), compilationResult.getAsset(), preprocessorContext);
-          bundleString.append(IOUtils.toString(preProcessedAsset));
+            CompilingProcessor.CompilationResult compilationResult = compile(assetName, asset, preprocessorContext);
+            Reader processedAsset = processAsset(compilationResult.getAssetName(), compilationResult.getAsset(), preprocessorContext);
+            processedAssetString = IOUtils.toString(processedAsset);
+            cache.put(bundle, assetName, processedAssetString);
+          }
+          bundleString.append(processedAssetString);
           if (bundleString.charAt(bundleString.length() - 1) != '\n') {
             bundleString.append('\n');
           }
-
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
@@ -90,7 +98,7 @@ public class Pipeline {
 
     try {
       String processedBundleString = IOUtils.toString(processedBundle);
-      cache.putIfAbsent(originalAssetName, processedBundleString);
+      cache.put(bundle, originalAssetName, processedBundleString);
       return new StringReader(processedBundleString);
     } catch (IOException e) {
       throw new RuntimeException(e);
