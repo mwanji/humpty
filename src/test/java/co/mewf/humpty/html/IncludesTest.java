@@ -15,12 +15,12 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-public class TagsTest {
+public class IncludesTest {
 
   private String rootPath = "/context";
   private ServletContext servletContext = Mockito.mock(ServletContext.class);
-  private final Tags devTags = new HumptyBootstrap.Builder().build(servletContext).createTags();
-  private final Tags productionTags = new HumptyBootstrap.Builder().humptyFile("/humpty-production.json").build(servletContext).createTags();
+  private final Includes devTags = new HumptyBootstrap.Builder().build(servletContext).createTags();
+  private final Includes productionTags = new HumptyBootstrap.Builder().humptyFile("/humpty-production.json").build(servletContext).createTags();
   long fixedMillis = new DateTime(2013, DateTimeConstants.JULY, 23, 16, 42).getMillis();
 
   @Before

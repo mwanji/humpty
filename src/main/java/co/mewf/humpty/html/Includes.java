@@ -11,12 +11,12 @@ import java.util.List;
 import org.apache.commons.io.FilenameUtils;
 import org.joda.time.DateTimeUtils;
 
-public class Tags {
+public class Includes {
 
   private final Configuration configuration;
   private final List<? extends Resolver> resolvers;
 
-  public Tags(Configuration configuration, List<? extends Resolver> resolvers) {
+  public Includes(Configuration configuration, List<? extends Resolver> resolvers) {
     this.configuration = configuration;
     this.resolvers = resolvers;
   }

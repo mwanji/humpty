@@ -9,7 +9,7 @@ import co.mewf.humpty.Resolver;
 import co.mewf.humpty.caches.AssetCache;
 import co.mewf.humpty.caches.SimpleAssetCache;
 import co.mewf.humpty.caches.WatchingAssetCache;
-import co.mewf.humpty.html.Tags;
+import co.mewf.humpty.html.Includes;
 
 import com.google.gson.Gson;
 
@@ -82,8 +82,8 @@ public class HumptyBootstrap {
     return new Pipeline(configuration, assetCache, resolvers, compilingProcessors, assetProcessors, bundleProcessors);
   }
 
-  public Tags createTags() {
-    return new Tags(configuration, resolvers);
+  public Includes createTags() {
+    return new Includes(configuration, resolvers);
   }
 
   protected Configuration getConfiguration() {
