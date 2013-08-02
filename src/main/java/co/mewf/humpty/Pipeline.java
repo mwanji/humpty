@@ -74,7 +74,7 @@ public class Pipeline {
         try {
           String assetName = assetFile.getPath();
           if (configuration.isTimestamped()) {
-            assetName = FilenameUtils.getPath(assetName) + FilenameUtils.getBaseName(assetName) + "-humpty" + originalAssetName.substring(originalAssetName.indexOf("-humpty") + "-humpty".length()) + "." + FilenameUtils.getExtension(assetName);
+            assetName = FilenameUtils.getPath(assetName) + FilenameUtils.getBaseName(assetName) + "-humpty" + originalAssetName.substring(originalAssetName.indexOf("-humpty") + "-humpty".length(), originalAssetName.lastIndexOf('.')) + "." + FilenameUtils.getExtension(assetName);
           }
           String processedAssetString;
           if (cache.contains(assetName)) {
