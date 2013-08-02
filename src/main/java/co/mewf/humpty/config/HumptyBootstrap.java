@@ -50,7 +50,7 @@ public class HumptyBootstrap {
     }
 
     /**
-     * @param resources Can contain a {@link Configuration}, {@link Resolver}s, {@link AssetProcessor}s and {@link BundleProcessor}s.
+     * @param resources Can contain a {@link Configuration}, {@link Resolver}s and {@link Processor}s. This overrides discovery via ServiceLoader.
      * At runtime, the resources are used in declaration order.
      */
     public HumptyBootstrap build(Object... resources) {
