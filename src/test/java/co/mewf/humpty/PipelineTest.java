@@ -198,7 +198,7 @@ public class PipelineTest {
 
     pipeline.process("bundle.js");
 
-    assertEquals("Asset processor should have been called twice", 3, countingProcessor.getAssetCount());
+    assertEquals("Asset processor should have been called three times", 3, countingProcessor.getAssetCount());
     assertEquals("Bundle processor should have been called twice", 2, countingProcessor.getBundleCount());
   }
 }
