@@ -1,15 +1,14 @@
 package co.mewf.humpty.caches;
 
-import co.mewf.humpty.config.Bundle;
-import co.mewf.humpty.resolvers.AssetFile;
-
 import java.io.File;
 import java.io.Reader;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.inject.Inject;
-import javax.servlet.ServletContext;
+
+import co.mewf.humpty.config.Bundle;
+import co.mewf.humpty.resolvers.AssetFile;
 
 /**
  * A cache that invalidates assets when they are modified, as well as the bundle containing the assets.
@@ -18,7 +17,7 @@ public class WatchingAssetCache implements AssetCache {
 
   private final AssetWatcher assetWatcher;
   private final ConcurrentHashMap<String, AssetFile> cache = new ConcurrentHashMap<String, AssetFile>();
-  private ServletContext servletContext;
+  private FileLocator fileLocator;
 
   public WatchingAssetCache() {
     assetWatcher = new AssetWatcher(5000, new AssetChangeListener() {
@@ -43,7 +42,7 @@ public class WatchingAssetCache implements AssetCache {
   public void put(Bundle bundle, String assetName, String asset) {
     cache.put(assetName, new AssetFile(bundle, assetName, asset));
     for (String bundledAsset : bundle.getBundleFor(bundle.getName())) {
-      File file = new File(servletContext.getRealPath(bundledAsset));
+      File file = fileLocator.locate(bundledAsset);
       assetWatcher.watch(file);
     }
   }
@@ -59,7 +58,7 @@ public class WatchingAssetCache implements AssetCache {
   }
 
   @Inject
-  public void configure(ServletContext servletContext) {
-    this.servletContext = servletContext;
+  public void configure(FileLocator fileLocator) {
+    this.fileLocator = fileLocator;
   }
 }

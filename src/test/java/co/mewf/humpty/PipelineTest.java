@@ -6,37 +6,38 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import co.mewf.humpty.config.Bundle;
-import co.mewf.humpty.config.Configuration;
-import co.mewf.humpty.config.HumptyBootstrap;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Collections;
 import java.util.Date;
-
-import javax.servlet.ServletContext;
+import java.util.List;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.webjars.WebJarAssetLocator;
+
+import co.mewf.humpty.caches.FileLocator;
+import co.mewf.humpty.config.Bundle;
+import co.mewf.humpty.config.Configuration;
+import co.mewf.humpty.config.Context;
+import co.mewf.humpty.config.HumptyBootstrap;
+import co.mewf.humpty.resolvers.AssetFile;
+import co.mewf.humpty.resolvers.Resolver;
 
 public class PipelineTest {
   private final WebJarAssetLocator locator = new WebJarAssetLocator();
-  private final ServletContext servletContext = Mockito.mock(ServletContext.class);
-
-  @Before
-  public void before() {
-    Mockito.when(servletContext.getRealPath(Mockito.anyString())).thenReturn("/real/path");
-  }
+  private final FileLocator fileLocator = new FileLocator() {
+    @Override
+    public File locate(String path) {
+      return new File(path);
+    }
+  };
 
   @Test
   public void should_process_bundle() throws IOException {
-    Pipeline testPipeline = new HumptyBootstrap.Builder().build(new TestProcessor(), servletContext).createPipeline();
+    Pipeline testPipeline = new HumptyBootstrap.Builder().build(new TestProcessor(), fileLocator).createPipeline();
     Reader reader = testPipeline.process("singleAsset.js");
     String result = IOUtils.toString(reader);
 
@@ -46,7 +47,7 @@ public class PipelineTest {
 
   @Test
   public void should_compile_bundle() throws IOException {
-    Reader result = new HumptyBootstrap.Builder().build(new CoffeeScriptCompilingProcessor(), servletContext).createPipeline().process("compilableAsset.js");
+    Reader result = new HumptyBootstrap.Builder().build(new CoffeeScriptCompilingProcessor(), fileLocator).createPipeline().process("compilableAsset.js");
 
     String resultString = IOUtils.toString(result);
 
@@ -56,7 +57,7 @@ public class PipelineTest {
 
   @Test
   public void should_concatenate_bundle_with_multiple_assets() throws IOException {
-    Reader result = new HumptyBootstrap.Builder().build(servletContext).createPipeline().process("multipleAssets.js");
+    Reader result = new HumptyBootstrap.Builder().build(fileLocator).createPipeline().process("multipleAssets.js");
 
     String resultString = IOUtils.toString(result);
 
@@ -68,7 +69,7 @@ public class PipelineTest {
   @Test
   public void should_pass_configuration_options_via_java() throws IOException {
     TestConfigurable testConfigurable = new TestConfigurable();
-    Pipeline configurablePipeline = new HumptyBootstrap.Builder().build(new Configuration(asList(new Bundle("singleAsset.js", asList("blocks.js"))), testConfigurable), testConfigurable, servletContext).createPipeline();
+    Pipeline configurablePipeline = new HumptyBootstrap.Builder().build(new Configuration(asList(new Bundle("singleAsset.js", asList("blocks.js"))), testConfigurable), testConfigurable, fileLocator).createPipeline();
 
     String actual = IOUtils.toString(configurablePipeline.process("singleAsset.js"));
 
@@ -77,7 +78,7 @@ public class PipelineTest {
 
   @Test
   public void should_pass_configuration_options_via_json() throws IOException {
-    HumptyBootstrap bootstrap = new HumptyBootstrap.Builder().humptyFile("/humpty-no-alias.json").build(new TestConfigurable(), servletContext);
+    HumptyBootstrap bootstrap = new HumptyBootstrap.Builder().humptyFile("/humpty-no-alias.json").build(new TestConfigurable(), fileLocator);
     Pipeline configurablePipeline = bootstrap.createPipeline();
 
     String actual = IOUtils.toString(configurablePipeline.process("singleAsset.js"));
@@ -87,7 +88,7 @@ public class PipelineTest {
 
   @Test
   public void should_pass_aliased_configuration_via_json() throws IOException {
-    Pipeline aliasedPipeline = new HumptyBootstrap.Builder().build(new TestConfigurable(), servletContext).createPipeline();
+    Pipeline aliasedPipeline = new HumptyBootstrap.Builder().build(new TestConfigurable(), fileLocator).createPipeline();
 
     String actual = IOUtils.toString(aliasedPipeline.process("singleAsset.js"));
 
@@ -97,7 +98,7 @@ public class PipelineTest {
   @Test
   public void should_only_pass_configuration_for_current_processor() {
     TestConfigurable resource = new TestConfigurable();
-    new HumptyBootstrap.Builder().humptyFile("/humpty-multiple-configs.json").build(resource, new EchoProcessor(), servletContext).createPipeline();
+    new HumptyBootstrap.Builder().humptyFile("/humpty-multiple-configs.json").build(resource, new EchoProcessor(), fileLocator).createPipeline();
 
     assertEquals(resource.options.get("message"), "correct");
     assertNull(resource.options.get("echoMessage"));
@@ -106,7 +107,7 @@ public class PipelineTest {
   @Test
   public void should_take_extension_from_bundle_when_not_specified_by_asset() throws IOException {
     ClassLoader classLoader = getClass().getClassLoader();
-    Pipeline pipeline = new HumptyBootstrap.Builder().humptyFile("/humpty-wildcard.json").build(new EchoProcessor(), servletContext).createPipeline();
+    Pipeline pipeline = new HumptyBootstrap.Builder().humptyFile("/humpty-wildcard.json").build(new EchoProcessor(), fileLocator).createPipeline();
 
     String output = IOUtils.toString(pipeline.process("no_extension.js"));
 
@@ -117,7 +118,7 @@ public class PipelineTest {
   @Test
   public void should_expand_wildcard_for_single_folder_with_extension() throws IOException {
     ClassLoader classLoader = getClass().getClassLoader();
-    Pipeline pipeline = new HumptyBootstrap.Builder().humptyFile("/humpty-wildcard.json").build(new EchoProcessor(), servletContext).createPipeline();
+    Pipeline pipeline = new HumptyBootstrap.Builder().humptyFile("/humpty-wildcard.json").build(new EchoProcessor(), fileLocator).createPipeline();
 
     String output = IOUtils.toString(pipeline.process("folder_and_extension.js"));
 
@@ -128,7 +129,7 @@ public class PipelineTest {
   @Test
   public void should_expand_wildcard_for_single_folder_without_extension() throws IOException {
     ClassLoader classLoader = getClass().getClassLoader();
-    Pipeline pipeline = new HumptyBootstrap.Builder().humptyFile("/humpty-wildcard.json").build(new EchoProcessor(), servletContext).createPipeline();
+    Pipeline pipeline = new HumptyBootstrap.Builder().humptyFile("/humpty-wildcard.json").build(new EchoProcessor(), fileLocator).createPipeline();
 
     String output = IOUtils.toString(pipeline.process("folder_without_extension.coffee"));
 
@@ -139,7 +140,7 @@ public class PipelineTest {
   @Test
   public void should_cache_results() {
     CountingProcessor countingProcessor = new CountingProcessor();
-    Pipeline pipeline = new HumptyBootstrap.Builder().build(new Configuration(asList(new Bundle("bundle.js", asList("blocks.js")))), servletContext, countingProcessor).createPipeline();
+    Pipeline pipeline = new HumptyBootstrap.Builder().build(new Configuration(asList(new Bundle("bundle.js", asList("blocks.js")))), fileLocator, countingProcessor).createPipeline();
 
     pipeline.process("bundle.js");
     pipeline.process("bundle.js");
@@ -151,7 +152,7 @@ public class PipelineTest {
   @Test
   public void should_handle_timestamped_bundle_name() {
     CountingProcessor countingProcessor = new CountingProcessor();
-    HumptyBootstrap bootstrap = new HumptyBootstrap.Builder().humptyFile("/humpty-production.json").build(servletContext, countingProcessor);
+    HumptyBootstrap bootstrap = new HumptyBootstrap.Builder().humptyFile("/humpty-production.json").build(fileLocator, countingProcessor);
     Pipeline pipeline = bootstrap.createPipeline();
 
     String assetName = "singleAsset-humpty" + new Date().getTime() + ".js";
@@ -165,7 +166,7 @@ public class PipelineTest {
   @Test
   public void should_reprocess_when_timestamp_changes() {
     CountingProcessor countingProcessor = new CountingProcessor();
-    HumptyBootstrap bootstrap = new HumptyBootstrap.Builder().humptyFile("/humpty-production.json").build(servletContext, countingProcessor);
+    HumptyBootstrap bootstrap = new HumptyBootstrap.Builder().humptyFile("/humpty-production.json").build(fileLocator, countingProcessor);
     Pipeline pipeline = bootstrap.createPipeline();
 
     pipeline.process("singleAsset-humpty" + (new Date().getTime() - 1000) + ".js");
@@ -178,15 +179,26 @@ public class PipelineTest {
   @Test
   public void should_invalidate_cache_when_file_modified() throws Exception {
     final File parent = new File("src/test/resources");
-    ServletContext servletContext = Mockito.mock(ServletContext.class);
-    Mockito.when(servletContext.getRealPath(Mockito.anyString())).thenAnswer(new Answer<String>() {
+    FileLocator fileLocator = new FileLocator() {
       @Override
-      public String answer(InvocationOnMock invocation) throws Throwable {
-        return parent.getAbsolutePath() + invocation.getArguments()[0];
+      public File locate(String path) {
+        return new File(parent.getAbsolutePath() + path);
       }
-    });
+    };
+    Resolver resolver = new Resolver() {
+      @Override
+      public boolean accepts(String uri) {
+        return true;
+      }
+
+      @Override
+      public List<AssetFile> resolve(String uri, Context context) {
+        String path = parent.getAbsolutePath() + uri;
+        return Collections.singletonList(new AssetFile(context.getBundle(), path , new File(path)));
+      }
+    };
     CountingProcessor countingProcessor = new CountingProcessor();
-    HumptyBootstrap bootstrap = new HumptyBootstrap.Builder().humptyFile("/humpty-watch.json").build(servletContext, countingProcessor);
+    HumptyBootstrap bootstrap = new HumptyBootstrap.Builder().humptyFile("/humpty-watch.json").build(fileLocator, resolver, countingProcessor);
     Pipeline pipeline = bootstrap.createPipeline();
 
     pipeline.process("bundle.js");

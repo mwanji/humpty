@@ -1,9 +1,10 @@
 package co.mewf.humpty.html;
 
 import static org.junit.Assert.assertEquals;
-import co.mewf.humpty.config.HumptyBootstrap;
 
-import javax.servlet.ServletContext;
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
@@ -11,27 +12,41 @@ import org.joda.time.DateTimeUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
+
+import co.mewf.humpty.caches.FileLocator;
+import co.mewf.humpty.config.Context;
+import co.mewf.humpty.config.HumptyBootstrap;
+import co.mewf.humpty.resolvers.AssetFile;
+import co.mewf.humpty.resolvers.Resolver;
+import co.mewf.humpty.resolvers.WebJarResolver;
 
 public class IncludesTest {
 
   private String rootPath = "/context";
-  private ServletContext servletContext = Mockito.mock(ServletContext.class);
-  private final Includes devTags = new HumptyBootstrap.Builder().build(servletContext).createTags();
-  private final Includes productionTags = new HumptyBootstrap.Builder().humptyFile("/humpty-production.json").build(servletContext).createTags();
+  private FileLocator fileLocator = new FileLocator() {
+    @Override
+    public File locate(String path) {
+      return new File(path);
+    }
+  };
+  private Resolver resolver = new Resolver() {
+    @Override
+    public boolean accepts(String uri) {
+      return uri.startsWith("/");
+    }
+
+    @Override
+    public List<AssetFile> resolve(String uri, Context context) {
+      return Collections.singletonList(new AssetFile(context.getBundle(), uri, new File(uri)));
+    }
+  };
+  private final Includes devTags = new HumptyBootstrap.Builder().build(fileLocator, resolver, new WebJarResolver()).createTags();
+  private final Includes productionTags = new HumptyBootstrap.Builder().humptyFile("/humpty-production.json").build(fileLocator).createTags();
   long fixedMillis = new DateTime(2013, DateTimeConstants.JULY, 23, 16, 42).getMillis();
 
   @Before
   public void before() {
     DateTimeUtils.setCurrentMillisFixed(fixedMillis);
-    Mockito.when(servletContext.getRealPath(Mockito.anyString())).thenAnswer(new Answer<String>() {
-      @Override
-      public String answer(InvocationOnMock invocation) throws Throwable {
-        return (String) invocation.getArguments()[0];
-      }
-    });
   }
 
   @Test

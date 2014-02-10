@@ -1,7 +1,19 @@
 package co.mewf.humpty.config;
 
+import java.io.InputStreamReader;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ServiceLoader;
+
+import javax.inject.Inject;
+
+import org.webjars.WebJarAssetLocator;
+
 import co.mewf.humpty.Pipeline;
 import co.mewf.humpty.caches.AssetCache;
+import co.mewf.humpty.caches.FileLocator;
 import co.mewf.humpty.caches.SimpleAssetCache;
 import co.mewf.humpty.caches.WatchingAssetCache;
 import co.mewf.humpty.html.Includes;
@@ -12,16 +24,6 @@ import co.mewf.humpty.processors.Processor;
 import co.mewf.humpty.resolvers.Resolver;
 
 import com.google.gson.Gson;
-
-import java.io.InputStreamReader;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ServiceLoader;
-
-import javax.inject.Inject;
-
-import org.webjars.WebJarAssetLocator;
 
 /**
  * <b>By default</b>
@@ -73,6 +75,7 @@ public class HumptyBootstrap {
   private List<? extends CompilingProcessor> compilingProcessors;
   private List<? extends BundleProcessor> bundleProcessors;
   private List<? extends AssetProcessor> assetProcessors;
+  private final FileLocator fileLocator;
 
   HumptyBootstrap(Object... resources) {
     this(new Config(), resources);
@@ -188,6 +191,21 @@ public class HumptyBootstrap {
     return postProcessors;
   }
 
+  protected FileLocator getFileLocator() {
+    for (Object resource : resources) {
+      if (resource instanceof FileLocator) {
+        return (FileLocator) resource;
+      }
+    }
+
+    Iterator<FileLocator> iterator = ServiceLoader.load(FileLocator.class).iterator();
+    if (iterator.hasNext()) {
+      return iterator.next();
+    }
+
+    return null;
+  }
+
   HumptyBootstrap(Config config, Object... resources) {
     this.config = config;
     this.resources = resources;
@@ -198,11 +216,13 @@ public class HumptyBootstrap {
     this.assetProcessors = getAssetProcessors();
     this.bundleProcessors = getBundleProcessors();
     this.compilingProcessors = getCompilingProcessors();
+    this.fileLocator = getFileLocator();
     this.extras = getExtras();
 
     WebJarAssetLocator locator = new WebJarAssetLocator();
 
     List<Object> all = new ArrayList<Object>();
+    all.add(fileLocator);
     all.add(assetCache);
     all.addAll(resolvers);
     all.addAll(compilingProcessors);
