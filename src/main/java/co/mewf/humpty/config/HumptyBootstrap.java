@@ -16,7 +16,6 @@ import co.mewf.humpty.caches.AssetCache;
 import co.mewf.humpty.caches.FileLocator;
 import co.mewf.humpty.caches.SimpleAssetCache;
 import co.mewf.humpty.caches.WatchingAssetCache;
-import co.mewf.humpty.html.Includes;
 import co.mewf.humpty.processors.AssetProcessor;
 import co.mewf.humpty.processors.BundleProcessor;
 import co.mewf.humpty.processors.CompilingProcessor;
@@ -85,11 +84,7 @@ public class HumptyBootstrap {
     return new Pipeline(configuration, assetCache, resolvers, compilingProcessors, assetProcessors, bundleProcessors);
   }
 
-  public Includes createTags() {
-    return new Includes(configuration, resolvers);
-  }
-
-  protected Configuration getConfiguration() {
+  public Configuration getConfiguration() {
     for (Object resource : resources) {
       if (resource instanceof Configuration) {
         return (Configuration) resource;
@@ -103,7 +98,7 @@ public class HumptyBootstrap {
     return configuration.getMode() == Configuration.Mode.PRODUCTION ? new SimpleAssetCache() : new WatchingAssetCache();
   }
 
-  protected List<? extends Resolver> getResolvers() {
+  public List<? extends Resolver> getResolvers() {
     ArrayList<Resolver> resolvers = new ArrayList<Resolver>();
 
     for (Object resource : resources) {
