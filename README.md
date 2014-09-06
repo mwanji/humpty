@@ -109,7 +109,7 @@ Each asset may have a prefix identifying its type:
 * `<no prefix>`: This is the default and indicates that the asset is in a [WebJar](http://webjars.org). This can be just a file name if there is no ambiguity, or a longer path if the are other files with the same name, eg. `smoothness/theme.css` in the case of JqueryUI.
 * `/`: The asset is available via URL. This must be the full path, relative to the context path.
 
-If an asset does not have an extension, it will use the one in the name of the bundle.
+If an asset does not have an extension, the one in the name of the bundle will be used.
 
 You can use `*` as a wildcard to get all the files in a folder: `/assets/*`, `/assets/*.tpl`. The same extension rules apply.
 
@@ -139,7 +139,7 @@ Resolvers take an asset's name and turn it into one or more (in case of wildcard
 * `WebJarResolver` is the default and looks up resources in a [WebJar](http://webjars.org)
 * `ServletContextPathResolver` finds assets relative to the Servlet context path. Is used when an asset's name starts with `/`
 
-Creating custom resovlers is discussed in the [Extension Points](#extension-points) section.
+Creating custom resolvers is discussed in the [Extension Points](#extension-points) section.
 
 ### Caches
 
