@@ -1,0 +1,18 @@
+[[bundles]] # Must have at least one bundle.
+name = "asset1.js" # Must have file extension
+assets = ["/users/user.js", "http://mycdn.com/jquery.js", "bootstrap.js"] # array of resolvable resource names
+
+[[bundles]] # Second bundle
+name = "asset2.css"
+assets = ["bootstrap", "/app/app.css"] # If there is no extension, the one from the name is used
+
+[options.coffee] # Options for the processor with the alias "coffee"
+BARE = true
+
+[options.humpty]  # Options for humpty itself
+mode = "DEVELOPMENT" # Defaults to "PRODUCTION"
+processors = [] # aliases of processors to use, in the given order. Used instead of ServiceLoader.
+resolvers = [] # aliases of resolvers to use, in the given order.
+
+[options.humpty.aliases] # Used to manually resolve conflicting aliases
+coffee = "co.mewf.humpty.CoffeeScriptCompilingProcessor" # Key is alias, value is fully-qualified name

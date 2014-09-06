@@ -1,13 +1,13 @@
 package co.mewf.humpty.caches;
 
-import co.mewf.humpty.config.Bundle;
-
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class SimpleAssetCache implements AssetCache {
+import co.mewf.humpty.config.Bundle;
+
+public class InMemoryAssetCache implements AssetCache {
 
   private final ConcurrentMap<String, String> cache = new ConcurrentHashMap<String, String>();
 
@@ -24,5 +24,10 @@ public class SimpleAssetCache implements AssetCache {
   @Override
   public void put(Bundle bundle, String assetName, String asset) {
     cache.put(assetName, asset);
+  }
+
+  @Override
+  public String getAlias() {
+    return "memoryCache";
   };
 }

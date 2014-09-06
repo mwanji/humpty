@@ -1,0 +1,7 @@
+[[bundles]]
+name = "compilableAsset.js"
+assets = ["blocks.coffee"]
+
+[options.humpty]
+  mode = "DEVELOPMENT"
+  processors = ["coffee"]

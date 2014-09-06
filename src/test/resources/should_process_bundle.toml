@@ -1,0 +1,8 @@
+[[bundles]]
+  name = "singleAsset.js"
+  assets = ["blocks"]
+  
+[options.humpty]
+  processors = ["test"]
+  mode = "DEVELOPMENT"
+  

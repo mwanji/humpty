@@ -1,0 +1,7 @@
+[[bundles]]
+  name = "multipleAssets.js"
+  assets = ["blocks.coffee", "web_server.coffee"]
+
+[options.humpty]
+  mode = "DEVELOPMENT"
+  processors = ["coffee"]

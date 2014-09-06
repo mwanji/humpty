@@ -1,0 +1,13 @@
+[[bundles]]
+  name = "singleAsset.js"
+	assets = ["blocks.js"]
+
+[options.configurable]
+	message = "correct"
+
+[options.echo]
+	echoMessage = "incorrect"
+
+[options.humpty]
+	mode = "DEVELOPMENT"
+	processors = ["configurable", "echo"]

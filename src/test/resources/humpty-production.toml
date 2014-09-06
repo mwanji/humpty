@@ -1,0 +1,30 @@
+[[bundles]]
+	name = "singleAsset.js"
+	assets = ["blocks.js"]
+
+[[bundles]]
+	name = "multipleAssets.js"
+	assets = ["blocks.js", "web_server.js"]
+
+[[bundles]]
+	name = "compilableAsset.js"
+	assets = ["blocks.coffee"]
+
+[[bundles]]
+	name = "multipleCompilableAssets.js"
+	assets = ["blocks.coffee", "web_server.coffee"]
+
+[[bundles]]
+	name = "tags.js"
+	assets = ["jquery", "/app"]
+
+[[bundles]]
+	name = "tags.css"
+	assets = ["/app1", "/app2"]
+
+[options.configurable]
+	message = "aliased from JSON!"
+
+[options.humpty]
+	mode = "PRODUCTION"
+  processors = ["counting"]

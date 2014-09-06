@@ -1,0 +1,10 @@
+[[bundles]]
+  name = "singleAsset.js"
+  assets = ["blocks.js"]
+  
+[options.humpty]
+  mode = "DEVELOPMENT"
+  processors = ["configurable"]
+  
+[options.configurable]
+  message = "configured from JSON!"
