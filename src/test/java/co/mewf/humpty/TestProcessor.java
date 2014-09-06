@@ -1,19 +1,24 @@
 package co.mewf.humpty;
 
-import co.mewf.humpty.config.Context;
-import co.mewf.humpty.config.PreProcessorContext;
-import co.mewf.humpty.processors.AssetProcessor;
-import co.mewf.humpty.processors.BundleProcessor;
-import co.mewf.humpty.processors.CompilingProcessor;
-
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 
 import org.apache.commons.io.IOUtils;
 
+import co.mewf.humpty.config.Context;
+import co.mewf.humpty.config.PreProcessorContext;
+import co.mewf.humpty.processors.AssetProcessor;
+import co.mewf.humpty.processors.BundleProcessor;
+import co.mewf.humpty.processors.CompilingProcessor;
+
 public class TestProcessor implements BundleProcessor, AssetProcessor, CompilingProcessor {
 
+  @Override
+  public String getAlias() {
+    return "test";
+  }
+  
   @Override
   public boolean accepts(String asset) {
     return true;

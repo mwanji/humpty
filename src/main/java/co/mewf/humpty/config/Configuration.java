@@ -70,16 +70,8 @@ public class Configuration {
     return mode == Mode.PRODUCTION;
   }
 
-  public Configuration.Options getOptionsFor(Class<?> configurable) {
-    if (configurable.isAnnotationPresent(Alias.class)) {
-      String key = configurable.getAnnotation(Alias.class).value();
-
-      if (options.containsKey(key)) {
-        return new Options(options.get(key), mode);
-      }
-    }
-
-    String key = configurable.getName();
+  public Configuration.Options getOptionsFor(Aliasable configurable) {
+    String key = configurable.getAlias();
 
     if (!options.containsKey(key)) {
       return new Options(Collections.<String, Object>emptyMap(), mode);

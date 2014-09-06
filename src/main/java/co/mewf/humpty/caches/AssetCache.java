@@ -1,11 +1,11 @@
 package co.mewf.humpty.caches;
 
-import co.mewf.humpty.config.Bundle;
-
 import java.io.Reader;
 
+import co.mewf.humpty.config.Aliasable;
+import co.mewf.humpty.config.Bundle;
 
-public interface AssetCache {
+public interface AssetCache extends Aliasable {
 
   boolean contains(String assetName);
   Reader get(String assetName);

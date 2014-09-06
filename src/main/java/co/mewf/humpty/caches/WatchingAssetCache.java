@@ -61,4 +61,9 @@ public class WatchingAssetCache implements AssetCache {
   public void configure(FileLocator fileLocator) {
     this.fileLocator = fileLocator;
   }
+
+  @Override
+  public String getAlias() {
+    return "watchingCache";
+  }
 }

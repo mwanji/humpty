@@ -1,18 +1,23 @@
 package co.mewf.humpty;
 
+import java.io.Reader;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import co.mewf.humpty.config.Context;
 import co.mewf.humpty.config.PreProcessorContext;
 import co.mewf.humpty.processors.AssetProcessor;
 import co.mewf.humpty.processors.BundleProcessor;
-
-import java.io.Reader;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class CountingProcessor implements AssetProcessor, BundleProcessor {
 
   private final AtomicInteger bundleCounter = new AtomicInteger();
   private final AtomicInteger assetCounter = new AtomicInteger();
 
+  @Override
+  public String getAlias() {
+    return "counting";
+  }
+  
   @Override
   public boolean accepts(String assetName) {
     return true;

@@ -1,8 +1,5 @@
 package co.mewf.humpty;
 
-import co.mewf.humpty.config.PreProcessorContext;
-import co.mewf.humpty.processors.CompilingProcessor;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -14,9 +11,17 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.webjars.WebJarAssetLocator;
 
+import co.mewf.humpty.config.PreProcessorContext;
+import co.mewf.humpty.processors.CompilingProcessor;
+
 public class CoffeeScriptCompilingProcessor implements CompilingProcessor {
 
   private static final String COFFEE_SCRIPT_JS = new WebJarAssetLocator().getFullPath("coffee-script.min.js");
+  
+  @Override
+  public String getAlias() {
+    return "coffee";
+  }
 
   @Override
   public boolean accepts(String asset) {
