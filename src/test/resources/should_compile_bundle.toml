@@ -4,4 +4,8 @@ assets = ["blocks.coffee"]
 
 [options.humpty]
   mode = "DEVELOPMENT"
-  processors = ["coffee"]
+  
+[options.humpty.processors]
+  sources = ["coffee"]
+  assets = []
+  bundles = []

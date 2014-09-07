@@ -3,6 +3,9 @@
   assets = ["blocks"]
   
 [options.humpty]
-  processors = ["test"]
   mode = "DEVELOPMENT"
   
+[options.humpty.processors]
+  assets = ["test"]
+  sources = ["test"]
+  bundles = ["test"]

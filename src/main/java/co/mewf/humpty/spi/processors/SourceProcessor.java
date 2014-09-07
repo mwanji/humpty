@@ -1,13 +1,12 @@
-package co.mewf.humpty.processors;
+package co.mewf.humpty.spi.processors;
 
 import co.mewf.humpty.config.PreProcessorContext;
 
 import java.io.Reader;
 
-public interface CompilingProcessor extends Processor {
+public interface SourceProcessor extends Processor {
 
-  boolean accepts(String assetName);
-  CompilingProcessor.CompilationResult compile(String assetName, Reader asset, PreProcessorContext context);
+  SourceProcessor.CompilationResult compile(String assetName, Reader asset, PreProcessorContext context);
 
   public static class CompilationResult {
     private final Reader asset;

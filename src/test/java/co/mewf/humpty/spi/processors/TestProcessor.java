@@ -1,4 +1,4 @@
-package co.mewf.humpty;
+package co.mewf.humpty.spi.processors;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -8,14 +8,14 @@ import org.apache.commons.io.IOUtils;
 
 import co.mewf.humpty.config.Context;
 import co.mewf.humpty.config.PreProcessorContext;
-import co.mewf.humpty.processors.AssetProcessor;
-import co.mewf.humpty.processors.BundleProcessor;
-import co.mewf.humpty.processors.CompilingProcessor;
+import co.mewf.humpty.spi.processors.AssetProcessor;
+import co.mewf.humpty.spi.processors.BundleProcessor;
+import co.mewf.humpty.spi.processors.SourceProcessor;
 
-public class TestProcessor implements BundleProcessor, AssetProcessor, CompilingProcessor {
+public class TestProcessor implements BundleProcessor, AssetProcessor, SourceProcessor {
 
   @Override
-  public String getAlias() {
+  public String getName() {
     return "test";
   }
   

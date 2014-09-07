@@ -1,41 +1,28 @@
-package co.mewf.humpty;
+package co.mewf.humpty.spi.processors;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.inject.Inject;
 
 import org.apache.commons.io.IOUtils;
 
 import co.mewf.humpty.config.Configuration;
-import co.mewf.humpty.config.ConfigurationOptionsProvider;
 import co.mewf.humpty.config.Context;
 import co.mewf.humpty.config.PreProcessorContext;
-import co.mewf.humpty.processors.AssetProcessor;
-import co.mewf.humpty.processors.BundleProcessor;
-import co.mewf.humpty.processors.CompilingProcessor;
+import co.mewf.humpty.spi.processors.AssetProcessor;
+import co.mewf.humpty.spi.processors.BundleProcessor;
+import co.mewf.humpty.spi.processors.SourceProcessor;
 
-public class ConfigurableProcessor implements BundleProcessor, AssetProcessor, CompilingProcessor, ConfigurationOptionsProvider {
+public class ConfigurableProcessor implements BundleProcessor, AssetProcessor, SourceProcessor {
 
   private String message = "failed!";
   public Configuration.Options options;
   
   @Override
-  public String getAlias() {
+  public String getName() {
     return "configurable";
-  }
-
-  @Override
-  public Map<Class<?>, Map<String, Object>> getOptions() {
-    HashMap<Class<?>, Map<String, Object>> configuration = new HashMap<Class<?>, Map<String,Object>>();
-    HashMap<String, Object> options = new HashMap<String, Object>();
-    options.put("message", "passed!");
-    configuration.put(ConfigurableProcessor.class, options);
-
-    return configuration;
   }
 
   @Inject

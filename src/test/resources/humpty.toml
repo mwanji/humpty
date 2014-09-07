@@ -1,0 +1,6 @@
+[[bundles]]
+name = "asset.js"
+assets = ["blocks.coffee"]
+
+[options.configurable]
+  message = "nothing"

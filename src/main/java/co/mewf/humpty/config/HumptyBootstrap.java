@@ -1,8 +1,11 @@
 package co.mewf.humpty.config;
 
+import static java.util.stream.Collectors.toList;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
 
 import javax.inject.Inject;
@@ -10,16 +13,12 @@ import javax.inject.Inject;
 import org.webjars.WebJarAssetLocator;
 
 import co.mewf.humpty.Pipeline;
-import co.mewf.humpty.caches.AssetCache;
-import co.mewf.humpty.caches.InMemoryAssetCache;
-import co.mewf.humpty.caches.NoopAssetCache;
-import co.mewf.humpty.processors.AssetProcessor;
-import co.mewf.humpty.processors.BundleProcessor;
-import co.mewf.humpty.processors.CompilingProcessor;
-import co.mewf.humpty.processors.Processor;
-import co.mewf.humpty.resolvers.Resolver;
-
-import com.moandjiezana.toml.Toml;
+import co.mewf.humpty.spi.PipelineElement;
+import co.mewf.humpty.spi.processors.AssetProcessor;
+import co.mewf.humpty.spi.processors.BundleProcessor;
+import co.mewf.humpty.spi.processors.Processor;
+import co.mewf.humpty.spi.processors.SourceProcessor;
+import co.mewf.humpty.spi.resolvers.Resolver;
 
 /**
  * <b>By default</b>
@@ -27,160 +26,49 @@ import com.moandjiezana.toml.Toml;
  *
  * Uses a {@link ServiceLoader} to get the {@link Resolver}s, {@link AssetProcessor}s and {@link BundleProcessor}s.
  *
- * <p>Extend and override the appropriate methods to customise how these resources are located, how they are ordered, etc.</p>
- *
  * <b>Configuration</b>
  * <p>Use {@link HumptyBootstrap.Builder} to construct a custom bootstrapper, e.g. to specify the order in which processors must be used.</p>
  * <p>Falls back to {@link ServiceLoader} on a per-resource type basis if none is provided.</p>
  *
  */
-public class HumptyBootstrap implements Aliasable {
+public class HumptyBootstrap implements PipelineElement {
 
-  public static class Builder {
-    private Config config = new Config();
-
-    /**
-     * @param humptyFile The path to the humpty configuration file on the classpath. Must start with a slash, e.g. /app/config/my-humpty.json
-     */
-    public Builder humptyFile(String humptyFile) {
-      config.humptyFile = humptyFile;
-      return this;
-    }
-
-    /**
-     * @param resources Can contain a {@link Configuration}, {@link Resolver}s and {@link Processor}s. This overrides discovery via ServiceLoader.
-     * At runtime, the resources are used in declaration order.
-     */
-    public HumptyBootstrap build(Object... resources) {
-      return new HumptyBootstrap(config, resources);
-    }
-  }
-
-  private static class Config {
-    String humptyFile = "/humpty.json";
-  }
-
-  private final ServiceLoader<Processor> processors = ServiceLoader.load(Processor.class);
+  private final List<PipelineElement> pipelineElements;
   private final Object[] resources;
-  private final Config config;
-  private Configuration configuration;
-  private AssetCache assetCache;
-  private List<? extends Resolver> resolvers;
-  private List<Object> extras;
-  private List<? extends CompilingProcessor> compilingProcessors;
-  private List<? extends BundleProcessor> bundleProcessors;
-  private List<? extends AssetProcessor> assetProcessors;
+  private final Configuration configuration;
+  private final List<Resolver> resolvers;
+  private final List<Object> extras;
+  private final List<SourceProcessor> sourceProcessors;
+  private final List<BundleProcessor> bundleProcessors;
+  private final List<AssetProcessor> assetProcessors;
   private final Configuration.Options humptyOptions;
-  private final List<String> processorConfiguration;
-
-  HumptyBootstrap(Object... resources) {
-    this(new Config(), resources);
-  }
+  private List<String> sourceProcessorsConfiguration;
+  private List<String> assetProcessorsConfiguration;
+  private List<String> bundleProcessorsConfiguration;
   
-  @Override
-  public String getAlias() {
-    return "humpty";
+  public HumptyBootstrap(Object... resources) {
+    this("/humpty.toml", resources);
   }
 
-  public Pipeline createPipeline() {
-    return new Pipeline(configuration, assetCache, resolvers, compilingProcessors, assetProcessors, bundleProcessors);
-  }
-
-  public Configuration getConfiguration() {
-    for (Object resource : resources) {
-      if (resource instanceof Configuration) {
-        return (Configuration) resource;
-      }
-    }
-    
-    return new Toml().parse(getClass().getResourceAsStream(config.humptyFile)).to(Configuration.class);
-  }
-
-  protected AssetCache getAssetCache(Configuration configuration) {
-    return configuration.getMode() == Configuration.Mode.PRODUCTION ? new InMemoryAssetCache() : new NoopAssetCache();
-  }
-
-  public List<? extends Resolver> getResolvers() {
-    ArrayList<Resolver> resolvers = new ArrayList<Resolver>();
-    
-    for (Object resource : resources) {
-      if (resource instanceof Resolver) {
-        resolvers.add((Resolver) resource);
-      }
-    }
-
-    if (!resolvers.isEmpty()) {
-      return resolvers;
-    }
-
-    ServiceLoader<Resolver> serviceLoader = ServiceLoader.load(Resolver.class);
-    for (Resolver resolver : serviceLoader) {
-      resolvers.add(resolver);
-    }
-
-    return resolvers;
-  }
-
-  protected List<? extends CompilingProcessor> getCompilingProcessors() {
-    List<CompilingProcessor> compilingProcessors = new ArrayList<CompilingProcessor>();
-
-    for (Processor processor : processors) {
-      if (processor instanceof CompilingProcessor && (processorConfiguration == null || processorConfiguration.contains(((CompilingProcessor) processor).getAlias()))) {
-        compilingProcessors.add((CompilingProcessor) processor);
-      }
-    }
-
-    return compilingProcessors;
-
-  }
-
-  protected List<? extends AssetProcessor> getAssetProcessors() {
-    ArrayList<AssetProcessor> preProcessors = new ArrayList<AssetProcessor>();
-
-    for (Processor processor : processors) {
-      if (processor instanceof AssetProcessor && (processorConfiguration == null || processorConfiguration.contains(((AssetProcessor) processor).getAlias()))) {
-        preProcessors.add((AssetProcessor) processor);
-      }
-    }
-
-    return preProcessors;
-  }
-
-  protected List<? extends BundleProcessor> getBundleProcessors() {
-    ArrayList<BundleProcessor> postProcessors = new ArrayList<BundleProcessor>();
-
-    for (Processor processor : processors) {
-      if (processor instanceof BundleProcessor && (processorConfiguration == null || processorConfiguration.contains(((BundleProcessor) processor).getAlias()))) {
-        postProcessors.add((BundleProcessor) processor);
-      }
-    }
-
-    return postProcessors;
-  }
-
-  @SuppressWarnings("unchecked")
-  HumptyBootstrap(Config config, Object... resources) {
-    this.config = config;
+  public HumptyBootstrap(String humptyFile, Object... resources) {
     this.resources = resources;
-
-    this.configuration = getConfiguration();
+    this.configuration = Configuration.load(humptyFile);
     this.humptyOptions = configuration.getOptionsFor(this);
-    this.processorConfiguration = humptyOptions.containsKey("processors") ? (List<String>) humptyOptions.get("processors") : null;
-    this.assetCache = getAssetCache(configuration);
+    this.pipelineElements = loadPipelineElements();
     this.resolvers = getResolvers();
+    setProcessorConfigurations();
     this.assetProcessors = getAssetProcessors();
     this.bundleProcessors = getBundleProcessors();
-    this.compilingProcessors = getCompilingProcessors();
+    this.sourceProcessors = getSourceProcessors();
     this.extras = getExtras();
 
-    WebJarAssetLocator locator = new WebJarAssetLocator();
-
     List<Object> all = new ArrayList<Object>();
-    all.add(assetCache);
     all.addAll(resolvers);
-    all.addAll(compilingProcessors);
+    all.addAll(sourceProcessors);
     all.addAll(assetProcessors);
     all.addAll(bundleProcessors);
+    
+    WebJarAssetLocator locator = new WebJarAssetLocator();
 
     for (Object resource : all) {
       for (Method method : resource.getClass().getMethods()) {
@@ -194,8 +82,8 @@ public class HumptyBootstrap implements Aliasable {
           Class<?> parameterType = parameterTypes[i];
           if (parameterType == WebJarAssetLocator.class) {
             args[i] = locator;
-          } else if (parameterType == Configuration.Options.class && resource instanceof Aliasable) {
-            args[i] = configuration.getOptionsFor((Aliasable) resource);
+          } else if (parameterType == Configuration.Options.class && resource instanceof PipelineElement) {
+            args[i] = configuration.getOptionsFor((PipelineElement) resource);
           } else if (getExtra(extras, parameterType) != null) {
             args[i] = getExtra(extras, parameterType);
           } else {
@@ -211,6 +99,60 @@ public class HumptyBootstrap implements Aliasable {
         break;
       }
     }
+  }
+  
+  public Pipeline createPipeline() {
+    return new Pipeline(configuration, getMode(), resolvers, sourceProcessors, assetProcessors, bundleProcessors);
+  }
+
+  @Override
+  public String getName() {
+    return "humpty";
+  }
+
+  private List<Resolver> getResolvers() {
+    return pipelineElements.stream().filter(e -> e instanceof Resolver).map(e -> (Resolver) e).collect(toList());
+  }
+
+  private List<SourceProcessor> getSourceProcessors() {
+    List<SourceProcessor> sourceProcessors = pipelineElements.stream().filter(e -> e instanceof SourceProcessor).map(e -> (SourceProcessor) e).collect(toList());
+    
+    if (sourceProcessorsConfiguration == null) {
+      return sourceProcessors;
+    }
+
+    return sourceProcessorsConfiguration.stream().map(name -> {
+      return sourceProcessors.stream().filter(s -> s.getName().equals(name)).findFirst().get();
+    }).collect(toList());
+  }
+
+  private List<AssetProcessor> getAssetProcessors() {
+    List<AssetProcessor> assetProcessors = pipelineElements.stream().filter(e -> e instanceof AssetProcessor).map(e -> (AssetProcessor) e).collect(toList());
+    
+    if (assetProcessorsConfiguration == null) {
+      return assetProcessors;
+    }
+    
+    return assetProcessorsConfiguration.stream().map(name -> {
+      return assetProcessors.stream().filter(a -> a.getName().equals(name)).findFirst().get();
+    }).collect(toList());
+  }
+
+  private List<BundleProcessor> getBundleProcessors() {
+    List<BundleProcessor> bundleProcessors = pipelineElements.stream().filter(e -> e instanceof BundleProcessor).map(e -> (BundleProcessor) e).collect(toList());
+    
+    if (bundleProcessorsConfiguration == null) {
+      return bundleProcessors;
+    }
+    
+    return bundleProcessorsConfiguration.stream().map(name -> {
+      return bundleProcessors.stream().filter(b -> b.getName().equals(name)).findFirst().get();
+    }).collect(toList());
+  }
+
+  private Configuration.Mode getMode() {
+    Configuration.Mode mode = humptyOptions.containsKey("mode") ? Configuration.Mode.valueOf((String) humptyOptions.get("mode")) : Configuration.Mode.PRODUCTION;
+    return mode;
   }
 
   private List<Object> getExtras() {
@@ -233,5 +175,22 @@ public class HumptyBootstrap implements Aliasable {
     }
 
     return null;
+  }
+
+  private List<PipelineElement> loadPipelineElements() {
+    List<PipelineElement> elements = new ArrayList<>();
+    ServiceLoader.load(PipelineElement.class).forEach(e -> elements.add(e));
+    
+    return elements;
+  }
+
+  private void setProcessorConfigurations() {
+    @SuppressWarnings("unchecked")
+    Map<String, List<String>> processorConfiguration = humptyOptions.containsKey("processors") ? (Map<String, List<String>>) humptyOptions.get("processors") : null;
+    if (processorConfiguration != null) {
+      sourceProcessorsConfiguration = processorConfiguration.get("sources");
+      assetProcessorsConfiguration = processorConfiguration.get("assets");
+      bundleProcessorsConfiguration = processorConfiguration.get("bundles");
+    }
   }
 }

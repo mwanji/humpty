@@ -1,7 +1,0 @@
-[[bundles]]
-	name = "bundle.js"
-	assets = ["/asset1", "/asset2"]
-
-[options.humpty]
-	mode = "DEVELOPMENT"
-  processors = ["counting"]

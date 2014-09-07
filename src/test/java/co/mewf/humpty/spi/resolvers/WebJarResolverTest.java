@@ -1,4 +1,4 @@
-package co.mewf.humpty.resolvers;
+package co.mewf.humpty.spi.resolvers;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.endsWith;
@@ -14,6 +14,8 @@ import org.junit.Test;
 import co.mewf.humpty.config.Bundle;
 import co.mewf.humpty.config.Configuration;
 import co.mewf.humpty.config.Context;
+import co.mewf.humpty.spi.resolvers.AssetFile;
+import co.mewf.humpty.spi.resolvers.WebJarResolver;
 
 public class WebJarResolverTest {
 

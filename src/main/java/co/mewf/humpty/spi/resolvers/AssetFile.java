@@ -1,4 +1,4 @@
-package co.mewf.humpty.resolvers;
+package co.mewf.humpty.spi.resolvers;
 
 import co.mewf.humpty.config.Bundle;
 

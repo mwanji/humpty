@@ -1,6 +1,4 @@
-package co.mewf.humpty.resolvers;
-
-import co.mewf.humpty.config.Context;
+package co.mewf.humpty.spi.resolvers;
 
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -11,8 +9,15 @@ import java.util.Set;
 import org.apache.commons.io.IOUtils;
 import org.webjars.WebJarAssetLocator;
 
+import co.mewf.humpty.config.Context;
+
 public class WebJarResolver implements Resolver {
   private final WebJarAssetLocator webJarAssetLocator = new WebJarAssetLocator();
+  
+  @Override
+  public String getName() {
+    return "webjar";
+  }
 
   @Override
   public boolean accepts(String uri) {

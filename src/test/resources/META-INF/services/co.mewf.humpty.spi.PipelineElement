@@ -1,0 +1,7 @@
+co.mewf.humpty.spi.processors.CoffeeScriptSourceProcessor
+co.mewf.humpty.spi.processors.CountingProcessor
+co.mewf.humpty.spi.processors.EchoProcessor
+co.mewf.humpty.spi.processors.ConfigurableProcessor
+co.mewf.humpty.spi.processors.TestProcessor
+co.mewf.humpty.spi.processors.AppendingProcessor
+co.mewf.humpty.spi.processors.AppendingProcessor2

@@ -1,16 +1,5 @@
 package co.mewf.humpty;
 
-import co.mewf.humpty.caches.AssetCache;
-import co.mewf.humpty.config.Bundle;
-import co.mewf.humpty.config.Configuration;
-import co.mewf.humpty.config.Context;
-import co.mewf.humpty.config.PreProcessorContext;
-import co.mewf.humpty.processors.AssetProcessor;
-import co.mewf.humpty.processors.BundleProcessor;
-import co.mewf.humpty.processors.CompilingProcessor;
-import co.mewf.humpty.resolvers.AssetFile;
-import co.mewf.humpty.resolvers.Resolver;
-
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -20,18 +9,29 @@ import java.util.List;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
+import co.mewf.humpty.config.Bundle;
+import co.mewf.humpty.config.Configuration;
+import co.mewf.humpty.config.Configuration.Mode;
+import co.mewf.humpty.config.Context;
+import co.mewf.humpty.config.PreProcessorContext;
+import co.mewf.humpty.spi.processors.AssetProcessor;
+import co.mewf.humpty.spi.processors.BundleProcessor;
+import co.mewf.humpty.spi.processors.SourceProcessor;
+import co.mewf.humpty.spi.resolvers.AssetFile;
+import co.mewf.humpty.spi.resolvers.Resolver;
+
 public class Pipeline {
 
-  private final Configuration configuration;
+  private final List<Bundle> bundles;
   private final List<Resolver> resolvers;
   private final List<AssetProcessor> assetProcessors;
   private final List<BundleProcessor> bundleProcessors;
-  private final List<CompilingProcessor> compilingProcessors;
-  private final AssetCache cache;
+  private final List<SourceProcessor> compilingProcessors;
+  private final Mode mode;
 
-  public Pipeline(Configuration configuration, AssetCache cache, List<? extends Resolver> resolvers, List<? extends CompilingProcessor> compilingProcessors, List<? extends AssetProcessor> assetProcessors, List<? extends BundleProcessor> bundleProcessors) {
-    this.configuration = configuration;
-    this.cache = cache;
+  public Pipeline(Configuration configuration, Configuration.Mode mode, List<? extends Resolver> resolvers, List<? extends SourceProcessor> compilingProcessors, List<? extends AssetProcessor> assetProcessors, List<? extends BundleProcessor> bundleProcessors) {
+    this.bundles = configuration.getBundles();
+    this.mode = mode;
     this.resolvers = Collections.unmodifiableList(resolvers);
     this.compilingProcessors = Collections.unmodifiableList(compilingProcessors);
     this.assetProcessors = Collections.unmodifiableList(assetProcessors);
@@ -39,24 +39,17 @@ public class Pipeline {
   }
 
   public Reader process(String originalAssetName) {
-    if (cache.contains(originalAssetName)) {
-      return cache.get(originalAssetName);
-    }
-
     String bundleName = originalAssetName;
-    if (configuration.isTimestamped()) {
-      bundleName = stripTimestamp(originalAssetName);
-    }
 
     Bundle bundle = null;
-    for (Bundle candidate : configuration.getBundles()) {
+    for (Bundle candidate : bundles) {
       if (candidate.accepts(bundleName)) {
         bundle = candidate;
         break;
       }
     }
 
-    Context context = new Context(configuration.getMode(), bundle);
+    Context context = new Context(mode, bundle);
     List<String> filteredAssets = bundle.getBundleFor(bundleName);
     StringBuilder bundleString = new StringBuilder();
     for (String filteredAsset : filteredAssets) {
@@ -73,21 +66,13 @@ public class Pipeline {
       for (AssetFile assetFile : assetFiles) {
         try {
           String assetName = assetFile.getPath();
-          if (configuration.isTimestamped()) {
-            assetName = FilenameUtils.getPath(assetName) + FilenameUtils.getBaseName(assetName) + "-humpty" + originalAssetName.substring(originalAssetName.indexOf("-humpty") + "-humpty".length(), originalAssetName.lastIndexOf('.')) + "." + FilenameUtils.getExtension(assetName);
-          }
-          String processedAssetString;
-          if (cache.contains(assetName)) {
-            processedAssetString = IOUtils.toString(cache.get(assetName));
-          } else {
-            Reader asset = assetFile.getReader();
-            PreProcessorContext preprocessorContext = context.getPreprocessorContext(assetName);
 
-            CompilingProcessor.CompilationResult compilationResult = compile(assetName, asset, preprocessorContext);
-            Reader processedAsset = processAsset(compilationResult.getAssetName(), compilationResult.getAsset(), preprocessorContext);
-            processedAssetString = IOUtils.toString(processedAsset);
-            cache.put(bundle, assetName, processedAssetString);
-          }
+          Reader asset = assetFile.getReader();
+          PreProcessorContext preprocessorContext = context.getPreprocessorContext(assetName);
+
+          SourceProcessor.CompilationResult compilationResult = compile(assetName, asset, preprocessorContext);
+          Reader processedAsset = processAsset(compilationResult.getAssetName(), compilationResult.getAsset(), preprocessorContext);
+          String processedAssetString = IOUtils.toString(processedAsset);
           bundleString.append(processedAssetString);
           if (bundleString.charAt(bundleString.length() - 1) != '\n') {
             bundleString.append('\n');
@@ -102,7 +87,6 @@ public class Pipeline {
 
     try {
       String processedBundleString = IOUtils.toString(processedBundle);
-      cache.put(bundle, originalAssetName, processedBundleString);
       return new StringReader(processedBundleString);
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -127,9 +111,9 @@ public class Pipeline {
     return baseName.substring(0, dashLastIndex) + "." + extension;
   }
 
-  private CompilingProcessor.CompilationResult compile(String assetName, Reader asset, PreProcessorContext context) {
-    CompilingProcessor.CompilationResult compilationResult = new CompilingProcessor.CompilationResult(assetName, asset);
-    for (CompilingProcessor processor : compilingProcessors) {
+  private SourceProcessor.CompilationResult compile(String assetName, Reader asset, PreProcessorContext context) {
+    SourceProcessor.CompilationResult compilationResult = new SourceProcessor.CompilationResult(assetName, asset);
+    for (SourceProcessor processor : compilingProcessors) {
       if (processor.accepts(compilationResult.getAssetName())) {
         compilationResult = processor.compile(compilationResult.getAssetName(), compilationResult.getAsset(), context);
       }

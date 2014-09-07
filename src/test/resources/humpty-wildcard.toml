@@ -12,5 +12,8 @@
 
 [options.humpty]
   mode = "DEVELOPMENT"
-  processors = ["echo"]
-	
+  
+[options.humpty.processors]
+  assets = ["echo"]
+  sources = []
+  bundles = []

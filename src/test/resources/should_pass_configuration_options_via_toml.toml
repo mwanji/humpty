@@ -4,7 +4,11 @@
   
 [options.humpty]
   mode = "DEVELOPMENT"
-  processors = ["configurable"]
+  
+[options.humpty.processors]
+  assets = ["configurable"]  
+  sources = ["configurable"]
+  bundles = ["configurable"]
   
 [options.configurable]
   message = "configured from JSON!"

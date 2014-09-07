@@ -27,4 +27,8 @@
 
 [options.humpty]
 	mode = "PRODUCTION"
-  processors = ["counting"]
+  
+[options.humpty.processors]
+  assets = ["counting"]
+  sources = []
+  bundles = []

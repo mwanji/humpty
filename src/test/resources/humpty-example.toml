@@ -10,7 +10,7 @@ assets = ["bootstrap.css", "/app/app.css"]
 mode = "DEVELOPMENT"
 
 [options.aliases]
-coffee = "co.mewf.humpty.CoffeeScriptCompilingProcessor"
+coffee = "co.mewf.humpty.spi.processors.CoffeeScriptSourceProcessor"
 
 [options.coffee]
 BARE = true

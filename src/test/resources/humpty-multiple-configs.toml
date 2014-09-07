@@ -10,4 +10,8 @@
 
 [options.humpty]
 	mode = "DEVELOPMENT"
-	processors = ["configurable", "echo"]
+
+[options.humpty.processors]
+  assets = ["configurable", "echo"]
+  sources = []
+  bundles = []

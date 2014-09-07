@@ -1,8 +1,5 @@
 package co.mewf.humpty.config;
 
-import co.mewf.humpty.config.Configuration.Mode;
-
-
 public class PreProcessorContext extends Context {
 
   private final String assetUrl;
@@ -11,7 +8,7 @@ public class PreProcessorContext extends Context {
     return assetUrl;
   }
 
-  PreProcessorContext(String assetUrl, Mode mode, Bundle bundle) {
+  PreProcessorContext(String assetUrl, Configuration.Mode mode, Bundle bundle) {
     super(mode, bundle);
     this.assetUrl = assetUrl;
   }
