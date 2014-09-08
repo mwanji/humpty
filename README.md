@@ -4,7 +4,7 @@ humpty puts your web assets back together. It is a small library that is easy to
 
 humpty works best with [WebJars](http://webjars.org) for 3rd-party libraries and application code in folders accessible via URL. Configuring its behaviour is as simple as dropping a JAR on the classpath.
 
-Requires Java 6 and Servlet 3.
+Requires Java 8 and Servlet 3.
 
 ## Getting Started
 
@@ -16,6 +16,16 @@ Add humpty to your dependencies:
 <dependency>
   <groupId>co.mewf.humpty</groupId>
   <artifactId>humpty</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+</dependency>
+````
+
+To use humpty as a Servlet Filter, add humpty-servlet to your dependencies:
+
+````xml
+<dependency>
+  <groupId>co.mewf.humpty</groupId>
+  <artifactId>humpty-servlet</artifactId>
   <version>1.0.0-SNAPSHOT</version>
 </dependency>
 ````
@@ -47,38 +57,15 @@ Add the following dependencies to make the web libraries available:
 </dependency>
 ````
 
-Add a filter mapping in `web.xml`:
+Create a file called `humpty.toml` in `src/main/resources`:
 
-````xml
-<filter-mapping>
-	<filter-name>HumptyFilter</filter-name>
-	<url-pattern>/humpty/*</url-pattern>
-</filter-mapping>
-````
-
-The `url-pattern` can be anything you want, but only humpty-managed bundle names should be passed to it.
-
-Create a file called `humpty.json` in `src/main/resources`:
-
-````
-{
-  bundles: [
-    {
-      name: "example.js", // the file extension is required
-      assets: ["jquery", "underscore", "bootstrap", "app"] // will be concatenated into a single JS file
-    },
-    {
-      name: "example.css",
-      assets: ["bootstrap", "bootstrap-responsive", "app"] // will be concatenated into a CSS file
-    }
-  ],
-  options: {
-    compression: {
-      compress: true // this is the default, included only for demonstration purposes
-    }
-  },
-  mode: "PRODUCTION" // this is the default
-}
+````toml
+[[bundles]]
+  name = "example.js" # the file extension is required
+  assets = ["jquery", "underscore", "bootstrap", "app"] # will be concatenated into a single JS file called example.js
+[[bundles]]
+  name = "example.css"
+  assets = ["bootstrap", "bootstrap-responsive", "app"] # will be concatenated into a single4 CSS file called example.css
 ````
 
 Now we can include our concatenated and minified files in index.html:
@@ -96,32 +83,39 @@ Now we can include our concatenated and minified files in index.html:
 </html>
 ````
 
-## Resources
+## Pipeline Elements
 
-humpty is a modular system composed of resources. There are several kinds of resources: Bundles and Assets, Processors, Resolvers and Caches. 
+humpty is a modular system that builds a pipeline composed of pipeline elements, into which bundles and assets are fed. 
 
 ### Bundles and Assets
 
-A Bundle is a named list of files that are accessed and processed together. The result is made available at the URL defined by the `name` property. The `name` must contain a file extension. The files and the order in which they are processed are set in the `assets` array.
+A bundle is a named list of files that are accessed and processed together. The result of processing a bundle is made available at the URL defined by the `name` property. The `name` must contain a file extension (.js or .css). The bundle's contents and the order in which they are processed are set in the `assets` array.
 
-Each asset may have a prefix identifying its type:
-
-* `<no prefix>`: This is the default and indicates that the asset is in a [WebJar](http://webjars.org). This can be just a file name if there is no ambiguity, or a longer path if the are other files with the same name, eg. `smoothness/theme.css` in the case of JqueryUI.
-* `/`: The asset is available via URL. This must be the full path, relative to the context path.
+By default, each asset is considered to be in a [WebJar](http://webjars.org). Add WebJars to your classpath and refer to them by name in the `assets` array. The name can be a file name if there is no ambiguity (eg. `jquery`), or a longer path if the are other files with the same name, eg. `smoothness/theme.css` in the case of JqueryUI.
 
 If an asset does not have an extension, the one in the name of the bundle will be used.
 
 You can use `*` as a wildcard to get all the files in a folder: `/assets/*`, `/assets/*.tpl`. The same extension rules apply.
 
+````toml
+[[bundles]]
+  name = "example.js"
+  assets = ["underscore.js",
+            "otherLib.coffee"
+            "jquery", # File extension is optional if it is the same as the one in the bundle's name
+            "myApp" # Application code should be packaged like a WebJar, ie. located under META-INF/resources/webjars, but does not need to be in a separate JAR
+           ]
+````
+
 ### Processors
 
 Processors generally modify the assets they are given in some way: compile, concatenate, minify, etc. There are 3 kinds of processors, run in the following order:
 
-1. `CompilingProcessor` changes the type of the asset (eg. from asset.coffee to asset.js)
+1. `SourceProcessor` changes the type of the asset (eg. from asset.coffee to asset.js)
 2. `AssetProcessor` runs on individual assets (eg. URL rewriting, linting)
 3. `BundleProcessor` runs on a concatenated bundle (eg. minification)
 
-humpty has no default processors, but they are easy to add: simply put them on the classpath and they are automatically used.
+humpty has no default processors, but they are easy to add: put the ones you want on the classpath and they are automatically added to the pipeline.
 
 There are a number of processors available:
 
@@ -134,118 +128,88 @@ Creating custom processors is discussed in the [Extension Points](#extension-poi
 
 ### Resolvers
 
-Resolvers take an asset's name and turn it into one or more (in case of wildcards) named `Reader`s. There are 2 resolvers bundled with humpty:
+Resolvers take an asset's name and turn it into one or more (in case of wildcards) named `Reader`s. There is only one resolver bundled with humpty:
 
-* `WebJarResolver` is the default and looks up resources in a [WebJar](http://webjars.org)
-* `ServletContextPathResolver` finds assets relative to the Servlet context path. Is used when an asset's name starts with `/`
+* `WebJarResolver` looks up resources in a [WebJar](http://webjars.org)
 
 Creating custom resolvers is discussed in the [Extension Points](#extension-points) section.
 
-### Caches
-
-Processed assets and bundles are cached to speed up subsequent requests. Two caches are provided:
-
-* `SimpleAssetCache`: used in production mode. Entries never expire.
-* `WatchingAssetCache`: used in development mode. Entries are invalidated when the underlying file is changed.
-
 ## Development Mode
 
-By setting mode to "DEVELOPMENT", the code-deploy-refresh cycle is sped up.
+Setting the mode to "DEVELOPMENT" may change how resources behave. For example, humpty-compression will not minify.
 
-Bundles are updated as soon as an asset they contain is modified, so you can edit a file, refresh the browser and see the change.
+In your configuration file, add:
 
-Other resources, especially Processors, may behave differently in development mode. For example, humpty-compress will not minify.
+````toml
+[options.humpty]
+  mode = "DEVELOPMENT"
+````
 
-## JSON Configuration Reference
+The default mode is PRODUCTION.
 
-By default, configuration is done via a JSON object in a file called `humpty.json` at the root of the classpath. The configuration's properties are:
+## Configuration Reference
+
+By default, configuration is done via a JSON object in a file called `humpty.toml` at the root of the classpath. The configuration's properties are:
 
 ### bundles
 
 Required. Must contain at least one bundle.
 
-````json
-"bundles": [
-	{
-		"name": "app.js",
-		"assets": ["jquery", "/assets/app.js"]
-	},
-	{
-	  "name": "app.css",
-	  "assets": ["bootstrap.less", "theme"]
-  }
-]
+````toml
+[[bundles]]
+	name = "app.js"
+	assets = ["jquery", "/assets/app.js"]
+
+[[bundles]]
+  name = "app.css",
+  assets = ["bootstrap.less", "theme"]
 ````
 
 ### options
 
-Optional, processor-specific settings.
+Optional, processor-specific settings. The name to use is in each processor's documentation.
 
-This is a map where keys identify the processor and values are a map of processor-specific settings.
-
-Processors can be identified either by a fully-qualified class name or a friendly alias.
-
-````json
-"options": {
-  "co.mewf.humpty.CoffeeScriptAssetProcessor": { // fully-qualified class name
-	  "BARE": true
-  },
-  "bootstrap_less": { // alias
-    "responsive": false
-  }
-}
+````toml
+[options.bootstrap_less]
+  responsive = false
 ````
 
-### mode
+### options.humpty
 
-Optional. Can be PRODUCTION or DEVELOPMENT. Defaults to PRODUCTION.
+Options that determine how the asset pipeline itself is created. 
 
-In PRODUCTION mode, all processing is applied. In DEVELOPMENT mode, processors can decide whether to run or not. For example, a CoffeeScript processor would run in both modes, but a JavaScript minifier might not run in DEVELOPMENT mode.
-
-````json
-"mode": "DEVELOPMENT"
+````toml
+[options.humpty]
+  mode = "DEVELOPMENT" # Defaults to "PRODUCTION". Processors are made aware of the mode and may modify their behaviour or even not run at all
+  
+[options.humpty.processors] # Used to customise the processors that will be applied and their ordering 
+  sources = ["coffee", "emberJs"]
+  assets = [] # No AssetProcessors will run
+  bundles = ["compressCSS"]
 ````
-
-## Java Configuration Reference
-
-The JSON configuration object is easy to use, but is not programmable and can be cumbersome. At the cost of a little bit of configuraton, the Java API provides typesafety and easier processor configuration.
-
-### HumptyBootstrap
-
-Use `HumptyBootstrap.Builder` to:
-
-* use a file located elsewhere than `/humpty.json`
-* use a specific set of processors and resolvers, rather than using the ServiceLoader mechanism
-
-To use a custom `HumptyBootstrap`, extend `HumptyFilter` and override `createPipeline(FilterConfig)`.
 
 ## Extension Points
 
 humpty makes several interfaces available, as well as a limited form of dependency injection.
 
+### Custom Pipeline Elements
+
+New processors can be added to a pipeline by implementing one of `PipelineElement`'s sub-interfaces. For them to be added to the pipeline, add a file called co.mewf.humpty.spi.PipelineElement to META-INF/services, containing one fully-qualified class name per line. For more information, see the JavaDoc for `java.util.ServiceLoader`.
+
 ### Injection
 
-While constructor injection is not allowed because resources must be instantiatable by a ServiceLoader, a limited form of dependency injection is available. One method may be annotated with the javax.inject.Inject annotation. Dependencies that can be injected:
+While constructor injection is not allowed because resources must be instantiatable by a ServiceLoader, a limited form of method injection is available. One method may be annotated with the `javax.inject.Inject` annotation. Dependencies that can be injected:
 
 * `WebJarAssetLocator` to find assets in a WebJar
-* `Configuration.Options` contains user-provided options
+* `Configuration` is the Java representation of the configuration file
+* `Configuration.Options` contains user-provided options for the current processor
+* `Configuration.Mode` whether the pipeline is running in production or development mode
 * `ServletContext` from the Servlet 3 API
+* any object that was added programatically to `HumptyBootstrap`
 
-### Custom Processors
-
-New processors can be created by implementing one of the interfaces extending the `Processor` interface. For the processor to be picked up by a `ServiceLoader`, add a file called co.mewf.humpty.processors.Processor to META-INF/services, containing one fully-qualified class name per line.
-
-If the processor is configurable, implement the `Configurable` interface. `Configurable#configure(Map<String, Object>)` is called before the processor is used.
-
-By default, in the configuration, processors are referred to by their fully-qualified class name. Annotate the processor with `@Alias("myAlias")` to give them a friendlier name.
-
-Processors that are configurable and will be distributed publicly may offer a friendly Java interface to do so, alongside the JSON API.
-
-#### Custom Resolvers
-
-Implement the `Resolver` interface. For the resolver to be picked up by a `ServiceLoader`, add a file called co.mewf.humpty.resolvers.Resolver to META-INF/services, containing one fully-qualified class name per line.
+If a dependency cannot be satisfied, an exception is thrown.
 
 ## Licensing
 
-humpty is copyright Moandji Ezana 2013.
+humpty is copyright Moandji Ezana 2013 - 2014.
 humpty is licensed under the MIT License.
