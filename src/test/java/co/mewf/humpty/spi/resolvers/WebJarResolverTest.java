@@ -1,8 +1,7 @@
 package co.mewf.humpty.spi.resolvers;
 
-import static java.util.Arrays.asList;
-import static org.hamcrest.CoreMatchers.endsWith;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static java.util.stream.Collectors.toList;
+import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -14,8 +13,6 @@ import org.junit.Test;
 import co.mewf.humpty.config.Bundle;
 import co.mewf.humpty.config.Configuration;
 import co.mewf.humpty.config.Context;
-import co.mewf.humpty.spi.resolvers.AssetFile;
-import co.mewf.humpty.spi.resolvers.WebJarResolver;
 
 public class WebJarResolverTest {
 
@@ -38,9 +35,10 @@ public class WebJarResolverTest {
 
   @Test
   public void should_expand_uri() {
-    List<AssetFile> assetFiles = resolver.resolve("jquery.js", new Context(Configuration.Mode.PRODUCTION, new Bundle("libs.js", asList("jquery.js"))));
+    Bundle libs = Configuration.load("/co/mewf/humpty/spi/resolvers/should_expand_uri.toml").getBundles().get(0);
+    
+    List<String> assetFilePaths = resolver.resolve("jquery.js", new Context(Configuration.Mode.PRODUCTION, libs)).stream().map(AssetFile::getPath).collect(toList());
 
-    assertThat(assetFiles, hasSize(1));
-    assertThat(assetFiles.get(0).getPath(), endsWith("/webjars/jquery/1.8.2/jquery.js"));
+    assertThat(assetFilePaths, contains("/webjars/jquery/1.8.2/jquery.js"));
   }
 }
