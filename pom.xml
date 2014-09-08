@@ -24,6 +24,13 @@
       <organizationUrl>http://mewf.co</organizationUrl>
     </developer>
   </developers>
+  <licenses>
+    <license>
+      <name>The MIT License</name>
+      <url>http://www.opensource.org/licenses/mit-license.php</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
   <dependencies>
     <dependency>
       <groupId>com.moandjiezana.toml</groupId>
@@ -122,4 +129,5 @@
       </build>
     </profile>
   </profiles>
+  <inceptionYear>2013</inceptionYear>
 </project>
