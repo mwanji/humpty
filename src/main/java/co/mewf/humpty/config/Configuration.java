@@ -23,9 +23,10 @@ public class Configuration {
     public Options(Map<String, Object> options) {
       this.options = options;
     }
-
-    public Object get(String key) {
-      return options.get(key);
+    
+    @SuppressWarnings("unchecked")
+    public <T> T get(String key, T defaultValue) {
+      return options.containsKey(key) ? (T) options.get(key) : defaultValue;
     }
 
     public boolean containsKey(String key) {

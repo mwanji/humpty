@@ -11,9 +11,6 @@ import org.apache.commons.io.IOUtils;
 import co.mewf.humpty.config.Configuration;
 import co.mewf.humpty.config.Context;
 import co.mewf.humpty.config.PreProcessorContext;
-import co.mewf.humpty.spi.processors.AssetProcessor;
-import co.mewf.humpty.spi.processors.BundleProcessor;
-import co.mewf.humpty.spi.processors.SourceProcessor;
 
 public class ConfigurableProcessor implements BundleProcessor, AssetProcessor, SourceProcessor {
 
@@ -28,7 +25,7 @@ public class ConfigurableProcessor implements BundleProcessor, AssetProcessor, S
   @Inject
   public void init(Configuration.Options options) {
     this.options = options;
-    message = (String) options.get("message");
+    message = options.get("message", null);
   }
 
   @Override

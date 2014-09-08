@@ -43,7 +43,7 @@ public class AppendingProcessor implements SourceProcessor, AssetProcessor, Bund
   
   @Inject
   public void configure(Configuration.Options options) {
-    message = (String) options.get("message");
+    message = options.get("message", null);
   }
   
   private String toString(Reader r) {
