@@ -6,7 +6,6 @@ import java.io.StringReader;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
 import co.mewf.humpty.config.Bundle;
@@ -14,6 +13,7 @@ import co.mewf.humpty.config.Configuration;
 import co.mewf.humpty.config.Configuration.Mode;
 import co.mewf.humpty.config.Context;
 import co.mewf.humpty.config.PreProcessorContext;
+import co.mewf.humpty.spi.listeners.PipelineListener;
 import co.mewf.humpty.spi.processors.AssetProcessor;
 import co.mewf.humpty.spi.processors.BundleProcessor;
 import co.mewf.humpty.spi.processors.SourceProcessor;
@@ -28,14 +28,16 @@ public class Pipeline {
   private final List<BundleProcessor> bundleProcessors;
   private final List<SourceProcessor> compilingProcessors;
   private final Mode mode;
+  private final List<PipelineListener> pipelineListeners;
 
-  public Pipeline(Configuration configuration, Configuration.Mode mode, List<? extends Resolver> resolvers, List<? extends SourceProcessor> compilingProcessors, List<? extends AssetProcessor> assetProcessors, List<? extends BundleProcessor> bundleProcessors) {
+  public Pipeline(Configuration configuration, Configuration.Mode mode, List<? extends Resolver> resolvers, List<? extends SourceProcessor> compilingProcessors, List<? extends AssetProcessor> assetProcessors, List<? extends BundleProcessor> bundleProcessors, List<PipelineListener> pipelineListeners) {
     this.bundles = configuration.getBundles();
     this.mode = mode;
     this.resolvers = Collections.unmodifiableList(resolvers);
     this.compilingProcessors = Collections.unmodifiableList(compilingProcessors);
     this.assetProcessors = Collections.unmodifiableList(assetProcessors);
     this.bundleProcessors = Collections.unmodifiableList(bundleProcessors);
+    this.pipelineListeners = Collections.unmodifiableList(pipelineListeners);
   }
 
   public Reader process(String originalAssetName) {
@@ -87,28 +89,19 @@ public class Pipeline {
 
     try {
       String processedBundleString = IOUtils.toString(processedBundle);
+      
+      pipelineListeners.forEach(listener -> {
+        listener.onPipelineEnd(processedBundleString, originalAssetName);
+      });
+      
       return new StringReader(processedBundleString);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
-
-  private String stripTimestamp(String name) {
-    String baseName = FilenameUtils.getBaseName(name);
-    String extension = FilenameUtils.getExtension(name);
-
-    int dashLastIndex = baseName.lastIndexOf('-');
-    if (dashLastIndex == -1) {
-      return name;
-    }
-
-    String timestamp = baseName.substring(dashLastIndex + 1);
-
-    if (!timestamp.startsWith("humpty")) {
-      return name;
-    }
-
-    return baseName.substring(0, dashLastIndex) + "." + extension;
+  
+  public <T extends PipelineListener> T getPipelineListener(Class<T> pipelineListenerClass) {
+    return pipelineListenerClass.cast(pipelineListeners.stream().filter(l -> l.getClass() == pipelineListenerClass).findFirst().get());
   }
 
   private SourceProcessor.CompilationResult compile(String assetName, Reader asset, PreProcessorContext context) {

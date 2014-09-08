@@ -14,9 +14,9 @@ import org.webjars.WebJarAssetLocator;
 
 import co.mewf.humpty.Pipeline;
 import co.mewf.humpty.spi.PipelineElement;
+import co.mewf.humpty.spi.listeners.PipelineListener;
 import co.mewf.humpty.spi.processors.AssetProcessor;
 import co.mewf.humpty.spi.processors.BundleProcessor;
-import co.mewf.humpty.spi.processors.Processor;
 import co.mewf.humpty.spi.processors.SourceProcessor;
 import co.mewf.humpty.spi.resolvers.Resolver;
 
@@ -37,7 +37,6 @@ public class HumptyBootstrap implements PipelineElement {
   private final Object[] resources;
   private final Configuration configuration;
   private final List<Resolver> resolvers;
-  private final List<Object> extras;
   private final List<SourceProcessor> sourceProcessors;
   private final List<BundleProcessor> bundleProcessors;
   private final List<AssetProcessor> assetProcessors;
@@ -45,14 +44,18 @@ public class HumptyBootstrap implements PipelineElement {
   private List<String> sourceProcessorsConfiguration;
   private List<String> assetProcessorsConfiguration;
   private List<String> bundleProcessorsConfiguration;
+  private List<PipelineListener> pipelineListeners;
   
   public HumptyBootstrap(Object... resources) {
     this("/humpty.toml", resources);
   }
-
   public HumptyBootstrap(String humptyFile, Object... resources) {
+    this(Configuration.load(humptyFile), resources);
+  }
+  
+  public HumptyBootstrap(Configuration configuration, Object... resources) {
     this.resources = resources;
-    this.configuration = Configuration.load(humptyFile);
+    this.configuration = configuration;
     this.humptyOptions = configuration.getOptionsFor(this);
     this.pipelineElements = loadPipelineElements();
     this.resolvers = getResolvers();
@@ -60,18 +63,19 @@ public class HumptyBootstrap implements PipelineElement {
     this.assetProcessors = getAssetProcessors();
     this.bundleProcessors = getBundleProcessors();
     this.sourceProcessors = getSourceProcessors();
-    this.extras = getExtras();
+    this.pipelineListeners = getPipelineListeners();
 
-    List<Object> all = new ArrayList<Object>();
-    all.addAll(resolvers);
-    all.addAll(sourceProcessors);
-    all.addAll(assetProcessors);
-    all.addAll(bundleProcessors);
+    List<PipelineElement> allPipelineElements = new ArrayList<>();
+    allPipelineElements.addAll(resolvers);
+    allPipelineElements.addAll(sourceProcessors);
+    allPipelineElements.addAll(assetProcessors);
+    allPipelineElements.addAll(bundleProcessors);
+    allPipelineElements.addAll(pipelineListeners);
     
     WebJarAssetLocator locator = new WebJarAssetLocator();
 
-    for (Object resource : all) {
-      for (Method method : resource.getClass().getMethods()) {
+    for (PipelineElement pipelineElement : allPipelineElements) {
+      for (Method method : pipelineElement.getClass().getMethods()) {
         if (!method.isAnnotationPresent(Inject.class)) {
           continue;
         }
@@ -82,17 +86,21 @@ public class HumptyBootstrap implements PipelineElement {
           Class<?> parameterType = parameterTypes[i];
           if (parameterType == WebJarAssetLocator.class) {
             args[i] = locator;
-          } else if (parameterType == Configuration.Options.class && resource instanceof PipelineElement) {
-            args[i] = configuration.getOptionsFor((PipelineElement) resource);
-          } else if (getExtra(extras, parameterType) != null) {
-            args[i] = getExtra(extras, parameterType);
+          } else if (parameterType == Configuration.class) {
+            args[i] = configuration;
+          } else if (parameterType == Configuration.Options.class) {
+            args[i] = configuration.getOptionsFor(pipelineElement);
+          } else if (parameterType == Configuration.Mode.class) {
+            args[i] = getMode();
+          } else if (getExtra(parameterType) != null) {
+            args[i] = getExtra(parameterType);
           } else {
-            throw new IllegalArgumentException("Cannot inject the type " + parameterType.getName() + " into " + resource.getClass().getName());
+            throw new IllegalArgumentException("Cannot inject the type " + parameterType.getName() + " into " + pipelineElement.getClass().getName());
           }
         }
 
         try {
-          method.invoke(resource, args);
+          method.invoke(pipelineElement, args);
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
@@ -100,9 +108,9 @@ public class HumptyBootstrap implements PipelineElement {
       }
     }
   }
-  
+
   public Pipeline createPipeline() {
-    return new Pipeline(configuration, getMode(), resolvers, sourceProcessors, assetProcessors, bundleProcessors);
+    return new Pipeline(configuration, getMode(), resolvers, sourceProcessors, assetProcessors, bundleProcessors, pipelineListeners);
   }
 
   @Override
@@ -149,26 +157,17 @@ public class HumptyBootstrap implements PipelineElement {
       return bundleProcessors.stream().filter(b -> b.getName().equals(name)).findFirst().get();
     }).collect(toList());
   }
+  
+  private List<PipelineListener> getPipelineListeners() {
+    return pipelineElements.stream().filter(e -> e instanceof PipelineListener).map(e -> (PipelineListener) e).collect(toList());
+  }
 
   private Configuration.Mode getMode() {
-    Configuration.Mode mode = humptyOptions.containsKey("mode") ? Configuration.Mode.valueOf((String) humptyOptions.get("mode")) : Configuration.Mode.PRODUCTION;
-    return mode;
+    return Configuration.Mode.valueOf(humptyOptions.get("mode", Configuration.Mode.PRODUCTION.toString()));
   }
 
-  private List<Object> getExtras() {
-    ArrayList<Object> extras = new ArrayList<Object>();
-
-    for (Object resource : resources) {
-      if (!(resource instanceof Processor || resource instanceof Configuration || resource instanceof Resolver)) {
-        extras.add(resource);
-      }
-    }
-
-    return extras;
-  }
-
-  private Object getExtra(List<Object> extras, Class<?> extra) {
-    for (Object candidate : extras) {
+  private Object getExtra(Class<?> extra) {
+    for (Object candidate : resources) {
       if (extra.isAssignableFrom(candidate.getClass())) {
         return candidate;
       }
@@ -185,8 +184,7 @@ public class HumptyBootstrap implements PipelineElement {
   }
 
   private void setProcessorConfigurations() {
-    @SuppressWarnings("unchecked")
-    Map<String, List<String>> processorConfiguration = humptyOptions.containsKey("processors") ? (Map<String, List<String>>) humptyOptions.get("processors") : null;
+    Map<String, List<String>> processorConfiguration = humptyOptions.get("processors", null);
     if (processorConfiguration != null) {
       sourceProcessorsConfiguration = processorConfiguration.get("sources");
       assetProcessorsConfiguration = processorConfiguration.get("assets");
