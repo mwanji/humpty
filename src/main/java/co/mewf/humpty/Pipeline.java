@@ -90,7 +90,7 @@ public class Pipeline {
     try {
       String processedBundleString = IOUtils.toString(processedBundle);
       
-      pipelineListeners.forEach(listener -> listener.onPipelineEnd(processedBundleString, originalAssetName));
+      pipelineListeners.forEach(listener -> listener.onBundleProcessed(processedBundleString, originalAssetName));
       
       return processedBundleString;
     } catch (IOException e) {
