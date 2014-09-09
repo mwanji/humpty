@@ -1,6 +1,7 @@
 package co.mewf.humpty.config;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +32,10 @@ public class Configuration {
 
     public boolean containsKey(String key) {
       return options.containsKey(key);
+    }
+    
+    public Map<String, Object> toMap() {
+      return new HashMap<>(options);
     }
   }
 
