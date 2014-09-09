@@ -7,7 +7,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Reader;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
@@ -20,8 +19,7 @@ public class PipelineTest {
 
   @Test
   public void should_process_bundle() throws IOException {
-    Reader reader = new HumptyBootstrap("/should_process_bundle.toml").createPipeline().process("singleAsset.js");
-    String result = IOUtils.toString(reader);
+    String result = new HumptyBootstrap("/should_process_bundle.toml").createPipeline().process("singleAsset.js");
 
     assertTrue(result.startsWith("Preprocessed!Compiled!"));
     assertTrue(result.endsWith("Postprocessed!"));
@@ -34,8 +32,7 @@ public class PipelineTest {
 
   @Test
   public void should_compile_bundle() throws IOException {
-    Reader reader = new HumptyBootstrap("/should_compile_bundle.toml").createPipeline().process("compilableAsset.js");
-    String result = IOUtils.toString(reader);
+    String result = new HumptyBootstrap("/should_compile_bundle.toml").createPipeline().process("compilableAsset.js");
 
     String expected = IOUtils.toString(getClass().getClassLoader().getResourceAsStream(locator.getFullPath("blocks.js")));
     assertEquals(expected, result);
@@ -43,8 +40,7 @@ public class PipelineTest {
 
   @Test
   public void should_concatenate_bundle_with_multiple_assets() throws IOException {
-    Reader reader = new HumptyBootstrap("/should_concatenate_bundle_with_multiple_assets.toml").createPipeline().process("multipleAssets.js");
-    String result = IOUtils.toString(reader);
+    String result = new HumptyBootstrap("/should_concatenate_bundle_with_multiple_assets.toml").createPipeline().process("multipleAssets.js");
 
     String expected = IOUtils.toString(getClass().getClassLoader().getResourceAsStream(locator.getFullPath("blocks.js"))) + IOUtils.toString(getClass().getClassLoader().getResourceAsStream(locator.getFullPath("web_server.js")));
 
@@ -55,7 +51,7 @@ public class PipelineTest {
   public void should_pass_configuration_options_via_toml() throws IOException {
     Pipeline pipeline = new HumptyBootstrap("/should_pass_configuration_options_via_toml.toml").createPipeline();
 
-    String actual = IOUtils.toString(pipeline.process("singleAsset.js"));
+    String actual = pipeline.process("singleAsset.js");
 
     assertEquals("configured from JSON!configured from JSON!\nconfigured from JSON!", actual);
   }
@@ -65,7 +61,7 @@ public class PipelineTest {
     ClassLoader classLoader = getClass().getClassLoader();
     Pipeline pipeline = new HumptyBootstrap("/humpty-wildcard.toml").createPipeline();
 
-    String output = IOUtils.toString(pipeline.process("no_extension.js"));
+    String output = pipeline.process("no_extension.js");
 
     assertThat("Did not include blocks.js", output, containsString(IOUtils.toString(classLoader.getResourceAsStream(locator.getFullPath("blocks.js")))));
     assertThat("Did not include web_server.js", output, containsString(IOUtils.toString(classLoader.getResourceAsStream(locator.getFullPath("web_server.js")))));
@@ -76,7 +72,7 @@ public class PipelineTest {
     ClassLoader classLoader = getClass().getClassLoader();
     Pipeline pipeline = new HumptyBootstrap("/humpty-wildcard.toml").createPipeline();
 
-    String output = IOUtils.toString(pipeline.process("folder_and_extension.js"));
+    String output = pipeline.process("folder_and_extension.js");
 
     assertThat("Did not include blocks.js", output, containsString(IOUtils.toString(classLoader.getResourceAsStream(locator.getFullPath("blocks.js")))));
     assertThat("Did not include web_server.js", output, containsString(IOUtils.toString(classLoader.getResourceAsStream(locator.getFullPath("web_server.js")))));
@@ -87,7 +83,7 @@ public class PipelineTest {
     ClassLoader classLoader = getClass().getClassLoader();
     Pipeline pipeline = new HumptyBootstrap("/humpty-wildcard.toml").createPipeline();
 
-    String output = IOUtils.toString(pipeline.process("folder_without_extension.coffee"));
+    String output = pipeline.process("folder_without_extension.coffee");
 
     assertThat("Did not include blocks.coffee", output, containsString(IOUtils.toString(classLoader.getResourceAsStream(locator.getFullPath("blocks.coffee")))));
     assertThat("Did not include web_server.coffee", output, containsString(IOUtils.toString(classLoader.getResourceAsStream(locator.getFullPath("web_server.coffee")))));
@@ -97,7 +93,7 @@ public class PipelineTest {
   public void should_sort_processors_in_configured_order() throws Exception {
     Pipeline pipeline = new HumptyBootstrap("/should_sort_processors_in_configured_order.toml").createPipeline();
     
-    String result = IOUtils.toString(pipeline.process("bundle.js"));
+    String result = pipeline.process("bundle.js");
     
     assertEquals(read("alert.js") + "appender2appender1appender2appender1\nappender2appender1", result);
   }

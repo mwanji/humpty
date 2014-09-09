@@ -40,7 +40,7 @@ public class Pipeline {
     this.pipelineListeners = Collections.unmodifiableList(pipelineListeners);
   }
 
-  public Reader process(String originalAssetName) {
+  public String process(String originalAssetName) {
     String bundleName = originalAssetName;
 
     Bundle bundle = null;
@@ -90,11 +90,9 @@ public class Pipeline {
     try {
       String processedBundleString = IOUtils.toString(processedBundle);
       
-      pipelineListeners.forEach(listener -> {
-        listener.onPipelineEnd(processedBundleString, originalAssetName);
-      });
+      pipelineListeners.forEach(listener -> listener.onPipelineEnd(processedBundleString, originalAssetName));
       
-      return new StringReader(processedBundleString);
+      return processedBundleString;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
