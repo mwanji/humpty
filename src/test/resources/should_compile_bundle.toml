@@ -2,10 +2,10 @@
 name = "compilableAsset.js"
 assets = ["blocks.coffee"]
 
-[options.humpty]
+[options.pipeline]
   mode = "DEVELOPMENT"
   
-[options.humpty.processors]
+[options.pipeline.elements]
   sources = ["coffee"]
   assets = []
   bundles = []

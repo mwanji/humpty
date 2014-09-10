@@ -25,10 +25,10 @@
 [options.configurable]
 	message = "aliased from JSON!"
 
-[options.humpty]
+[options.pipeline]
 	mode = "PRODUCTION"
   
-[options.humpty.processors]
+[options.pipeline.elements]
   assets = ["counting"]
   sources = []
   bundles = []

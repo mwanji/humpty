@@ -9,8 +9,5 @@ assets = ["bootstrap.css", "/app/app.css"]
 [options]
 mode = "DEVELOPMENT"
 
-[options.aliases]
-coffee = "co.mewf.humpty.spi.processors.CoffeeScriptSourceProcessor"
-
 [options.coffee]
 BARE = true

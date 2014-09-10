@@ -9,10 +9,11 @@
 [options.coffee] # Options for the processor with the alias "coffee"
   BARE = true
 
-[options.humpty]  # Options for humpty itself
+[options.pipeline]  # Options for the humpty pipeline itself
   mode = "DEVELOPMENT" # Defaults to "PRODUCTION"
   
-[options.humpty.processors] # Arrays of names of processors to use, in the given order
+  
+[options.pipeline.elements] # Arrays of names of pipeline elements to use, in the given order
   sources = [] 
   assets = []
   bundles = []

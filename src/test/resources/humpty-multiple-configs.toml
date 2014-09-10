@@ -8,10 +8,10 @@
 [options.echo]
 	echoMessage = "incorrect"
 
-[options.humpty]
+[options.pipeline]
 	mode = "DEVELOPMENT"
 
-[options.humpty.processors]
+[options.pipeline.processors]
   assets = ["configurable", "echo"]
   sources = []
   bundles = []

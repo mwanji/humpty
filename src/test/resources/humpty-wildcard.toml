@@ -10,10 +10,10 @@
 	name = "no_extension.js"
 	assets = ["blocks", "web_server"]
 
-[options.humpty]
+[options.pipeline]
   mode = "DEVELOPMENT"
   
-[options.humpty.processors]
+[options.pipeline.elements]
   assets = ["echo"]
   sources = []
   bundles = []

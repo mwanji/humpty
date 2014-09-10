@@ -111,12 +111,12 @@ public class HumptyBootstrap implements PipelineElement {
   }
 
   public Pipeline createPipeline() {
-    return new Pipeline(configuration, getMode(), resolvers, sourceProcessors, assetProcessors, bundleProcessors, pipelineListeners);
+    return new Pipeline(configuration.getBundles(), getMode(), resolvers, sourceProcessors, assetProcessors, bundleProcessors, pipelineListeners);
   }
 
   @Override
   public String getName() {
-    return "humpty";
+    return "pipeline";
   }
 
   private List<Resolver> getResolvers() {
@@ -193,7 +193,7 @@ public class HumptyBootstrap implements PipelineElement {
   }
 
   private void setProcessorConfigurations() {
-    Map<String, List<String>> processorConfiguration = humptyOptions.get("processors", null);
+    Map<String, List<String>> processorConfiguration = humptyOptions.get("elements", null);
     if (processorConfiguration != null) {
       sourceProcessorsConfiguration = processorConfiguration.get("sources");
       assetProcessorsConfiguration = processorConfiguration.get("assets");

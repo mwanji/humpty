@@ -2,7 +2,7 @@
   name = "asset.js"
   assets = ["blocks.coffee", "web_server.coffee"]
   
-[options.humpty.processors]
+[options.pipeline.elements]
   sources = ["coffee"]
   assets = []
   bundles = []

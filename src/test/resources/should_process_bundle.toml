@@ -2,10 +2,10 @@
   name = "singleAsset.js"
   assets = ["blocks"]
   
-[options.humpty]
+[options.pipeline]
   mode = "DEVELOPMENT"
   
-[options.humpty.processors]
+[options.pipeline.elements]
   assets = ["test"]
   sources = ["test"]
   bundles = ["test"]
