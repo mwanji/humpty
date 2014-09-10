@@ -1,12 +1,9 @@
 package co.mewf.humpty.spi.processors;
 
-import java.io.Reader;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import co.mewf.humpty.config.Context;
 import co.mewf.humpty.config.PreProcessorContext;
-import co.mewf.humpty.spi.processors.AssetProcessor;
-import co.mewf.humpty.spi.processors.BundleProcessor;
 
 public class CountingProcessor implements AssetProcessor, BundleProcessor {
 
@@ -24,13 +21,13 @@ public class CountingProcessor implements AssetProcessor, BundleProcessor {
   }
 
   @Override
-  public Reader processBundle(String assetName, Reader asset, Context context) {
+  public String processBundle(String assetName, String asset, Context context) {
     bundleCounter.incrementAndGet();
     return asset;
   }
 
   @Override
-  public Reader processAsset(String assetName, Reader asset, PreProcessorContext context) {
+  public String processAsset(String assetName, String asset, PreProcessorContext context) {
     assetCounter.incrementAndGet();
     return asset;
   }

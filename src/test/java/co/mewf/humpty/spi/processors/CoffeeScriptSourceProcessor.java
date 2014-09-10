@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.StringReader;
 
 import org.apache.commons.io.IOUtils;
 import org.mozilla.javascript.Context;
@@ -12,7 +11,6 @@ import org.mozilla.javascript.Scriptable;
 import org.webjars.WebJarAssetLocator;
 
 import co.mewf.humpty.config.PreProcessorContext;
-import co.mewf.humpty.spi.processors.SourceProcessor;
 
 public class CoffeeScriptSourceProcessor implements SourceProcessor {
 
@@ -29,7 +27,7 @@ public class CoffeeScriptSourceProcessor implements SourceProcessor {
   }
 
   @Override
-  public CompilationResult compile(String assetName, Reader asset, PreProcessorContext context) {
+  public CompilationResult compile(String assetName, String asset, PreProcessorContext context) {
     ClassLoader classLoader = getClass().getClassLoader();
     InputStream inputStream = classLoader.getResourceAsStream(COFFEE_SCRIPT_JS);
     try {
@@ -40,12 +38,12 @@ public class CoffeeScriptSourceProcessor implements SourceProcessor {
 
       Scriptable compileScope = rhinoContext.newObject(globalScope);
       compileScope.setParentScope(globalScope);
-      compileScope.put("coffeeScriptSource", compileScope, IOUtils.toString(asset));
+      compileScope.put("coffeeScriptSource", compileScope, asset);
 
-      StringReader compiledReader = new StringReader((String) rhinoContext.evaluateString(compileScope,
-          "CoffeeScript.compile(coffeeScriptSource, { bare: true });", "JCoffeeScriptCompiler", 0, null));
+      String compiled = (String) rhinoContext.evaluateString(compileScope,
+          "CoffeeScript.compile(coffeeScriptSource, { bare: true });", "JCoffeeScriptCompiler", 0, null);
 
-      return new CompilationResult(assetName.replace(".coffee", ".js"), compiledReader);
+      return new CompilationResult(assetName.replace(".coffee", ".js"), compiled);
     } catch (IOException e) {
       throw new RuntimeException(e);
     } finally {

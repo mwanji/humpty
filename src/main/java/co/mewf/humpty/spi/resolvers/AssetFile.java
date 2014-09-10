@@ -1,12 +1,10 @@
 package co.mewf.humpty.spi.resolvers;
 
-import co.mewf.humpty.config.Bundle;
-
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.Reader;
-import java.io.StringReader;
+import java.io.IOException;
+import java.nio.file.Files;
+
+import co.mewf.humpty.config.Bundle;
 
 public class AssetFile {
 
@@ -37,10 +35,10 @@ public class AssetFile {
     return file;
   }
 
-  public Reader getReader() {
+  public String getContents() {
     try {
-      return file != null ? new FileReader(file) : new StringReader(contents);
-    } catch (FileNotFoundException e) {
+      return file != null ? new String(Files.readAllBytes(file.toPath())) : contents;
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }

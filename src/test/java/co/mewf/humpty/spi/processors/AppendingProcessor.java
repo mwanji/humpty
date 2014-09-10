@@ -2,7 +2,6 @@ package co.mewf.humpty.spi.processors;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.io.StringReader;
 
 import javax.inject.Inject;
 
@@ -27,18 +26,18 @@ public class AppendingProcessor implements SourceProcessor, AssetProcessor, Bund
   }
 
   @Override
-  public Reader processBundle(String assetName, Reader asset, Context context) {
-    return new StringReader(toString(asset) + message);
+  public String processBundle(String assetName, String asset, Context context) {
+    return asset + message;
   }
 
   @Override
-  public Reader processAsset(String assetName, Reader asset, PreProcessorContext context) {
-    return new StringReader(toString(asset) + message);
+  public String processAsset(String assetName, String asset, PreProcessorContext context) {
+    return asset + message;
   }
 
   @Override
-  public CompilationResult compile(String assetName, Reader asset, PreProcessorContext context) {
-    return new CompilationResult(assetName, new StringReader(toString(asset) + message));
+  public CompilationResult compile(String assetName, String asset, PreProcessorContext context) {
+    return new CompilationResult(assetName, asset + message);
   }
   
   @Inject

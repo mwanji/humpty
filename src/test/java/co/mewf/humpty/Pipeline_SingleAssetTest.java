@@ -2,6 +2,7 @@ package co.mewf.humpty;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,7 +35,16 @@ public class Pipeline_SingleAssetTest {
 
     TracerPipelineListener tracer = pipeline.getPipelineListener(TracerPipelineListener.class);
     
-    assertFalse(tracer.onBundleProcessedCalled);
+    assertFalse("Called bundle listener", tracer.onBundleProcessedCalled);
+  }
+  
+  @Test
+  public void should_call_asset_listeners() throws Exception {
+    pipeline.process("asset.js/blocks.coffee");
+
+    TracerPipelineListener tracer = pipeline.getPipelineListener(TracerPipelineListener.class);
+    
+    assertTrue("Did not call asset listener", tracer.onAssetProcessedCalled);
   }
   
   private String read(String filename) {

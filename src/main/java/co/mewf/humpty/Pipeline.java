@@ -1,12 +1,8 @@
 package co.mewf.humpty;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
 import java.util.Collections;
 import java.util.List;
-
-import org.apache.commons.io.IOUtils;
 
 import co.mewf.humpty.config.Bundle;
 import co.mewf.humpty.config.Configuration;
@@ -77,21 +73,16 @@ public class Pipeline {
       List<AssetFile> assetFiles = resolver.resolve(filteredAsset, context);
 
       for (AssetFile assetFile : assetFiles) {
-        try {
-          String assetName = assetFile.getPath();
+        String assetName = assetFile.getPath();
 
-          Reader asset = assetFile.getReader();
-          PreProcessorContext preprocessorContext = context.getPreprocessorContext(assetName);
+        String asset = assetFile.getContents();
+        PreProcessorContext preprocessorContext = context.getPreprocessorContext(assetName);
 
-          SourceProcessor.CompilationResult compilationResult = compile(assetName, asset, preprocessorContext);
-          Reader processedAsset = processAsset(compilationResult.getAssetName(), compilationResult.getAsset(), preprocessorContext);
-          String processedAssetString = IOUtils.toString(processedAsset);
-          bundleString.append(processedAssetString);
-          if (bundleString.charAt(bundleString.length() - 1) != '\n') {
-            bundleString.append('\n');
-          }
-        } catch (IOException e) {
-          throw new RuntimeException(e);
+        SourceProcessor.CompilationResult compilationResult = compile(assetName, asset, preprocessorContext);
+        String processedAsset = processAsset(compilationResult.getAssetName(), compilationResult.getAsset(), preprocessorContext);
+        bundleString.append(processedAsset);
+        if (bundleString.charAt(bundleString.length() - 1) != '\n') {
+          bundleString.append('\n');
         }
       }
     }
@@ -102,7 +93,7 @@ public class Pipeline {
     }
     
     try {
-      return processBundle(new StringReader(bundleString.toString()), context);
+      return processBundle(bundleString.toString(), context);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -112,7 +103,7 @@ public class Pipeline {
     return pipelineListenerClass.cast(pipelineListeners.stream().filter(l -> l.getClass() == pipelineListenerClass).findFirst().get());
   }
 
-  private SourceProcessor.CompilationResult compile(String assetName, Reader asset, PreProcessorContext context) {
+  private SourceProcessor.CompilationResult compile(String assetName, String asset, PreProcessorContext context) {
     SourceProcessor.CompilationResult compilationResult = new SourceProcessor.CompilationResult(assetName, asset);
     for (SourceProcessor processor : compilingProcessors) {
       if (processor.accepts(compilationResult.getAssetName())) {
@@ -122,26 +113,29 @@ public class Pipeline {
     return compilationResult;
   }
 
-  private Reader processAsset(String assetName, Reader asset, PreProcessorContext context) {
-    Reader currentAsset = asset;
-    for (AssetProcessor preProcessor : assetProcessors) {
-      if (preProcessor.accepts(assetName)) {
-        currentAsset = preProcessor.processAsset(assetName, currentAsset, context);
+  private String processAsset(String assetName, String asset, PreProcessorContext context) {
+    String currentAsset = asset;
+    for (AssetProcessor assetProcessor : assetProcessors) {
+      if (assetProcessor.accepts(assetName)) {
+        currentAsset = assetProcessor.processAsset(assetName, currentAsset, context);
       }
     }
+    
+    final String listenerAsset = currentAsset;
+    pipelineListeners.forEach(listener -> listener.onAssetProcessed(listenerAsset, assetName, context.getAssetUrl(), context.getBundle()));
 
     return currentAsset;
   }
 
-  private String processBundle(Reader asset, Context context) throws IOException {
-    Reader currentAsset = asset;
+  private String processBundle(String asset, Context context) throws IOException {
+    String currentBundle = asset;
     for (BundleProcessor postProcessor : bundleProcessors) {
       if (postProcessor.accepts(context.getBundleName())) {
-        currentAsset = postProcessor.processBundle(context.getBundleName(), currentAsset, context);
+        currentBundle = postProcessor.processBundle(context.getBundleName(), currentBundle, context);
       }
     }
 
-    String processedBundle = IOUtils.toString(currentAsset);
+    String processedBundle = currentBundle;
     pipelineListeners.forEach(listener -> listener.onBundleProcessed(processedBundle, context.getBundleName()));
     
     return processedBundle;

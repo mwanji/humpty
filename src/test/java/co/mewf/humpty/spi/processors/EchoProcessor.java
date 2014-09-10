@@ -1,9 +1,6 @@
 package co.mewf.humpty.spi.processors;
 
-import java.io.Reader;
-
 import co.mewf.humpty.config.PreProcessorContext;
-import co.mewf.humpty.spi.processors.AssetProcessor;
 
 public class EchoProcessor implements AssetProcessor {
 
@@ -19,7 +16,7 @@ public class EchoProcessor implements AssetProcessor {
   }
 
   @Override
-  public Reader processAsset(String asset, Reader reader, PreProcessorContext context) {
-    return reader;
+  public String processAsset(String assetName, String asset, PreProcessorContext context) {
+    return asset;
   }
 }

@@ -2,22 +2,20 @@ package co.mewf.humpty.spi.processors;
 
 import co.mewf.humpty.config.PreProcessorContext;
 
-import java.io.Reader;
-
 public interface SourceProcessor extends Processor {
 
-  SourceProcessor.CompilationResult compile(String assetName, Reader asset, PreProcessorContext context);
+  SourceProcessor.CompilationResult compile(String assetName, String asset, PreProcessorContext context);
 
   public static class CompilationResult {
-    private final Reader asset;
+    private final String asset;
     private final String assetName;
 
-    public CompilationResult(String assetName, Reader asset) {
+    public CompilationResult(String assetName, String asset) {
       this.asset = asset;
       this.assetName = assetName;
     }
 
-    public Reader getAsset() {
+    public String getAsset() {
       return asset;
     }
 
