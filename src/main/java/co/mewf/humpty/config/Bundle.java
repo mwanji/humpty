@@ -1,8 +1,8 @@
 package co.mewf.humpty.config;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
 
@@ -26,12 +26,8 @@ public class Bundle {
    * @return a list of asset names. Each asset name has an extension (taken from the bundle's name if none was provided), but wildcards are not expanded.
    */
   public List<String> getBundleFor(String uri) {
-    ArrayList<String> normalisedAssets = new ArrayList<String>();
     if (name.equals(uri)) {
-      for (String assetName : assets) {
-        normalisedAssets.add(normaliseName(assetName));
-      }
-      return normalisedAssets;
+      return assets.stream().map(asset -> normaliseName(asset)).collect(Collectors.toList());
     }
 
     return Collections.singletonList(uri);
@@ -42,10 +38,10 @@ public class Bundle {
   }
 
   private String normaliseName(String assetName) {
-    if (!FilenameUtils.getExtension(assetName).isEmpty()) {
-      return assetName;
-    } else {
+    if (FilenameUtils.getExtension(assetName).isEmpty()) {
       return assetName + "." + FilenameUtils.getExtension(name);
     }
+    
+    return assetName;
   }
 }
