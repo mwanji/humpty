@@ -42,6 +42,14 @@ public class Pipeline {
 
   public String process(String originalAssetName) {
     String bundleName = originalAssetName;
+    String assetInBundleName = null;
+    
+    if (originalAssetName.indexOf('/') > -1) {
+      String[] split = originalAssetName.split("/", 2);
+      bundleName = split[0];
+      assetInBundleName = split[1];
+    }
+    
 
     Bundle bundle = null;
     for (Bundle candidate : bundles) {
@@ -52,7 +60,10 @@ public class Pipeline {
     }
 
     Context context = new Context(mode, bundle);
-    List<String> filteredAssets = bundle.getBundleFor(bundleName);
+    if (assetInBundleName != null) {
+      context = context.getChild(assetInBundleName);
+    }
+    List<String> filteredAssets = bundle.getBundleFor(assetInBundleName == null ? bundleName : assetInBundleName);
     StringBuilder bundleString = new StringBuilder();
     for (String filteredAsset : filteredAssets) {
       Resolver resolver = null;
@@ -85,14 +96,13 @@ public class Pipeline {
       }
     }
 
-    Reader processedBundle = processBundle(new StringReader(bundleString.toString()), context);
 
+    if (assetInBundleName != null) {
+      return bundleString.toString();
+    }
+    
     try {
-      String processedBundleString = IOUtils.toString(processedBundle);
-      
-      pipelineListeners.forEach(listener -> listener.onBundleProcessed(processedBundleString, originalAssetName));
-      
-      return processedBundleString;
+      return processBundle(new StringReader(bundleString.toString()), context);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -123,7 +133,7 @@ public class Pipeline {
     return currentAsset;
   }
 
-  private Reader processBundle(Reader asset, Context context) {
+  private String processBundle(Reader asset, Context context) throws IOException {
     Reader currentAsset = asset;
     for (BundleProcessor postProcessor : bundleProcessors) {
       if (postProcessor.accepts(context.getBundleName())) {
@@ -131,6 +141,9 @@ public class Pipeline {
       }
     }
 
-    return currentAsset;
+    String processedBundle = IOUtils.toString(currentAsset);
+    pipelineListeners.forEach(listener -> listener.onBundleProcessed(processedBundle, context.getBundleName()));
+    
+    return processedBundle;
   }
 }

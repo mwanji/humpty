@@ -5,3 +5,4 @@ co.mewf.humpty.spi.processors.ConfigurableProcessor
 co.mewf.humpty.spi.processors.TestProcessor
 co.mewf.humpty.spi.processors.AppendingProcessor
 co.mewf.humpty.spi.processors.AppendingProcessor2
+co.mewf.humpty.spi.listeners.TracerPipelineListener
