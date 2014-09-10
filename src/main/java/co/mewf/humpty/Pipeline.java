@@ -30,8 +30,8 @@ public class Pipeline {
   private final Mode mode;
   private final List<PipelineListener> pipelineListeners;
 
-  public Pipeline(Configuration configuration, Configuration.Mode mode, List<? extends Resolver> resolvers, List<? extends SourceProcessor> compilingProcessors, List<? extends AssetProcessor> assetProcessors, List<? extends BundleProcessor> bundleProcessors, List<PipelineListener> pipelineListeners) {
-    this.bundles = configuration.getBundles();
+  public Pipeline(List<Bundle> bundles, Configuration.Mode mode, List<? extends Resolver> resolvers, List<? extends SourceProcessor> compilingProcessors, List<? extends AssetProcessor> assetProcessors, List<? extends BundleProcessor> bundleProcessors, List<PipelineListener> pipelineListeners) {
+    this.bundles = bundles;
     this.mode = mode;
     this.resolvers = Collections.unmodifiableList(resolvers);
     this.compilingProcessors = Collections.unmodifiableList(compilingProcessors);
