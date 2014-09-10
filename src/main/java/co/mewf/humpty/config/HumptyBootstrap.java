@@ -45,6 +45,7 @@ public class HumptyBootstrap implements PipelineElement {
   private List<String> assetProcessorsConfiguration;
   private List<String> bundleProcessorsConfiguration;
   private List<PipelineListener> pipelineListeners;
+  private List<String> listenersConfiguration;
   
   public HumptyBootstrap(Object... resources) {
     this("/humpty.toml", resources);
@@ -159,7 +160,15 @@ public class HumptyBootstrap implements PipelineElement {
   }
   
   private List<PipelineListener> getPipelineListeners() {
-    return pipelineElements.stream().filter(e -> e instanceof PipelineListener).map(e -> (PipelineListener) e).collect(toList());
+    List<PipelineListener> listeners = pipelineElements.stream().filter(e -> e instanceof PipelineListener).map(e -> (PipelineListener) e).collect(toList());
+    
+    if (listenersConfiguration == null) {
+      return listeners;
+    }
+    
+    return listenersConfiguration.stream().map(name -> {
+      return listeners.stream().filter(l -> l.getName().equals(name)).findFirst().get();
+    }).collect(toList());
   }
 
   private Configuration.Mode getMode() {
@@ -189,6 +198,7 @@ public class HumptyBootstrap implements PipelineElement {
       sourceProcessorsConfiguration = processorConfiguration.get("sources");
       assetProcessorsConfiguration = processorConfiguration.get("assets");
       bundleProcessorsConfiguration = processorConfiguration.get("bundles");
+      listenersConfiguration = processorConfiguration.get("listeners");
     }
   }
 }

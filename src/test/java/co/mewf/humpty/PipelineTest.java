@@ -7,12 +7,14 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.NoSuchElementException;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.webjars.WebJarAssetLocator;
 
 import co.mewf.humpty.config.HumptyBootstrap;
+import co.mewf.humpty.spi.listeners.TracerPipelineListener;
 
 public class PipelineTest {
   private final WebJarAssetLocator locator = new WebJarAssetLocator();
@@ -96,6 +98,13 @@ public class PipelineTest {
     String result = pipeline.process("bundle.js");
     
     assertEquals(read("alert.js") + "appender2appender1appender2appender1\nappender2appender1", result);
+  }
+  
+  @Test(expected=NoSuchElementException.class)
+  public void should_not_inject_elements_that_will_not_be_used() {
+    Pipeline pipeline = new HumptyBootstrap("/should_sort_processors_in_configured_order.toml").createPipeline();
+    
+    pipeline.getPipelineListener(TracerPipelineListener.class);
   }
   
   private String read(String filename) {

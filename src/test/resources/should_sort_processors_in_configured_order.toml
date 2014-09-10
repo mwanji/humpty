@@ -6,6 +6,7 @@
   sources = ["appender2", "appender"]
   assets = ["appender2", "appender"]
   bundles = ["appender2", "appender"]
+  listeners = []
   
 [options.appender]
   message = "appender1"
