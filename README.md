@@ -57,7 +57,7 @@ Add the following dependencies to make the web libraries available:
 </dependency>
 ````
 
-Create a file called `humpty.toml` in `src/main/resources`:
+humpty uses [TOML](https://github.com/toml-lang/toml/tree/v0.2.0) as its configuration language. Create a file called `humpty.toml` in `src/main/resources`:
 
 ````toml
 [[bundles]]
