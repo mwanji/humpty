@@ -107,6 +107,15 @@ public class PipelineTest {
     pipeline.getPipelineListener(TracerPipelineListener.class);
   }
   
+  @Test
+  public void should_not_use_processors_that_do_not_accept_asset() {
+    Pipeline pipeline = new HumptyBootstrap("/should_not_use_processors_that_do_not_accept_asset.toml").createPipeline();
+    
+    String result = pipeline.process("bundle.js");
+    
+    assertEquals(read("alert.js").trim(), result.trim());
+  }
+  
   private String read(String filename) {
     try (InputStream is = getClass().getClassLoader().getResourceAsStream(locator.getFullPath(filename))) {
       return IOUtils.toString(is);

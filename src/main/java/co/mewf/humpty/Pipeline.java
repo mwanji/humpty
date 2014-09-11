@@ -110,21 +110,18 @@ public class Pipeline {
         compilationResult = processor.compile(compilationResult.getAssetName(), compilationResult.getAsset(), context);
       }
     }
+    
     return compilationResult;
   }
 
-  private String processAsset(String assetName, String asset, PreProcessorContext context) {
-    String currentAsset = asset;
-    for (AssetProcessor assetProcessor : assetProcessors) {
-      if (assetProcessor.accepts(assetName)) {
-        currentAsset = assetProcessor.processAsset(assetName, currentAsset, context);
-      }
-    }
+  private String processAsset(String assetName, String initialAsset, PreProcessorContext context) {
+    String processedAsset = assetProcessors.stream()
+        .filter(a -> a.accepts(assetName))
+        .reduce(initialAsset, (asset, processor) -> processor.processAsset(assetName, asset, context), (s1, s2) -> s2);
     
-    final String listenerAsset = currentAsset;
-    pipelineListeners.forEach(listener -> listener.onAssetProcessed(listenerAsset, assetName, context.getAssetUrl(), context.getBundle()));
+    pipelineListeners.forEach(listener -> listener.onAssetProcessed(processedAsset, assetName, context.getAssetUrl(), context.getBundle()));
 
-    return currentAsset;
+    return processedAsset;
   }
 
   private String processBundle(String asset, Context context) throws IOException {

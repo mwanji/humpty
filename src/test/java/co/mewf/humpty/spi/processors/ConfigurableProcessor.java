@@ -9,6 +9,7 @@ import co.mewf.humpty.config.PreProcessorContext;
 public class ConfigurableProcessor implements BundleProcessor, AssetProcessor, SourceProcessor {
 
   private String message = "failed!";
+  private boolean accepts;
   public Configuration.Options options;
   
   @Override
@@ -20,11 +21,12 @@ public class ConfigurableProcessor implements BundleProcessor, AssetProcessor, S
   public void init(Configuration.Options options) {
     this.options = options;
     message = options.get("message", null);
+    accepts = options.get("accepts", Boolean.TRUE);
   }
 
   @Override
   public boolean accepts(String asset) {
-    return true;
+    return accepts;
   }
 
   @Override

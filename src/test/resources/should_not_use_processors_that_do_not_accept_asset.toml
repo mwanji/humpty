@@ -1,0 +1,12 @@
+[[bundles]]
+  name = "bundle.js"
+  assets = ["alert"]
+  
+[options.pipeline.elements]
+  sources = ["configurable"]
+  assets = ["configurable"]
+  bundles = ["configurable"]
+  
+[options.configurable]
+  message = "a"
+  accepts = false
