@@ -30,8 +30,8 @@ public class ConfigurableProcessor implements BundleProcessor, AssetProcessor, S
   }
 
   @Override
-  public CompilationResult compile(String assetName, String asset, PreProcessorContext context) {
-    return new CompilationResult(assetName, message);
+  public CompilationResult compile(SourceProcessor.CompilationResult compilationResult, PreProcessorContext context) {
+    return new CompilationResult(compilationResult.getAssetName(), message);
   }
 
   @Override

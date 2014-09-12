@@ -27,7 +27,7 @@ public class CoffeeScriptSourceProcessor implements SourceProcessor {
   }
 
   @Override
-  public CompilationResult compile(String assetName, String asset, PreProcessorContext context) {
+  public CompilationResult compile(SourceProcessor.CompilationResult compilationResult, PreProcessorContext context) {
     ClassLoader classLoader = getClass().getClassLoader();
     InputStream inputStream = classLoader.getResourceAsStream(COFFEE_SCRIPT_JS);
     try {
@@ -38,12 +38,12 @@ public class CoffeeScriptSourceProcessor implements SourceProcessor {
 
       Scriptable compileScope = rhinoContext.newObject(globalScope);
       compileScope.setParentScope(globalScope);
-      compileScope.put("coffeeScriptSource", compileScope, asset);
+      compileScope.put("coffeeScriptSource", compileScope, compilationResult.getAsset());
 
       String compiled = (String) rhinoContext.evaluateString(compileScope,
           "CoffeeScript.compile(coffeeScriptSource, { bare: true });", "JCoffeeScriptCompiler", 0, null);
 
-      return new CompilationResult(assetName.replace(".coffee", ".js"), compiled);
+      return new CompilationResult(compilationResult.getAssetName().replace(".coffee", ".js"), compiled);
     } catch (IOException e) {
       throw new RuntimeException(e);
     } finally {

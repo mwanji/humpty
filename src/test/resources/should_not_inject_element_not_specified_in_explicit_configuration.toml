@@ -1,0 +1,18 @@
+[[bundles]]
+  name = "bundle.js"
+  assets = ["alert.js"]
+
+[options.pipeline.elements]
+  sources = ["appender2", "appender"]
+  assets = ["appender2", "appender"]
+  bundles = ["appender2", "appender"]
+  listeners = []
+  
+[options.appender]
+  message = "appender1"
+
+[options.appender2]
+  message = "appender2"
+  
+[options.tracer]
+  fail = true

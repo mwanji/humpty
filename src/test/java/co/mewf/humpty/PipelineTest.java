@@ -7,9 +7,9 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.NoSuchElementException;
 
 import org.apache.commons.io.IOUtils;
+import org.junit.Assert;
 import org.junit.Test;
 import org.webjars.WebJarAssetLocator;
 
@@ -100,13 +100,6 @@ public class PipelineTest {
     assertEquals(read("alert.js") + "appender2appender1appender2appender1\nappender2appender1", result);
   }
   
-  @Test(expected=NoSuchElementException.class)
-  public void should_not_inject_elements_that_will_not_be_used() {
-    Pipeline pipeline = new HumptyBootstrap("/should_sort_processors_in_configured_order.toml").createPipeline();
-    
-    pipeline.getPipelineListener(TracerPipelineListener.class);
-  }
-  
   @Test
   public void should_not_use_processors_that_do_not_accept_asset() {
     Pipeline pipeline = new HumptyBootstrap("/should_not_use_processors_that_do_not_accept_asset.toml").createPipeline();
@@ -114,6 +107,41 @@ public class PipelineTest {
     String result = pipeline.process("bundle.js");
     
     assertEquals(read("alert.js").trim(), result.trim());
+  }
+  
+  @Test
+  public void should_not_retrieve_listener_not_specified_in_explicit_configuration() {
+    Pipeline pipeline = new HumptyBootstrap("/should_sort_processors_in_configured_order.toml").createPipeline();
+    
+    try {
+      pipeline.getPipelineListener(TracerPipelineListener.class);
+      Assert.fail();
+    } catch (IllegalArgumentException e) {
+      // expected
+    }
+  }
+  
+  @Test
+  public void should_not_inject_element_not_specified_in_explicit_configuration() throws Exception {
+    try {
+      new HumptyBootstrap("/should_not_inject_element_not_specified_in_explicit_configuration.toml").createPipeline();
+    } catch (RuntimeException e) {
+      throw (Exception) e.getCause().getCause();
+    }
+  }
+  
+  @Test(expected=IllegalArgumentException.class)
+  public void should_fail_when_unknown_bundle_requested() throws Exception {
+    Pipeline pipeline = new HumptyBootstrap().createPipeline();
+    
+    pipeline.process("unknownBundle");
+  }
+  
+  @Test(expected=IllegalArgumentException.class)
+  public void should_fail_when_asset_in_bundle_cannot_be_resolved() throws Exception {
+    Pipeline pipeline = new HumptyBootstrap().createPipeline();
+    
+    pipeline.process("unresolvable.css");
   }
   
   private String read(String filename) {

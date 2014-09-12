@@ -1,11 +1,6 @@
 package co.mewf.humpty.spi.processors;
 
-import java.io.IOException;
-import java.io.Reader;
-
 import javax.inject.Inject;
-
-import org.apache.commons.io.IOUtils;
 
 import co.mewf.humpty.config.Configuration;
 import co.mewf.humpty.config.Context;
@@ -36,21 +31,12 @@ public class AppendingProcessor implements SourceProcessor, AssetProcessor, Bund
   }
 
   @Override
-  public CompilationResult compile(String assetName, String asset, PreProcessorContext context) {
-    return new CompilationResult(assetName, asset + message);
+  public CompilationResult compile(SourceProcessor.CompilationResult compilationResult, PreProcessorContext context) {
+    return new CompilationResult(compilationResult.getAssetName(), compilationResult.getAsset() + message);
   }
   
   @Inject
   public void configure(Configuration.Options options) {
     message = options.get("message", null);
   }
-  
-  private String toString(Reader r) {
-    try {
-      return IOUtils.toString(r);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
 }

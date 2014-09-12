@@ -16,8 +16,8 @@ public class TestProcessor implements BundleProcessor, AssetProcessor, SourcePro
   }
 
   @Override
-  public CompilationResult compile(String assetName, String asset, PreProcessorContext context) {
-    return new CompilationResult(assetName, "Compiled!" + asset);
+  public CompilationResult compile(SourceProcessor.CompilationResult compilationResult, PreProcessorContext context) {
+    return new CompilationResult(compilationResult.getAssetName(), "Compiled!" + compilationResult.getAsset());
   }
 
   @Override

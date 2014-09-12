@@ -1,6 +1,10 @@
 [[bundles]]
-name = "asset.js"
-assets = ["blocks.coffee"]
+  name = "asset.js"
+  assets = ["blocks.coffee"]
+  
+[[bundles]]
+  name = "unresolvable.css"
+  assets = ["scheme:asset"]
 
 [options.configurable]
   message = "nothing"
