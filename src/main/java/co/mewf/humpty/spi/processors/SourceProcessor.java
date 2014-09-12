@@ -1,10 +1,16 @@
 package co.mewf.humpty.spi.processors;
 
+import java.util.function.BiFunction;
+
 import co.mewf.humpty.config.PreProcessorContext;
 
 public interface SourceProcessor extends Processor {
 
-  SourceProcessor.CompilationResult compile(String assetName, String asset, PreProcessorContext context);
+  SourceProcessor.CompilationResult compile(CompilationResult compilationResult, PreProcessorContext context);
+  
+  static BiFunction<SourceProcessor.CompilationResult, SourceProcessor, SourceProcessor.CompilationResult> maybe(String name, PreProcessorContext context) {
+    return (compilationResult, processor) -> processor.accepts(name) ? processor.compile(compilationResult, context) : compilationResult;
+  }
 
   public static class CompilationResult {
     private final String asset;

@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import co.mewf.humpty.spi.PipelineElement;
 
@@ -28,6 +29,10 @@ public class Configuration {
     @SuppressWarnings("unchecked")
     public <T> T get(String key, T defaultValue) {
       return options.containsKey(key) ? (T) options.get(key) : defaultValue;
+    }
+    
+    public <T> Optional<T> get(String key) {
+      return Optional.ofNullable(get(key, null));
     }
 
     public boolean containsKey(String key) {

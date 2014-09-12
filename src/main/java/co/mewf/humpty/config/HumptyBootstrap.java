@@ -2,11 +2,13 @@ package co.mewf.humpty.config;
 
 import static java.util.stream.Collectors.toList;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ServiceLoader;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
@@ -35,17 +37,15 @@ public class HumptyBootstrap implements PipelineElement {
 
   private final List<PipelineElement> pipelineElements;
   private final Object[] resources;
-  private final Configuration configuration;
   private final List<Resolver> resolvers;
   private final List<SourceProcessor> sourceProcessors;
   private final List<BundleProcessor> bundleProcessors;
   private final List<AssetProcessor> assetProcessors;
   private final Configuration.Options humptyOptions;
-  private List<String> sourceProcessorsConfiguration;
-  private List<String> assetProcessorsConfiguration;
-  private List<String> bundleProcessorsConfiguration;
-  private List<PipelineListener> pipelineListeners;
-  private List<String> listenersConfiguration;
+  private final List<PipelineListener> pipelineListeners;
+  private final Configuration.Mode mode;
+  private Pipeline pipeline;
+  private final Configuration configuration;
   
   public HumptyBootstrap(Object... resources) {
     this("/humpty.toml", resources);
@@ -55,150 +55,104 @@ public class HumptyBootstrap implements PipelineElement {
   }
   
   public HumptyBootstrap(Configuration configuration, Object... resources) {
-    this.resources = resources;
     this.configuration = configuration;
+    this.resources = resources;
     this.humptyOptions = configuration.getOptionsFor(this);
     this.pipelineElements = loadPipelineElements();
-    this.resolvers = getResolvers();
-    setProcessorConfigurations();
-    this.assetProcessors = getAssetProcessors();
-    this.bundleProcessors = getBundleProcessors();
-    this.sourceProcessors = getSourceProcessors();
-    this.pipelineListeners = getPipelineListeners();
-
-    List<PipelineElement> allPipelineElements = new ArrayList<>();
-    allPipelineElements.addAll(resolvers);
-    allPipelineElements.addAll(sourceProcessors);
-    allPipelineElements.addAll(assetProcessors);
-    allPipelineElements.addAll(bundleProcessors);
-    allPipelineElements.addAll(pipelineListeners);
-    
-    WebJarAssetLocator locator = new WebJarAssetLocator();
-
-    for (PipelineElement pipelineElement : allPipelineElements) {
-      for (Method method : pipelineElement.getClass().getMethods()) {
-        if (!method.isAnnotationPresent(Inject.class)) {
-          continue;
-        }
-
-        Class<?>[] parameterTypes = method.getParameterTypes();
-        Object[] args = new Object[parameterTypes.length];
-        for (int i = 0; i < parameterTypes.length; i++) {
-          Class<?> parameterType = parameterTypes[i];
-          if (parameterType == WebJarAssetLocator.class) {
-            args[i] = locator;
-          } else if (parameterType == Configuration.class) {
-            args[i] = configuration;
-          } else if (parameterType == Configuration.Options.class) {
-            args[i] = configuration.getOptionsFor(pipelineElement);
-          } else if (parameterType == Configuration.Mode.class) {
-            args[i] = getMode();
-          } else if (getExtra(parameterType) != null) {
-            args[i] = getExtra(parameterType);
-          } else {
-            throw new IllegalArgumentException("Cannot inject the type " + parameterType.getName() + " into " + pipelineElement.getClass().getName());
-          }
-        }
-
-        try {
-          method.invoke(pipelineElement, args);
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
-        break;
-      }
-    }
+    this.resolvers = getElements(Resolver.class, Optional.empty());
+    this.sourceProcessors = getElements(SourceProcessor.class, getConfiguration("sources"));
+    this.assetProcessors = getElements(AssetProcessor.class, getConfiguration("assets"));
+    this.bundleProcessors = getElements(BundleProcessor.class, getConfiguration("bundles"));
+    this.pipelineListeners = getElements(PipelineListener.class, getConfiguration("listeners"));
+    this.mode = getMode(humptyOptions);
+    this.pipeline = new Pipeline(configuration.getBundles(), mode, resolvers, sourceProcessors, assetProcessors, bundleProcessors, pipelineListeners);
+    resolvers.forEach(this::inject);
+    sourceProcessors.forEach(this::inject);
+    assetProcessors.forEach(this::inject);
+    bundleProcessors.forEach(this::inject);
+    pipelineListeners.forEach(this::inject);
   }
-
-  public Pipeline createPipeline() {
-    return new Pipeline(configuration.getBundles(), getMode(), resolvers, sourceProcessors, assetProcessors, bundleProcessors, pipelineListeners);
-  }
-
+  
   @Override
   public String getName() {
     return "pipeline";
   }
 
-  private List<Resolver> getResolvers() {
-    return pipelineElements.stream().filter(e -> e instanceof Resolver).map(e -> (Resolver) e).collect(toList());
-  }
-
-  private List<SourceProcessor> getSourceProcessors() {
-    List<SourceProcessor> sourceProcessors = pipelineElements.stream().filter(e -> e instanceof SourceProcessor).map(e -> (SourceProcessor) e).collect(toList());
-    
-    if (sourceProcessorsConfiguration == null) {
-      return sourceProcessors;
-    }
-
-    return sourceProcessorsConfiguration.stream().map(name -> {
-      return sourceProcessors.stream().filter(s -> s.getName().equals(name)).findFirst().get();
-    }).collect(toList());
-  }
-
-  private List<AssetProcessor> getAssetProcessors() {
-    List<AssetProcessor> assetProcessors = pipelineElements.stream().filter(e -> e instanceof AssetProcessor).map(e -> (AssetProcessor) e).collect(toList());
-    
-    if (assetProcessorsConfiguration == null) {
-      return assetProcessors;
-    }
-    
-    return assetProcessorsConfiguration.stream().map(name -> {
-      return assetProcessors.stream().filter(a -> a.getName().equals(name)).findFirst().get();
-    }).collect(toList());
-  }
-
-  private List<BundleProcessor> getBundleProcessors() {
-    List<BundleProcessor> bundleProcessors = pipelineElements.stream().filter(e -> e instanceof BundleProcessor).map(e -> (BundleProcessor) e).collect(toList());
-    
-    if (bundleProcessorsConfiguration == null) {
-      return bundleProcessors;
-    }
-    
-    return bundleProcessorsConfiguration.stream().map(name -> {
-      return bundleProcessors.stream().filter(b -> b.getName().equals(name)).findFirst().get();
-    }).collect(toList());
+  public Pipeline createPipeline() {
+    return pipeline;
   }
   
-  private List<PipelineListener> getPipelineListeners() {
-    List<PipelineListener> listeners = pipelineElements.stream().filter(e -> e instanceof PipelineListener).map(e -> (PipelineListener) e).collect(toList());
-    
-    if (listenersConfiguration == null) {
-      return listeners;
-    }
-    
-    return listenersConfiguration.stream().map(name -> {
-      return listeners.stream().filter(l -> l.getName().equals(name)).findFirst().get();
-    }).collect(toList());
-  }
-
-  private Configuration.Mode getMode() {
-    return Configuration.Mode.valueOf(humptyOptions.get("mode", Configuration.Mode.PRODUCTION.toString()));
-  }
-
-  private Object getExtra(Class<?> extra) {
-    for (Object candidate : resources) {
-      if (extra.isAssignableFrom(candidate.getClass())) {
-        return candidate;
-      }
-    }
-
-    return null;
-  }
-
   private List<PipelineElement> loadPipelineElements() {
     List<PipelineElement> elements = new ArrayList<>();
     ServiceLoader.load(PipelineElement.class).forEach(e -> elements.add(e));
     
     return elements;
   }
-
-  private void setProcessorConfigurations() {
-    Map<String, List<String>> processorConfiguration = humptyOptions.get("elements", null);
-    if (processorConfiguration != null) {
-      sourceProcessorsConfiguration = processorConfiguration.get("sources");
-      assetProcessorsConfiguration = processorConfiguration.get("assets");
-      bundleProcessorsConfiguration = processorConfiguration.get("bundles");
-      listenersConfiguration = processorConfiguration.get("listeners");
+  
+  private Configuration.Mode getMode(Configuration.Options humptyOptions) {
+    return Configuration.Mode.valueOf(humptyOptions.get("mode", Configuration.Mode.PRODUCTION.toString()));
+  }
+  
+  private Optional<List<String>> getConfiguration(String key) {
+    Map<String, List<String>> elements = humptyOptions.get("elements", Collections.<String, List<String>>emptyMap());
+    
+    return Optional.ofNullable(elements.get(key));
+  }
+  
+  private <T extends PipelineElement> List<T> getElements(Class<T> elementClass, Optional<List<String>> configuration) {
+    Stream<T> stream = pipelineElements.stream()
+        .filter(e -> elementClass.isAssignableFrom(e.getClass()))
+        .map(e -> elementClass.cast(e));
+    
+    if (configuration.isPresent()) {
+      List<String> conf = configuration.get();
+      stream = stream
+          .filter(e -> conf.contains(e.getName()))
+          .sorted((e1, e2) -> conf.indexOf(e1.getName()) < conf.indexOf(e2.getName()) ? -1 : 1);
     }
+    
+    return stream.collect(toList());
+  }
+  
+  private void inject(PipelineElement element) {
+    WebJarAssetLocator locator = new WebJarAssetLocator();
+    Stream.of(element.getClass().getMethods())
+    .filter(m -> m.isAnnotationPresent(Inject.class))
+    .forEach(method -> {
+      Class<?>[] parameterTypes = method.getParameterTypes();
+      Object[] args = new Object[parameterTypes.length];
+      for (int i = 0; i < parameterTypes.length; i++) {
+        Class<?> parameterType = parameterTypes[i];
+        if (parameterType == Pipeline.class) {
+          args[i] = pipeline;
+        } else if (parameterType == WebJarAssetLocator.class) {
+          args[i] = locator;
+        } else if (parameterType == Configuration.class) {
+          args[i] = configuration;
+        } else if (parameterType == Configuration.Options.class) {
+          args[i] = configuration.getOptionsFor(element);
+        } else if (parameterType == Configuration.Mode.class) {
+          args[i] = mode;
+        } else {
+          args[i] = getExtra(parameterType).orElseThrow(() -> new IllegalArgumentException("Cannot inject the type " + parameterType.getName() + " into " + element.getClass().getName()));
+        }
+      }
+
+      try {
+        method.invoke(element, args);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
+  }
+
+  private Optional<Object> getExtra(Class<?> extra) {
+    for (Object candidate : resources) {
+      if (extra.isAssignableFrom(candidate.getClass())) {
+        return Optional.of(candidate);
+      }
+    }
+
+    return Optional.empty();
   }
 }

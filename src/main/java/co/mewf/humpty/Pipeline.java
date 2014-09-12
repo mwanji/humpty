@@ -3,6 +3,8 @@ package co.mewf.humpty;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BinaryOperator;
+import java.util.function.Supplier;
 
 import co.mewf.humpty.config.Bundle;
 import co.mewf.humpty.config.Configuration;
@@ -13,6 +15,7 @@ import co.mewf.humpty.spi.listeners.PipelineListener;
 import co.mewf.humpty.spi.processors.AssetProcessor;
 import co.mewf.humpty.spi.processors.BundleProcessor;
 import co.mewf.humpty.spi.processors.SourceProcessor;
+import co.mewf.humpty.spi.processors.SourceProcessor.CompilationResult;
 import co.mewf.humpty.spi.resolvers.AssetFile;
 import co.mewf.humpty.spi.resolvers.Resolver;
 
@@ -37,44 +40,35 @@ public class Pipeline {
   }
 
   public String process(String originalAssetName) {
-    String bundleName = originalAssetName;
-    String assetInBundleName = null;
+    final String bundleName;
+    final String assetInBundleName;
     
     if (originalAssetName.indexOf('/') > -1) {
       String[] split = originalAssetName.split("/", 2);
       bundleName = split[0];
       assetInBundleName = split[1];
+    } else {
+      bundleName = originalAssetName;
+      assetInBundleName = null;
     }
     
-
-    Bundle bundle = null;
-    for (Bundle candidate : bundles) {
-      if (candidate.accepts(bundleName)) {
-        bundle = candidate;
-        break;
-      }
-    }
+    Bundle bundle = bundles.stream().filter(b -> b.accepts(bundleName)).findFirst().orElseThrow(illegal("There is no bundle named " + bundleName));
 
     Context context = new Context(mode, bundle);
     if (assetInBundleName != null) {
       context = context.getChild(assetInBundleName);
     }
-    List<String> filteredAssets = bundle.getBundleFor(assetInBundleName == null ? bundleName : assetInBundleName);
+    
+    if (assetInBundleName != null) {
+      bundle = bundle.getBundleFor(assetInBundleName);
+    }
     StringBuilder bundleString = new StringBuilder();
-    for (String filteredAsset : filteredAssets) {
-      Resolver resolver = null;
-      for (Resolver candidate : resolvers) {
-        if (candidate.accepts(filteredAsset)) {
-          resolver = candidate;
-          break;
-        }
-      }
-
+    for (String filteredAsset : bundle) {
+      Resolver resolver = resolvers.stream().filter(r -> r.accepts(filteredAsset)).findFirst().orElseThrow(illegal("There is no resolver for asset: " + filteredAsset));
       List<AssetFile> assetFiles = resolver.resolve(filteredAsset, context);
 
       for (AssetFile assetFile : assetFiles) {
         String assetName = assetFile.getPath();
-
         String asset = assetFile.getContents();
         PreProcessorContext preprocessorContext = context.getPreprocessorContext(assetName);
 
@@ -87,54 +81,50 @@ public class Pipeline {
       }
     }
 
-
+    String rawBundle = bundleString.toString();
+    
     if (assetInBundleName != null) {
-      return bundleString.toString();
+      return rawBundle;
     }
     
     try {
-      return processBundle(bundleString.toString(), context);
+      return processBundle(rawBundle, context);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
   
   public <T extends PipelineListener> T getPipelineListener(Class<T> pipelineListenerClass) {
-    return pipelineListenerClass.cast(pipelineListeners.stream().filter(l -> l.getClass() == pipelineListenerClass).findFirst().get());
+    return pipelineListenerClass.cast(pipelineListeners.stream().filter(l -> l.getClass() == pipelineListenerClass).findFirst().orElseThrow(illegal("There is no listener configured for " + pipelineListenerClass.getName())));
   }
 
-  private SourceProcessor.CompilationResult compile(String assetName, String asset, PreProcessorContext context) {
-    SourceProcessor.CompilationResult compilationResult = new SourceProcessor.CompilationResult(assetName, asset);
-    for (SourceProcessor processor : compilingProcessors) {
-      if (processor.accepts(compilationResult.getAssetName())) {
-        compilationResult = processor.compile(compilationResult.getAssetName(), compilationResult.getAsset(), context);
-      }
-    }
-    
-    return compilationResult;
+  private CompilationResult compile(String assetName, String asset, PreProcessorContext context) {
+    return compilingProcessors.stream().reduce(new CompilationResult(assetName, asset), SourceProcessor.maybe(assetName, context), ignored());
   }
 
   private String processAsset(String assetName, String initialAsset, PreProcessorContext context) {
-    String processedAsset = assetProcessors.stream()
-        .filter(a -> a.accepts(assetName))
-        .reduce(initialAsset, (asset, processor) -> processor.processAsset(assetName, asset, context), (s1, s2) -> s2);
+    String processedAsset = assetProcessors.stream().filter(p -> p.accepts(assetName))
+        .reduce(initialAsset, (asset, processor) -> processor.processAsset(assetName, asset, context), ignored());
     
     pipelineListeners.forEach(listener -> listener.onAssetProcessed(processedAsset, assetName, context.getAssetUrl(), context.getBundle()));
 
     return processedAsset;
   }
-
+  
   private String processBundle(String asset, Context context) throws IOException {
-    String currentBundle = asset;
-    for (BundleProcessor postProcessor : bundleProcessors) {
-      if (postProcessor.accepts(context.getBundleName())) {
-        currentBundle = postProcessor.processBundle(context.getBundleName(), currentBundle, context);
-      }
-    }
+    String processedBundle = bundleProcessors.stream().filter(p -> p.accepts(context.getBundleName()))
+        .reduce(asset, (a, p) -> p.processBundle(context.getBundleName(), a, context), ignored());
 
-    String processedBundle = currentBundle;
     pipelineListeners.forEach(listener -> listener.onBundleProcessed(processedBundle, context.getBundleName()));
     
     return processedBundle;
+  }
+  
+  private <T> BinaryOperator<T> ignored() {
+    return (a, b) -> b;
+  }
+  
+  private Supplier<? extends RuntimeException> illegal(String message) {
+    return () -> new IllegalArgumentException(message);
   }
 }

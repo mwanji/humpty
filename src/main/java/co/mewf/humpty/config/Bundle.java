@@ -1,12 +1,13 @@
 package co.mewf.humpty.config;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.io.FilenameUtils;
 
-public class Bundle {
+public class Bundle implements Iterable<String> {
 
   private String name;
   private List<String> assets;
@@ -25,16 +26,21 @@ public class Bundle {
   /**
    * @return a list of asset names. Each asset name has an extension (taken from the bundle's name if none was provided), but wildcards are not expanded.
    */
-  public List<String> getBundleFor(String uri) {
-    if (name.equals(uri)) {
-      return assets.stream().map(asset -> normaliseName(asset)).collect(Collectors.toList());
-    }
-
-    return Collections.singletonList(uri);
+  public Bundle getBundleFor(String uri) {
+    return new Bundle(name, Collections.singletonList(uri));
   }
 
   public String getName() {
     return name;
+  }
+  
+  @Override
+  public Iterator<String> iterator() {
+    return stream().iterator();
+  }
+  
+  public Stream<String> stream() {
+    return assets.stream().map(this::normaliseName);
   }
 
   private String normaliseName(String assetName) {
