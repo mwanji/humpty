@@ -200,11 +200,11 @@ New processors can be added to a pipeline by implementing one of `PipelineElemen
 
 While constructor injection is not allowed because resources must be instantiatable by a ServiceLoader, a limited form of method injection is available. One method may be annotated with the `javax.inject.Inject` annotation. Dependencies that can be injected:
 
-* `WebJarAssetLocator` to find assets in a WebJar
-* `Configuration` is the Java representation of the configuration file
-* `Configuration.Options` contains user-provided options for the current processor
+* `Configuration` is the Java representation of the entire configuration file
+* `Configuration.Options` contains the options set for the current processor
 * `Configuration.Mode` whether the pipeline is running in production or development mode
-* `ServletContext` from the Servlet 3 API
+* `Pipeline` the asset pipeline itself
+* `WebJarAssetLocator` to find assets in a WebJar
 * any object that was added programatically to `HumptyBootstrap`
 
 If a dependency cannot be satisfied, an exception is thrown.
