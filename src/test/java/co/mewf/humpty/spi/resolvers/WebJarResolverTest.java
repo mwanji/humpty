@@ -6,8 +6,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.util.HashMap;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import co.mewf.humpty.config.Bundle;
@@ -17,6 +19,13 @@ import co.mewf.humpty.config.Context;
 public class WebJarResolverTest {
 
   private final WebJarResolver resolver = new WebJarResolver();
+  
+  @Before
+  public void before() {
+    HashMap<String, Object> options = new HashMap<String, Object>();
+    options.put("rootDir", "src/test/resources");
+    resolver.configure(new Configuration.Options(options));
+  }
 
   @Test
   public void should_accept_uri_without_scheme() {
@@ -39,6 +48,6 @@ public class WebJarResolverTest {
     
     List<String> assetFilePaths = resolver.resolve("jquery.js", new Context(Configuration.Mode.PRODUCTION, libs)).stream().map(AssetFile::getPath).collect(toList());
 
-    assertThat(assetFilePaths, contains("/webjars/jquery/1.8.2/jquery.js"));
+    assertThat(assetFilePaths, contains("META-INF/resources/webjars/jquery/1.8.2/jquery.js"));
   }
 }
