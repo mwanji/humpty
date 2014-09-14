@@ -9,7 +9,7 @@ import co.mewf.humpty.config.Configuration;
 public class TracerPipelineListener implements PipelineListener {
 
   public Boolean active;
-  public boolean onBundleProcessedCalled;
+  public String processedBundleName;
   public boolean onAssetProcessedCalled;
 
   @Override
@@ -24,7 +24,7 @@ public class TracerPipelineListener implements PipelineListener {
   
   @Override
   public void onBundleProcessed(String bundle, String name) {
-    onBundleProcessedCalled = true;
+    processedBundleName = name;
   }
 
   @Inject

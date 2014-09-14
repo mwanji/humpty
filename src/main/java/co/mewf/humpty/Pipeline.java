@@ -54,14 +54,12 @@ public class Pipeline {
     
     Bundle bundle = bundles.stream().filter(b -> b.accepts(bundleName)).findFirst().orElseThrow(illegal("There is no bundle named " + bundleName));
 
-    Context context = new Context(mode, bundle);
-    if (assetInBundleName != null) {
-      context = context.getChild(assetInBundleName);
-    }
-    
     if (assetInBundleName != null) {
       bundle = bundle.getBundleFor(assetInBundleName);
     }
+
+    Context context = new Context(mode, bundle);
+    
     StringBuilder bundleString = new StringBuilder();
     for (String filteredAsset : bundle) {
       Resolver resolver = resolvers.stream().filter(r -> r.accepts(filteredAsset)).findFirst().orElseThrow(illegal("There is no resolver for asset: " + filteredAsset));
@@ -82,10 +80,6 @@ public class Pipeline {
     }
 
     String rawBundle = bundleString.toString();
-    
-    if (assetInBundleName != null) {
-      return rawBundle;
-    }
     
     try {
       return processBundle(rawBundle, context);
