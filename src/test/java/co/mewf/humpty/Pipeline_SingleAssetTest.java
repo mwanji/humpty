@@ -25,7 +25,7 @@ public class Pipeline_SingleAssetTest {
   public void should_process_asset_within_bundle() throws Exception {
     String result = pipeline.process("asset.js/blocks.coffee");
     
-    assertEquals(read("blocks.js"), result);
+    assertEquals(read("blocks.js") + "\n", result);
   }
   
   @Test

@@ -8,7 +8,7 @@ import co.mewf.humpty.config.PreProcessorContext;
 
 public class ConfigurableProcessor implements BundleProcessor, AssetProcessor, SourceProcessor {
 
-  private String message = "failed!";
+  private String message;
   private boolean accepts;
   public Configuration.Options options;
   

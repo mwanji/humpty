@@ -1,5 +1,7 @@
 package co.mewf.humpty;
 
+import static java.util.stream.Collectors.joining;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -40,6 +42,34 @@ public class Pipeline {
   }
 
   public String process(String originalAssetName) {
+    Bundle bundle = getBundle(originalAssetName);
+
+    Context context = new Context(mode, bundle);
+    
+    StringBuilder bundleString = new StringBuilder();
+    for (String bundledAsset : bundle) {
+      Resolver resolver = resolvers.stream().filter(r -> r.accepts(bundledAsset)).findFirst().orElseThrow(illegal("There is no resolver for asset: " + bundledAsset));
+      List<AssetFile> assetFiles = resolver.resolve(bundledAsset, context);
+
+      bundleString.append(assetFiles.stream().map(af -> {
+        PreProcessorContext preprocessorContext = context.getPreprocessorContext(af.getPath());
+        SourceProcessor.CompilationResult compilationResult = compile(af.getPath(), af.getContents(), preprocessorContext);
+        return processAsset(compilationResult.getAssetName(), compilationResult.getAsset(), preprocessorContext);
+      }).collect(joining("\n", "", "\n")));
+    }
+
+    try {
+      return processBundle(bundleString.toString(), context);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  public <T extends PipelineListener> T getPipelineListener(Class<T> pipelineListenerClass) {
+    return pipelineListenerClass.cast(pipelineListeners.stream().filter(l -> l.getClass() == pipelineListenerClass).findFirst().orElseThrow(illegal("There is no listener configured for " + pipelineListenerClass.getName())));
+  }
+  
+  private Bundle getBundle(String originalAssetName) {
     final String bundleName;
     final String assetInBundleName;
     
@@ -57,39 +87,8 @@ public class Pipeline {
     if (assetInBundleName != null) {
       bundle = bundle.getBundleFor(assetInBundleName);
     }
-
-    Context context = new Context(mode, bundle);
     
-    StringBuilder bundleString = new StringBuilder();
-    for (String filteredAsset : bundle) {
-      Resolver resolver = resolvers.stream().filter(r -> r.accepts(filteredAsset)).findFirst().orElseThrow(illegal("There is no resolver for asset: " + filteredAsset));
-      List<AssetFile> assetFiles = resolver.resolve(filteredAsset, context);
-
-      for (AssetFile assetFile : assetFiles) {
-        String assetName = assetFile.getPath();
-        String asset = assetFile.getContents();
-        PreProcessorContext preprocessorContext = context.getPreprocessorContext(assetName);
-
-        SourceProcessor.CompilationResult compilationResult = compile(assetName, asset, preprocessorContext);
-        String processedAsset = processAsset(compilationResult.getAssetName(), compilationResult.getAsset(), preprocessorContext);
-        bundleString.append(processedAsset);
-        if (bundleString.charAt(bundleString.length() - 1) != '\n') {
-          bundleString.append('\n');
-        }
-      }
-    }
-
-    String rawBundle = bundleString.toString();
-    
-    try {
-      return processBundle(rawBundle, context);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-  
-  public <T extends PipelineListener> T getPipelineListener(Class<T> pipelineListenerClass) {
-    return pipelineListenerClass.cast(pipelineListeners.stream().filter(l -> l.getClass() == pipelineListenerClass).findFirst().orElseThrow(illegal("There is no listener configured for " + pipelineListenerClass.getName())));
+    return bundle;
   }
 
   private CompilationResult compile(String assetName, String asset, PreProcessorContext context) {

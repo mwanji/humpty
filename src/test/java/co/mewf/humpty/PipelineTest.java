@@ -36,7 +36,7 @@ public class PipelineTest {
   public void should_compile_bundle() throws IOException {
     String result = new HumptyBootstrap("/should_compile_bundle.toml").createPipeline().process("compilableAsset.js");
 
-    String expected = IOUtils.toString(getClass().getClassLoader().getResourceAsStream(locator.getFullPath("blocks.js")));
+    String expected = read("blocks.js") + "\n";
     assertEquals(expected, result);
   }
 
@@ -44,7 +44,7 @@ public class PipelineTest {
   public void should_concatenate_bundle_with_multiple_assets() throws IOException {
     String result = new HumptyBootstrap("/should_concatenate_bundle_with_multiple_assets.toml").createPipeline().process("multipleAssets.js");
 
-    String expected = IOUtils.toString(getClass().getClassLoader().getResourceAsStream(locator.getFullPath("blocks.js"))) + IOUtils.toString(getClass().getClassLoader().getResourceAsStream(locator.getFullPath("web_server.js")));
+    String expected = read("blocks.js") + "\n" + read("web_server.js") + "\n";
 
     assertEquals(expected, result);
   }
@@ -55,7 +55,7 @@ public class PipelineTest {
 
     String actual = pipeline.process("singleAsset.js");
 
-    assertEquals("configured from JSON!configured from JSON!\nconfigured from JSON!", actual);
+    assertEquals("configured from TOML!configured from TOML!\nconfigured from TOML!", actual);
   }
 
   @Test

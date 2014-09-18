@@ -11,4 +11,4 @@
   bundles = ["configurable"]
   
 [options.configurable]
-  message = "configured from JSON!"
+  message = "configured from TOML!"
