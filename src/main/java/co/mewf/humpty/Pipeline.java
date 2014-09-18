@@ -18,7 +18,6 @@ import co.mewf.humpty.spi.processors.AssetProcessor;
 import co.mewf.humpty.spi.processors.BundleProcessor;
 import co.mewf.humpty.spi.processors.SourceProcessor;
 import co.mewf.humpty.spi.processors.SourceProcessor.CompilationResult;
-import co.mewf.humpty.spi.resolvers.AssetFile;
 import co.mewf.humpty.spi.resolvers.Resolver;
 
 public class Pipeline {
@@ -46,20 +45,20 @@ public class Pipeline {
 
     Context context = new Context(mode, bundle);
     
-    StringBuilder bundleString = new StringBuilder();
-    for (String bundledAsset : bundle) {
-      Resolver resolver = resolvers.stream().filter(r -> r.accepts(bundledAsset)).findFirst().orElseThrow(illegal("There is no resolver for asset: " + bundledAsset));
-      List<AssetFile> assetFiles = resolver.resolve(bundledAsset, context);
-
-      bundleString.append(assetFiles.stream().map(af -> {
-        PreProcessorContext preprocessorContext = context.getPreprocessorContext(af.getPath());
-        SourceProcessor.CompilationResult compilationResult = compile(af.getPath(), af.getContents(), preprocessorContext);
+    String processedBundle = bundle.stream().map(bundledAsset -> {
+        Resolver resolver = resolvers.stream().filter(r -> r.accepts(bundledAsset)).findFirst().orElseThrow(illegal("There is no resolver for asset: " + bundledAsset));
+        return resolver.resolve(bundledAsset, context);
+      })
+      .flatMap(List::stream)
+      .map(assetFile -> {
+        PreProcessorContext preprocessorContext = context.getPreprocessorContext(assetFile.getPath());
+        SourceProcessor.CompilationResult compilationResult = compile(assetFile.getPath(), assetFile.getContents(), preprocessorContext);
         return processAsset(compilationResult.getAssetName(), compilationResult.getAsset(), preprocessorContext);
-      }).collect(joining("\n", "", "\n")));
-    }
+      })
+      .collect(joining("\n", "", "\n"));
 
     try {
-      return processBundle(bundleString.toString(), context);
+      return processBundle(processedBundle, context);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
