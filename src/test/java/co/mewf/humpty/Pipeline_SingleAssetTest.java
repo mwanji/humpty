@@ -32,7 +32,7 @@ public class Pipeline_SingleAssetTest {
   public void should_call_bundle_listeners_for_single_asset() throws Exception {
     pipeline.process("asset.js/blocks.coffee");
 
-    TracerPipelineListener tracer = pipeline.getPipelineListener(TracerPipelineListener.class);
+    TracerPipelineListener tracer = pipeline.getPipelineListener(TracerPipelineListener.class).get();
     
     assertEquals("asset.js/blocks.coffee", tracer.processedBundleName);
   }
@@ -41,7 +41,7 @@ public class Pipeline_SingleAssetTest {
   public void should_call_asset_listeners() throws Exception {
     pipeline.process("asset.js/blocks.coffee");
 
-    TracerPipelineListener tracer = pipeline.getPipelineListener(TracerPipelineListener.class);
+    TracerPipelineListener tracer = pipeline.getPipelineListener(TracerPipelineListener.class).get();
     
     assertTrue("Did not call asset listener", tracer.onAssetProcessedCalled);
   }

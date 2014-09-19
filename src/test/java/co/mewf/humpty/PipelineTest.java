@@ -114,8 +114,7 @@ public class PipelineTest {
     Pipeline pipeline = new HumptyBootstrap("/should_sort_processors_in_configured_order.toml").createPipeline();
     
     try {
-      pipeline.getPipelineListener(TracerPipelineListener.class);
-      Assert.fail();
+      pipeline.getPipelineListener(TracerPipelineListener.class).ifPresent((p) -> Assert.fail());
     } catch (IllegalArgumentException e) {
       // expected
     }

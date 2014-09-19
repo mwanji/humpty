@@ -5,6 +5,7 @@ import static java.util.stream.Collectors.joining;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BinaryOperator;
 import java.util.function.Supplier;
 
@@ -64,8 +65,9 @@ public class Pipeline {
     }
   }
   
-  public <T extends PipelineListener> T getPipelineListener(Class<T> pipelineListenerClass) {
-    return pipelineListenerClass.cast(pipelineListeners.stream().filter(l -> l.getClass() == pipelineListenerClass).findFirst().orElseThrow(illegal("There is no listener configured for " + pipelineListenerClass.getName())));
+  @SuppressWarnings("unchecked")
+  public <T extends PipelineListener> Optional<T> getPipelineListener(Class<T> pipelineListenerClass) {
+    return (Optional<T>) pipelineListeners.stream().filter(l -> l.getClass() == pipelineListenerClass).findFirst();
   }
   
   private Bundle getBundle(String originalAssetName) {
