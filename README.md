@@ -128,7 +128,7 @@ Creating custom processors is discussed in the [Extension Points](#extension-poi
 
 ### Resolvers
 
-Resolvers take an asset's name and turn it into one or more (in case of wildcards) named `Reader`s. There is only one resolver bundled with humpty:
+Resolvers take an asset's name and turn it into one or more (in case of wildcards) files whose contents can be read. There is only one resolver bundled with humpty:
 
 * `WebJarResolver` looks up resources in a [WebJar](http://webjars.org)
 
@@ -149,11 +149,11 @@ The default mode is PRODUCTION.
 
 ## Configuration Reference
 
-By default, configuration is done via a JSON object in a file called `humpty.toml` at the root of the classpath. The configuration's properties are:
+By default, configuration is done via a TOML object in a file called `humpty.toml` at the root of the classpath. The configuration's properties are:
 
 ### bundles
 
-Required. Must contain at least one bundle.
+Required. An array of tables. Must contain at least one bundle. Each bundle has a name (required) and an array of assets (required).
 
 ````toml
 [[bundles]]
@@ -167,7 +167,7 @@ Required. Must contain at least one bundle.
 
 ### options
 
-Optional, processor-specific settings. The name to use is in each processor's documentation.
+Optional. A table of processor-specific settings. The name to use is in each processor's documentation.
 
 ````toml
 [options.bootstrap_less]
@@ -176,7 +176,7 @@ Optional, processor-specific settings. The name to use is in each processor's do
 
 ### options.humpty
 
-Options that determine how the asset pipeline itself is created. 
+Options that determine how the asset pipeline itself is created. By default, all processors loaded via ServiceLoaders are run.
 
 ````toml
 [options.humpty]
@@ -194,7 +194,17 @@ humpty makes several interfaces available, as well as a limited form of dependen
 
 ### Custom Pipeline Elements
 
-New processors can be added to a pipeline by implementing one of `PipelineElement`'s sub-interfaces. For them to be added to the pipeline, add a file called co.mewf.humpty.spi.PipelineElement to META-INF/services, containing one fully-qualified class name per line. For more information, see the JavaDoc for `java.util.ServiceLoader`.
+New behaviour can be added to a pipeline by implementing one of `PipelineElement`'s sub-interfaces. For them to be added to the pipeline when a user adds the JAR to their classpath, add a file called co.mewf.humpty.spi.PipelineElement to META-INF/services, containing one fully-qualified class name per line. For more information, see the JavaDoc for `java.util.ServiceLoader`.
+
+The sub-interfaces are:
+
+* `BundleResolver`: finds the bundle that matches a given name
+* `Resolver`: provides the contents of a given asset
+* `SourceProcessor`
+* `AssetProcessor`
+* `BundleProcessor`
+* `PipelineListener`: is notified of pipeline events, but does not directly participate in the pipeline
+
 
 ### Injection
 

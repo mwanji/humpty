@@ -16,6 +16,7 @@ import org.webjars.WebJarAssetLocator;
 
 import co.mewf.humpty.Pipeline;
 import co.mewf.humpty.spi.PipelineElement;
+import co.mewf.humpty.spi.bundles.BundleResolver;
 import co.mewf.humpty.spi.listeners.PipelineListener;
 import co.mewf.humpty.spi.processors.AssetProcessor;
 import co.mewf.humpty.spi.processors.BundleProcessor;
@@ -37,6 +38,7 @@ public class HumptyBootstrap implements PipelineElement {
 
   private final List<PipelineElement> pipelineElements;
   private final Object[] resources;
+  private final List<BundleResolver> bundleResolvers;
   private final List<Resolver> resolvers;
   private final List<SourceProcessor> sourceProcessors;
   private final List<BundleProcessor> bundleProcessors;
@@ -59,13 +61,15 @@ public class HumptyBootstrap implements PipelineElement {
     this.resources = resources;
     this.humptyOptions = configuration.getOptionsFor(this);
     this.pipelineElements = loadPipelineElements();
+    this.bundleResolvers = getElements(BundleResolver.class, Optional.empty());
     this.resolvers = getElements(Resolver.class, Optional.empty());
     this.sourceProcessors = getElements(SourceProcessor.class, getConfiguration("sources"));
     this.assetProcessors = getElements(AssetProcessor.class, getConfiguration("assets"));
     this.bundleProcessors = getElements(BundleProcessor.class, getConfiguration("bundles"));
     this.pipelineListeners = getElements(PipelineListener.class, getConfiguration("listeners"));
     this.mode = getMode(humptyOptions);
-    this.pipeline = new Pipeline(configuration.getBundles(), mode, resolvers, sourceProcessors, assetProcessors, bundleProcessors, pipelineListeners);
+    this.pipeline = new Pipeline(mode, bundleResolvers, resolvers, sourceProcessors, assetProcessors, bundleProcessors, pipelineListeners);
+    bundleResolvers.forEach(this::inject);
     resolvers.forEach(this::inject);
     sourceProcessors.forEach(this::inject);
     assetProcessors.forEach(this::inject);

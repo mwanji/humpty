@@ -14,6 +14,7 @@ import co.mewf.humpty.config.Configuration;
 import co.mewf.humpty.config.Configuration.Mode;
 import co.mewf.humpty.config.Context;
 import co.mewf.humpty.config.PreProcessorContext;
+import co.mewf.humpty.spi.bundles.BundleResolver;
 import co.mewf.humpty.spi.listeners.PipelineListener;
 import co.mewf.humpty.spi.processors.AssetProcessor;
 import co.mewf.humpty.spi.processors.BundleProcessor;
@@ -23,16 +24,16 @@ import co.mewf.humpty.spi.resolvers.Resolver;
 
 public class Pipeline {
 
-  private final List<Bundle> bundles;
   private final List<Resolver> resolvers;
   private final List<AssetProcessor> assetProcessors;
   private final List<BundleProcessor> bundleProcessors;
   private final List<SourceProcessor> compilingProcessors;
   private final Mode mode;
   private final List<PipelineListener> pipelineListeners;
+  private final List<? extends BundleResolver> bundleResolvers;
 
-  public Pipeline(List<Bundle> bundles, Configuration.Mode mode, List<? extends Resolver> resolvers, List<? extends SourceProcessor> compilingProcessors, List<? extends AssetProcessor> assetProcessors, List<? extends BundleProcessor> bundleProcessors, List<PipelineListener> pipelineListeners) {
-    this.bundles = bundles;
+  public Pipeline(Configuration.Mode mode, List<? extends BundleResolver> bundleResolvers, List<? extends Resolver> resolvers, List<? extends SourceProcessor> compilingProcessors, List<? extends AssetProcessor> assetProcessors, List<? extends BundleProcessor> bundleProcessors, List<PipelineListener> pipelineListeners) {
+    this.bundleResolvers = bundleResolvers;
     this.mode = mode;
     this.resolvers = Collections.unmodifiableList(resolvers);
     this.compilingProcessors = Collections.unmodifiableList(compilingProcessors);
@@ -71,25 +72,11 @@ public class Pipeline {
   }
   
   private Bundle getBundle(String originalAssetName) {
-    final String bundleName;
-    final String assetInBundleName;
-    
-    if (originalAssetName.indexOf('/') > -1) {
-      String[] split = originalAssetName.split("/", 2);
-      bundleName = split[0];
-      assetInBundleName = split[1];
-    } else {
-      bundleName = originalAssetName;
-      assetInBundleName = null;
-    }
-    
-    Bundle bundle = bundles.stream().filter(b -> b.accepts(bundleName)).findFirst().orElseThrow(illegal("There is no bundle named " + bundleName));
-
-    if (assetInBundleName != null) {
-      bundle = bundle.getBundleFor(assetInBundleName);
-    }
-    
-    return bundle;
+    return bundleResolvers.stream()
+                          .filter(br -> br.accepts(originalAssetName))
+                          .findFirst()
+                          .map(br -> br.resolve(originalAssetName))
+                          .orElseThrow(illegal("There is no bundle named " + originalAssetName));
   }
 
   private CompilationResult compile(String assetName, String asset, PreProcessorContext context) {
