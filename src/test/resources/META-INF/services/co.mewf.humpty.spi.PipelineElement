@@ -6,3 +6,4 @@ co.mewf.humpty.spi.processors.TestProcessor
 co.mewf.humpty.spi.processors.AppendingProcessor
 co.mewf.humpty.spi.processors.AppendingProcessor2
 co.mewf.humpty.spi.listeners.TracerPipelineListener
+co.mewf.humpty.spi.bundles.WebJarAssetBundleResolver

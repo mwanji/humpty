@@ -1,0 +1,10 @@
+[[bundles]]
+  name = "asset.js"
+  assets = ["blocks.coffee"]
+
+[options.pipeline.elements]
+  bundleResolvers = ["sourceMapBundleResolver", "webJarAssetBundleResolver"]
+  sources = []
+  assets = []
+  bundles = []
+  listeners = []
