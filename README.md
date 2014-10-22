@@ -182,7 +182,7 @@ Options that determine how the asset pipeline itself is created. By default, all
 [options.humpty]
   mode = "DEVELOPMENT" # Defaults to "PRODUCTION". Processors are made aware of the mode and may modify their behaviour or even not run at all
   
-[options.humpty.processors] # Used to customise the processors that will be applied and their ordering 
+[options.pipeline.elements] # Used to customise the processors that will be applied and their ordering 
   sources = ["coffee", "emberJs"]
   assets = [] # No AssetProcessors will run
   bundles = ["compressCSS"]
