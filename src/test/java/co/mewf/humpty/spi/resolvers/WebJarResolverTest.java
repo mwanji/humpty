@@ -48,6 +48,6 @@ public class WebJarResolverTest {
     
     List<String> assetFilePaths = resolver.resolve("jquery.js", new Context(Configuration.Mode.PRODUCTION, libs)).stream().map(AssetFile::getPath).collect(toList());
 
-    assertThat(assetFilePaths, contains("META-INF/resources/webjars/jquery/1.8.2/jquery.js"));
+    assertThat(assetFilePaths, contains("META-INF/resources/webjars/jquery/2.1.1/jquery.js"));
   }
 }
