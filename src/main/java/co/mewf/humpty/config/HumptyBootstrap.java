@@ -61,7 +61,7 @@ public class HumptyBootstrap implements PipelineElement {
     this.resources = resources;
     this.humptyOptions = configuration.getOptionsFor(this);
     this.pipelineElements = loadPipelineElements();
-    this.bundleResolvers = getElements(BundleResolver.class, Optional.empty());
+    this.bundleResolvers = getElements(BundleResolver.class, getConfiguration("bundleResolvers"));
     this.resolvers = getElements(Resolver.class, Optional.empty());
     this.sourceProcessors = getElements(SourceProcessor.class, getConfiguration("sources"));
     this.assetProcessors = getElements(AssetProcessor.class, getConfiguration("assets"));
