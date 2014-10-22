@@ -15,11 +15,13 @@ import co.mewf.humpty.config.Configuration.Mode;
 import co.mewf.humpty.config.Context;
 import co.mewf.humpty.config.PreProcessorContext;
 import co.mewf.humpty.spi.bundles.BundleResolver;
+import co.mewf.humpty.spi.caches.WebjarsPipelineCache;
 import co.mewf.humpty.spi.listeners.PipelineListener;
 import co.mewf.humpty.spi.processors.AssetProcessor;
 import co.mewf.humpty.spi.processors.BundleProcessor;
 import co.mewf.humpty.spi.processors.SourceProcessor;
 import co.mewf.humpty.spi.processors.SourceProcessor.CompilationResult;
+import co.mewf.humpty.spi.resolvers.AssetFile;
 import co.mewf.humpty.spi.resolvers.Resolver;
 
 public class Pipeline {
@@ -31,6 +33,7 @@ public class Pipeline {
   private final Mode mode;
   private final List<PipelineListener> pipelineListeners;
   private final List<? extends BundleResolver> bundleResolvers;
+  private final WebjarsPipelineCache pipelineCache;
 
   public Pipeline(Configuration.Mode mode, List<? extends BundleResolver> bundleResolvers, List<? extends Resolver> resolvers, List<? extends SourceProcessor> compilingProcessors, List<? extends AssetProcessor> assetProcessors, List<? extends BundleProcessor> bundleProcessors, List<PipelineListener> pipelineListeners) {
     this.bundleResolvers = bundleResolvers;
@@ -40,6 +43,7 @@ public class Pipeline {
     this.assetProcessors = Collections.unmodifiableList(assetProcessors);
     this.bundleProcessors = Collections.unmodifiableList(bundleProcessors);
     this.pipelineListeners = Collections.unmodifiableList(pipelineListeners);
+    this.pipelineCache = new WebjarsPipelineCache();
   }
 
   public String process(String originalAssetName) {
@@ -53,9 +57,18 @@ public class Pipeline {
       })
       .flatMap(List::stream)
       .map(assetFile -> {
+          Optional<String> optional = pipelineCache.get(assetFile);
+          if (optional.isPresent()) {
+            return optional.get();
+          }
+        
         PreProcessorContext preprocessorContext = context.getPreprocessorContext(assetFile.getPath());
         SourceProcessor.CompilationResult compilationResult = compile(assetFile.getPath(), assetFile.getContents(), preprocessorContext);
-        return processAsset(compilationResult.getAssetName(), compilationResult.getAsset(), preprocessorContext);
+        String processedAsset = processAsset(compilationResult.getAssetName(), compilationResult.getAsset(), preprocessorContext);
+        
+        pipelineCache.put(new AssetFile(bundle, assetFile.getPath(), processedAsset));
+        
+        return processedAsset;
       })
       .collect(joining("\n", "", "\n"));
 
