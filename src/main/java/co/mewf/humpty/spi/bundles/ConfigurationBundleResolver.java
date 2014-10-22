@@ -13,7 +13,7 @@ public class ConfigurationBundleResolver implements BundleResolver {
 
   @Override
   public String getName() {
-    return "configurationBundleHandler";
+    return "configurationBundleResolver";
   }
 
   @Override
