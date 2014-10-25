@@ -11,6 +11,7 @@ public class TracerPipelineListener implements PipelineListener {
   public Boolean active;
   public String processedBundleName;
   public boolean onAssetProcessedCalled;
+  public int onAssetProcessedCalledCount;
 
   @Override
   public String getName() {
@@ -20,6 +21,7 @@ public class TracerPipelineListener implements PipelineListener {
   @Override
   public void onAssetProcessed(String asset, String name, String assetPath, Bundle bundle) {
     this.onAssetProcessedCalled = true;
+    this.onAssetProcessedCalledCount++;
   }
   
   @Override
