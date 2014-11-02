@@ -1,3 +1,4 @@
 [[bundles]]
   name = "libs.js"
-  assets = ["jquery"]
+  assets = ["jquery", "alert", "web_server"]
+  

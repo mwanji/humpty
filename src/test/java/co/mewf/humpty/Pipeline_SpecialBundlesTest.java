@@ -26,9 +26,9 @@ public class Pipeline_SpecialBundlesTest {
   
   @Test
   public void should_find_loose_webjar() throws Exception {
-    String jquery = pipeline.process("jquery.js");
+    String jquery = pipeline.process("jquery.min.js");
     
-    assertEquals(IOUtils.toString(getClass().getClassLoader().getResourceAsStream(new WebJarAssetLocator().getFullPath("jquery.js"))).trim(), jquery.trim());
+    assertEquals(IOUtils.toString(getClass().getClassLoader().getResourceAsStream(new WebJarAssetLocator().getFullPath("jquery.min.js"))).trim(), jquery.trim());
   }
   
   public void should_reject_existing_bundle() {
