@@ -174,12 +174,12 @@ Optional. A table of processor-specific settings. The name to use is in each pro
   responsive = false
 ````
 
-### options.humpty
+### options.pipeline
 
 Options that determine how the asset pipeline itself is created. By default, all processors loaded via ServiceLoaders are run.
 
 ````toml
-[options.humpty]
+[options.pipeline]
   mode = "DEVELOPMENT" # Defaults to "PRODUCTION". Processors are made aware of the mode and may modify their behaviour or even not run at all
   
 [options.pipeline.elements] # Used to customise the processors that will be applied and their ordering 
