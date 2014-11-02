@@ -31,7 +31,7 @@ public class WebJarResolver implements Resolver {
   
   @Override
   public String getName() {
-    return "webjar";
+    return "webjars";
   }
   
   @Inject
