@@ -13,7 +13,7 @@ import com.moandjiezana.toml.Toml;
 public class Configuration {
 
   public static enum Mode {
-    PRODUCTION, DEVELOPMENT;
+    PRODUCTION, DEVELOPMENT, EXTERNAL;
   }
 
   public static class Options {
