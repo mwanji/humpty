@@ -128,15 +128,24 @@ Creating custom processors is discussed in the [Extension Points](#extension-poi
 
 ### Resolvers
 
-Resolvers take an asset's name and turn it into one or more (in case of wildcards) files whose contents can be read. There is only one resolver bundled with humpty:
+Resolvers take an asset's name and turn it into one or more (in case of wildcards) files whose contents can be read. Creating custom resolvers is discussed in the [Extension Points](#extension-points) section.
 
-* `WebJarResolver` looks up resources in a [WebJar](http://webjars.org)
+**`WebJarResolver`**
 
-Creating custom resolvers is discussed in the [Extension Points](#extension-points) section.
+Looks up resources in a [WebJar](http://webjars.org) and is bundled with humpty. For example, if `org.webjars:jquery:2.1.1` has been added to the dependencies, the resolver will find `jquery.js`. Bundled with humpty.
 
-## Development Mode
+Configuration:
 
-Setting the mode to "DEVELOPMENT" may change how resources behave. For example, humpty-compression will not minify.
+* preferMin: boolean. If true, `WebJarResolver` looks for a minified version of the requested asset by adding `.min` to the asset's base name (ie. jquery.js becomes jquery.min.js). If no such version exists or preferMin is set to false, the requested version is used. If preferMin is not set, it falls back to true in production mode and to false otherwise.
+* rootDir: string, defaults to "src/main/resources". This is the base location of assets using the webjar directory format, but that are not in a JAR, such as an application's custom assets.
+
+## Modes
+
+humpty has 3 different modes, which may change how pipeline elements behave.
+
+* "PRODUCTION": default. Typically enables optimisations such as minification.
+* "EXTERNAL": Indicates that assets have already been processed and no runtime processing is needed.
+* "DEVELOPMENT": Enables a fast development cycle. For example, may shut off caching or minification, and allow assets to be linked individually in HTML.
 
 In your configuration file, add:
 
@@ -144,8 +153,6 @@ In your configuration file, add:
 [options.humpty]
   mode = "DEVELOPMENT"
 ````
-
-The default mode is PRODUCTION.
 
 ## Configuration Reference
 
