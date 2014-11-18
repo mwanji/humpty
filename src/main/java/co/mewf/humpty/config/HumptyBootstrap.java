@@ -94,6 +94,11 @@ public class HumptyBootstrap implements PipelineElement {
   }
   
   private Configuration.Mode getMode(Configuration.Options humptyOptions) {
+    for (Object resource : resources) {
+      if (resource instanceof Configuration.Mode) {
+        return (Configuration.Mode) resource;
+      }
+    }
     return Configuration.Mode.valueOf(humptyOptions.get("mode", Configuration.Mode.PRODUCTION.toString()));
   }
   

@@ -5,6 +5,7 @@ import javax.inject.Inject;
 import co.mewf.humpty.Pipeline;
 import co.mewf.humpty.config.Bundle;
 import co.mewf.humpty.config.Configuration;
+import co.mewf.humpty.config.Configuration.Mode;
 
 public class TracerPipelineListener implements PipelineListener {
 
@@ -12,6 +13,7 @@ public class TracerPipelineListener implements PipelineListener {
   public String processedBundleName;
   public boolean onAssetProcessedCalled;
   public int onAssetProcessedCalledCount;
+  public Mode mode;
 
   @Override
   public String getName() {
@@ -30,7 +32,8 @@ public class TracerPipelineListener implements PipelineListener {
   }
 
   @Inject
-  public void configure(Configuration.Options options, Pipeline pipeline) {
+  public void configure(Configuration.Options options, Pipeline pipeline, Configuration.Mode mode) {
+    this.mode = mode;
     this.active = options.get("active", Boolean.TRUE);
     
     if (options.get("fail", Boolean.FALSE)) {

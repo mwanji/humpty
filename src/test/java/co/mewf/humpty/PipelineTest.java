@@ -13,6 +13,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.webjars.WebJarAssetLocator;
 
+import co.mewf.humpty.config.Configuration;
 import co.mewf.humpty.config.HumptyBootstrap;
 import co.mewf.humpty.spi.listeners.TracerPipelineListener;
 
@@ -141,6 +142,13 @@ public class PipelineTest {
     Pipeline pipeline = new HumptyBootstrap().createPipeline();
     
     pipeline.process("unresolvable.css");
+  }
+  
+  @Test
+  public void bootstrap_can_override_mode() throws Exception {
+    TracerPipelineListener tracerPipelineListener = new HumptyBootstrap("/humpty.toml", Configuration.Mode.EXTERNAL).createPipeline().getPipelineListener(TracerPipelineListener.class).get();
+    
+    assertEquals(Configuration.Mode.EXTERNAL, tracerPipelineListener.mode);
   }
   
   private String read(String filename) {
