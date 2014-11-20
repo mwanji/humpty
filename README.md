@@ -1,14 +1,16 @@
 # humpty
 
-humpty puts your web assets back together. It is a small library that is easy to understand, configure and extend.
+humpty puts your web assets back together.
 
-humpty works best with [WebJars](http://webjars.org) for 3rd-party libraries and application code in folders accessible via URL. Configuring its behaviour is as simple as dropping a JAR on the classpath.
+humpty is a library that strives to be small, understandable and easy to use. It works out of the box with [WebJars](http://webjars.org) for 3rd-party libraries and application code in WebJar-style folders.
+
+humpty builds a pipeline to process assets. Customising that pipeline is as easy as adding dependencies to your project.
 
 Requires Java 8 and Servlet 3.
 
 ## Getting Started
 
-In this example, we will use Jquery, underscore and Bootstrap and bundle them together into a single, minified file, along with application code.
+In this example, we will bundle Jquery, underscore, Bootstrap, an application JS file and an application LESS file together into one JS file and one CSS file.
 
 Add humpty to your dependencies:
 
@@ -20,7 +22,7 @@ Add humpty to your dependencies:
 </dependency>
 ````
 
-To use humpty as a Servlet Filter, add humpty-servlet to your dependencies:
+To have humpty process requests to `http://${DOMAIN}/${CONTEXT_PATH}/humpty`, add [humpty-servlet](https://github.com/mwanji/humpty-servlet) to your dependencies:
 
 ````xml
 <dependency>
@@ -30,25 +32,23 @@ To use humpty as a Servlet Filter, add humpty-servlet to your dependencies:
 </dependency>
 ````
 
-We want to minify our assets, so add humpty-compression:
+To compile LESS files, add [humpty-less](https://github.com/mwanji/humpty-less):
 
 ````xml
 <dependency>
   <groupId>co.mewf.humpty</groupId>
-  <artifactId>humpty-compression</artifactId>
+  <artifactId>humpty-less</artifactId>
   <version>1.0.0-SNAPSHOT</version>
 </dependency>
 ````
 
-(As humpty-compression depends on humpty, it is not strictly necessary to declare humpty as a dependency.)
-
-Add the following dependencies to make the web libraries available:
+Add the following WebJars to make the JS and CSS libraries available:
 
 ````xml
 <dependency>
   <groupId>org.webjars</groupId>
   <artifactId>bootstrap</artifactId> <!-- includes Jquery transitively -->
-  <version>2.3.2</version>
+  <version>3.3.1</version>
 </dependency>
 <dependency>
   <groupId>org.webjars</groupId>
@@ -60,12 +60,13 @@ Add the following dependencies to make the web libraries available:
 humpty uses [TOML](https://github.com/toml-lang/toml/tree/v0.2.0) as its configuration language. Create a file called `humpty.toml` in `src/main/resources`:
 
 ````toml
-[[bundles]]
-  name = "example.js" # the file extension is required
-  assets = ["jquery", "underscore", "bootstrap", "app"] # will be concatenated into a single JS file called example.js
+[[bundles]] # defines any number of files that will be concatenated together
+  name = "example.js" # The resultant file will be called example.js. The file extension is required. It will be added to assets that don't have an extension.
+  assets = ["jquery", "underscore", "bootstrap", "app"] # assets to be concatenated, in the order they are listed
+  
 [[bundles]]
   name = "example.css"
-  assets = ["bootstrap", "bootstrap-responsive", "app"] # will be concatenated into a single4 CSS file called example.css
+  assets = ["bootstrap", "app.less"] # will be concatenated into a single CSS file called example.css. app.less will be compiled into CSS
 ````
 
 Now we can include our concatenated and minified files in index.html:
@@ -74,18 +75,59 @@ Now we can include our concatenated and minified files in index.html:
 <!DOCTYPE html>
 <html>
   <head>
-    <script src="humpty/example.js"></script>
-    <link href="humpty/example.css" type="text/css" rel="stylesheet" />
+    <link href="${CONTEXT_PATH}/humpty/example.css" type="text/css" rel="stylesheet" />
   </head>
   <body>
     Hello, humpty!
+    
+    <script src="${CONTEXT_PATH}/humpty/example.js"></script>
   </body>
 </html>
 ````
 
+While developing, you may want to include files separately, for easier debugging. First, switch to development mode by adding the following to `humpty.toml`:
+
+````toml
+[options.pipeline]
+  mode = "DEVELOPMENT" # defaults to "PRODUCTION"
+````
+
+For each file, add the asset's name behind the bundle's name:
+
+````html
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="${CONTEXT_PATH}/humpty/example.css/bootstrap.css" type="text/css" rel="stylesheet" />
+    <link href="${CONTEXT_PATH}/humpty/example.css/app.less" type="text/css" rel="stylesheet" />
+  </head>
+  <body>
+    Hello, humpty!
+    
+    <script src="${CONTEXT_PATH}/humpty/example.js/jquery.js"></script>
+    <script src="${CONTEXT_PATH}/humpty/example.js/underscore.js"></script>
+    <script src="${CONTEXT_PATH}/humpty/example.js/bootstrap.js"></script>
+    <script src="${CONTEXT_PATH}/humpty/example.js/app.js"></script>
+  </body>
+</html>
+````
+
+and so on.
+
+Thankfully, this can be automated. humpty-servlet adds an instance of `Includes` to the servlet context.
+
+* Get it by calling `servletContext.getAttribute(Includes.class.getName())`
+* Call `Includes#generate("example.css")` in your HTML template
+
+In production mode, this will create the HTML to include the concatenated file, but in development mode it will include each file separately. 
+
 ## Pipeline Elements
 
-humpty is a modular system that builds a pipeline composed of pipeline elements, into which bundles and assets are fed. 
+humpty is a modular system that builds a pipeline composed of pipeline elements, into which bundles and assets are fed. There are several types of pipeline elements:
+
+* __Resolvers__ find files
+* __Processors__ do things to those files
+* __Listeners__ are notified of certain events, such as when assets are processed
 
 ### Bundles and Assets
 
@@ -107,6 +149,19 @@ You can use `*` as a wildcard to get all the files in a folder: `/assets/*`, `/a
            ]
 ````
 
+### Resolvers
+
+Resolvers take an asset's name and turn it into one or more (in case of wildcards) files whose contents can be read. Creating custom resolvers is discussed in the [Extension Points](#extension-points) section.
+
+__WebJarResolver__
+
+Bundled with humpty. Looks up resources in a [WebJar](http://webjars.org). For example, if `org.webjars:jquery:2.1.1` has been added to the dependencies, the resolver will find `jquery.js`.
+
+Configuration:
+
+* preferMin: boolean. If true, `WebJarResolver` looks for a minified version of the requested asset by adding `.min` to the asset's base name (ie. jquery.js becomes jquery.min.js). If no such version exists or preferMin is set to false, the requested version is used. If preferMin is not set, it falls back to true in production mode and to false otherwise.
+* rootDir: string, defaults to "src/main/resources". This is the base location of assets using the webjar directory format, but that are not in a JAR, such as an application's custom assets.
+
 ### Processors
 
 Processors generally modify the assets they are given in some way: compile, concatenate, minify, etc. There are 3 kinds of processors, run in the following order:
@@ -119,25 +174,10 @@ humpty has no default processors, but they are easy to add: put the ones you wan
 
 There are a number of processors available:
 
-* [humpty-compression](http://mewf.co/humpty/compression): JS & CSS minification/obfuscation
-* [humpty-coffeescript](http://mewf.co/humpty/coffeescript): CoffeeScript compilation
-* [humpty-bootstrap-less](http://mewf.co/humpty/bootstrap-less): Bootstrap and Font Awesome customisation via LESS
-* [humpty-emberjs](http://mewf.co/humpty/emberjs): Compile Ember.Handlebars templates
+* [humpty-less](https://github.com/mwanji/humpty-less): LESS compilation
+* [humpty-css](https://github.com/mwanji/humpty-css): CSS tools
 
 Creating custom processors is discussed in the [Extension Points](#extension-points) section.
-
-### Resolvers
-
-Resolvers take an asset's name and turn it into one or more (in case of wildcards) files whose contents can be read. Creating custom resolvers is discussed in the [Extension Points](#extension-points) section.
-
-**`WebJarResolver`**
-
-Looks up resources in a [WebJar](http://webjars.org) and is bundled with humpty. For example, if `org.webjars:jquery:2.1.1` has been added to the dependencies, the resolver will find `jquery.js`. Bundled with humpty.
-
-Configuration:
-
-* preferMin: boolean. If true, `WebJarResolver` looks for a minified version of the requested asset by adding `.min` to the asset's base name (ie. jquery.js becomes jquery.min.js). If no such version exists or preferMin is set to false, the requested version is used. If preferMin is not set, it falls back to true in production mode and to false otherwise.
-* rootDir: string, defaults to "src/main/resources". This is the base location of assets using the webjar directory format, but that are not in a JAR, such as an application's custom assets.
 
 ## Modes
 
@@ -190,18 +230,30 @@ Options that determine how the asset pipeline itself is created. By default, all
   mode = "DEVELOPMENT" # Defaults to "PRODUCTION". Processors are made aware of the mode and may modify their behaviour or even not run at all
   
 [options.pipeline.elements] # Used to customise the processors that will be applied and their ordering 
-  sources = ["coffee", "emberJs"]
+  sources = ["coffee", "emberJs"] # Only these SourceProcessors will run
   assets = [] # No AssetProcessors will run
-  bundles = ["compressCSS"]
+  # As bundles is commented out, the default BundleProcessors will run
+  #bundles = ["compression"]
 ````
+
+### options.cache
+
+Controls how assets are cached in memory.
+
+````toml
+[options.cache]
+  devWebJars = ["myApp", "myApp2"] # Excludes assets in these WebJars from being cached in development mode
+````
+
+`devWebJars` only works if your application code is in WebJar-style folders, meaning: `META-INF/resources/webjars/$NAME/$VERSION_NUMBER/`.
 
 ## Extension Points
 
-humpty makes several interfaces available, as well as a limited form of dependency injection.
+humpty makes several interfaces available for new pipeline elements to be created, as well as a limited form of dependency injection.
 
 ### Custom Pipeline Elements
 
-New behaviour can be added to a pipeline by implementing one of `PipelineElement`'s sub-interfaces. For them to be added to the pipeline when a user adds the JAR to their classpath, add a file called co.mewf.humpty.spi.PipelineElement to META-INF/services, containing one fully-qualified class name per line. For more information, see the JavaDoc for `java.util.ServiceLoader`.
+New behaviour can be added to a pipeline by implementing one of `PipelineElement`'s sub-interfaces. For them to be added to the pipeline when a user adds the JAR to their classpath, create a file called `co.mewf.humpty.spi.PipelineElement` in `META-INF/services`, containing one fully-qualified class name per line. For more information, see the JavaDoc for [java.util.ServiceLoader](https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html).
 
 The sub-interfaces are:
 
@@ -219,9 +271,9 @@ While constructor injection is not allowed because resources must be instantiata
 
 * `Configuration` is the Java representation of the entire configuration file
 * `Configuration.Options` contains the options set for the current processor
-* `Configuration.Mode` whether the pipeline is running in production or development mode
+* `Configuration.Mode` is the defined mode
 * `Pipeline` the asset pipeline itself
-* `WebJarAssetLocator` to find assets in a WebJar
+* `WebJarAssetLocator` to find assets in a WebJar, avoids pipeline elements having to create their own instance
 * any object that was added programatically to `HumptyBootstrap`
 
 If a dependency cannot be satisfied, an exception is thrown.
