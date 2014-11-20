@@ -2,6 +2,7 @@ package co.mewf.humpty;
 
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -13,9 +14,12 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.webjars.WebJarAssetLocator;
 
+import co.mewf.humpty.config.Bundle;
 import co.mewf.humpty.config.Configuration;
 import co.mewf.humpty.config.HumptyBootstrap;
+import co.mewf.humpty.spi.caches.WebjarsPipelineCache;
 import co.mewf.humpty.spi.listeners.TracerPipelineListener;
+import co.mewf.humpty.spi.resolvers.AssetFile;
 
 public class PipelineTest {
   private final WebJarAssetLocator locator = new WebJarAssetLocator();
@@ -149,6 +153,32 @@ public class PipelineTest {
     TracerPipelineListener tracerPipelineListener = new HumptyBootstrap("/humpty.toml", Configuration.Mode.EXTERNAL).createPipeline().getPipelineListener(TracerPipelineListener.class).get();
     
     assertEquals(Configuration.Mode.EXTERNAL, tracerPipelineListener.mode);
+  }
+  
+  @Test
+  public void should_not_cache_project_assets_in_development_mode() throws Exception {
+    Configuration configuration = Configuration.load("/should_not_cache_project_assets.toml");
+    Pipeline pipeline = new HumptyBootstrap(configuration, Configuration.Mode.DEVELOPMENT).createPipeline();
+    WebjarsPipelineCache cache = pipeline.getPipelineElement(WebjarsPipelineCache.class).get();
+    
+    pipeline.process("caching.js");
+    
+    Bundle bundle = configuration.getBundles().get(0);
+    assertTrue(cache.get(new AssetFile(bundle, locator.getFullPath("jquery.js"), "")).isPresent());
+    assertFalse(cache.get(new AssetFile(bundle, locator.getFullPath("blocks.js"), "")).isPresent());
+  }
+  
+  @Test
+  public void should_cache_project_assets_in_production_mode() throws Exception {
+    Configuration configuration = Configuration.load("/should_not_cache_project_assets.toml");
+    Pipeline pipeline = new HumptyBootstrap(configuration).createPipeline();
+    WebjarsPipelineCache cache = pipeline.getPipelineElement(WebjarsPipelineCache.class).get();
+    
+    pipeline.process("caching.js");
+    
+    Bundle bundle = configuration.getBundles().get(0);
+    assertTrue(cache.get(new AssetFile(bundle, locator.getFullPath("jquery.min.js"), "")).isPresent());
+    assertTrue(cache.get(new AssetFile(bundle, locator.getFullPath("blocks.js"), "")).isPresent());
   }
   
   private String read(String filename) {

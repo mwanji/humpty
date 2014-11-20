@@ -14,8 +14,9 @@ import co.mewf.humpty.config.Configuration;
 import co.mewf.humpty.config.Configuration.Mode;
 import co.mewf.humpty.config.Context;
 import co.mewf.humpty.config.PreProcessorContext;
+import co.mewf.humpty.spi.PipelineElement;
 import co.mewf.humpty.spi.bundles.BundleResolver;
-import co.mewf.humpty.spi.caches.WebjarsPipelineCache;
+import co.mewf.humpty.spi.caches.PipelineCache;
 import co.mewf.humpty.spi.listeners.PipelineListener;
 import co.mewf.humpty.spi.processors.AssetProcessor;
 import co.mewf.humpty.spi.processors.BundleProcessor;
@@ -33,9 +34,9 @@ public class Pipeline {
   private final Mode mode;
   private final List<PipelineListener> pipelineListeners;
   private final List<? extends BundleResolver> bundleResolvers;
-  private final WebjarsPipelineCache pipelineCache;
+  private final PipelineCache pipelineCache;
 
-  public Pipeline(Configuration.Mode mode, List<? extends BundleResolver> bundleResolvers, List<? extends Resolver> resolvers, List<? extends SourceProcessor> compilingProcessors, List<? extends AssetProcessor> assetProcessors, List<? extends BundleProcessor> bundleProcessors, List<PipelineListener> pipelineListeners) {
+  public Pipeline(Configuration.Mode mode, List<? extends BundleResolver> bundleResolvers, List<? extends Resolver> resolvers, List<? extends SourceProcessor> compilingProcessors, List<? extends AssetProcessor> assetProcessors, List<? extends BundleProcessor> bundleProcessors, List<PipelineListener> pipelineListeners, PipelineCache pipelineCache) {
     this.bundleResolvers = bundleResolvers;
     this.mode = mode;
     this.resolvers = Collections.unmodifiableList(resolvers);
@@ -43,7 +44,7 @@ public class Pipeline {
     this.assetProcessors = Collections.unmodifiableList(assetProcessors);
     this.bundleProcessors = Collections.unmodifiableList(bundleProcessors);
     this.pipelineListeners = Collections.unmodifiableList(pipelineListeners);
-    this.pipelineCache = new WebjarsPipelineCache();
+    this.pipelineCache = pipelineCache;
   }
 
   public String process(String originalAssetName) {
@@ -82,6 +83,14 @@ public class Pipeline {
   @SuppressWarnings("unchecked")
   public <T extends PipelineListener> Optional<T> getPipelineListener(Class<T> pipelineListenerClass) {
     return (Optional<T>) pipelineListeners.stream().filter(l -> l.getClass() == pipelineListenerClass).findFirst();
+  }
+
+  <T extends PipelineElement> Optional<T> getPipelineElement(Class<T> pipelineElementClass) {
+    if (PipelineCache.class.isAssignableFrom(pipelineElementClass)) {
+      return Optional.of(pipelineElementClass.cast(this.pipelineCache));
+    }
+    
+    return Optional.empty();
   }
   
   private Bundle getBundle(String originalAssetName) {
