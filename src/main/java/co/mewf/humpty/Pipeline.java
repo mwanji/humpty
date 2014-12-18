@@ -14,15 +14,12 @@ import co.mewf.humpty.config.Configuration;
 import co.mewf.humpty.config.Configuration.Mode;
 import co.mewf.humpty.config.Context;
 import co.mewf.humpty.config.PreProcessorContext;
-import co.mewf.humpty.spi.PipelineElement;
 import co.mewf.humpty.spi.bundles.BundleResolver;
-import co.mewf.humpty.spi.caches.PipelineCache;
 import co.mewf.humpty.spi.listeners.PipelineListener;
 import co.mewf.humpty.spi.processors.AssetProcessor;
 import co.mewf.humpty.spi.processors.BundleProcessor;
 import co.mewf.humpty.spi.processors.SourceProcessor;
 import co.mewf.humpty.spi.processors.SourceProcessor.CompilationResult;
-import co.mewf.humpty.spi.resolvers.AssetFile;
 import co.mewf.humpty.spi.resolvers.Resolver;
 
 public class Pipeline {
@@ -34,9 +31,8 @@ public class Pipeline {
   private final Mode mode;
   private final List<PipelineListener> pipelineListeners;
   private final List<? extends BundleResolver> bundleResolvers;
-  private final PipelineCache pipelineCache;
 
-  public Pipeline(Configuration.Mode mode, List<? extends BundleResolver> bundleResolvers, List<? extends Resolver> resolvers, List<? extends SourceProcessor> compilingProcessors, List<? extends AssetProcessor> assetProcessors, List<? extends BundleProcessor> bundleProcessors, List<PipelineListener> pipelineListeners, PipelineCache pipelineCache) {
+  public Pipeline(Configuration.Mode mode, List<? extends BundleResolver> bundleResolvers, List<? extends Resolver> resolvers, List<? extends SourceProcessor> compilingProcessors, List<? extends AssetProcessor> assetProcessors, List<? extends BundleProcessor> bundleProcessors, List<PipelineListener> pipelineListeners) {
     this.bundleResolvers = bundleResolvers;
     this.mode = mode;
     this.resolvers = Collections.unmodifiableList(resolvers);
@@ -44,7 +40,6 @@ public class Pipeline {
     this.assetProcessors = Collections.unmodifiableList(assetProcessors);
     this.bundleProcessors = Collections.unmodifiableList(bundleProcessors);
     this.pipelineListeners = Collections.unmodifiableList(pipelineListeners);
-    this.pipelineCache = pipelineCache;
   }
 
   public String process(String originalAssetName) {
@@ -58,16 +53,9 @@ public class Pipeline {
       })
       .flatMap(List::stream)
       .map(assetFile -> {
-          Optional<String> optional = pipelineCache.get(assetFile);
-          if (optional.isPresent()) {
-            return optional.get();
-          }
-        
         PreProcessorContext preprocessorContext = context.getPreprocessorContext(assetFile.getPath());
         SourceProcessor.CompilationResult compilationResult = compile(assetFile.getPath(), assetFile.getContents(), preprocessorContext);
         String processedAsset = processAsset(compilationResult.getAssetName(), compilationResult.getAsset(), preprocessorContext);
-        
-        pipelineCache.put(new AssetFile(bundle, assetFile.getPath(), processedAsset));
         
         return processedAsset;
       })
@@ -83,14 +71,6 @@ public class Pipeline {
   @SuppressWarnings("unchecked")
   public <T extends PipelineListener> Optional<T> getPipelineListener(Class<T> pipelineListenerClass) {
     return (Optional<T>) pipelineListeners.stream().filter(l -> l.getClass() == pipelineListenerClass).findFirst();
-  }
-
-  <T extends PipelineElement> Optional<T> getPipelineElement(Class<T> pipelineElementClass) {
-    if (PipelineCache.class.isAssignableFrom(pipelineElementClass)) {
-      return Optional.of(pipelineElementClass.cast(this.pipelineCache));
-    }
-    
-    return Optional.empty();
   }
   
   private Bundle getBundle(String originalAssetName) {

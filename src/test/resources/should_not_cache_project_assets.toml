@@ -1,6 +1,0 @@
-[[bundles]]
-  name = "caching.js"
-  assets = ["jquery", "blocks"]
-  
-[options.cache]
-  devWebJars = ["humpty"]  

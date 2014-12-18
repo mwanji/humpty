@@ -17,7 +17,6 @@ import org.webjars.WebJarAssetLocator;
 import co.mewf.humpty.Pipeline;
 import co.mewf.humpty.spi.PipelineElement;
 import co.mewf.humpty.spi.bundles.BundleResolver;
-import co.mewf.humpty.spi.caches.WebjarsPipelineCache;
 import co.mewf.humpty.spi.listeners.PipelineListener;
 import co.mewf.humpty.spi.processors.AssetProcessor;
 import co.mewf.humpty.spi.processors.BundleProcessor;
@@ -69,7 +68,6 @@ public class HumptyBootstrap implements PipelineElement {
     this.bundleProcessors = getElements(BundleProcessor.class, getConfiguration("bundles"));
     this.pipelineListeners = getElements(PipelineListener.class, getConfiguration("listeners"));
     this.mode = getMode(humptyOptions);
-    WebjarsPipelineCache cache = new WebjarsPipelineCache();
 
     bundleResolvers.forEach(this::inject);
     resolvers.forEach(this::inject);
@@ -77,9 +75,8 @@ public class HumptyBootstrap implements PipelineElement {
     assetProcessors.forEach(this::inject);
     bundleProcessors.forEach(this::inject);
     pipelineListeners.forEach(this::inject);
-    inject(cache);
     
-    this.pipeline = new Pipeline(mode, bundleResolvers, resolvers, sourceProcessors, assetProcessors, bundleProcessors, pipelineListeners, cache);
+    this.pipeline = new Pipeline(mode, bundleResolvers, resolvers, sourceProcessors, assetProcessors, bundleProcessors, pipelineListeners);
   }
   
   @Override
