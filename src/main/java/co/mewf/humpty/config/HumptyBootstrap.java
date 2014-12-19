@@ -69,14 +69,14 @@ public class HumptyBootstrap implements PipelineElement {
     this.pipelineListeners = getElements(PipelineListener.class, getConfiguration("listeners"));
     this.mode = getMode(humptyOptions);
 
+    this.pipeline = new Pipeline(mode, bundleResolvers, resolvers, sourceProcessors, assetProcessors, bundleProcessors, pipelineListeners);
+    
     bundleResolvers.forEach(this::inject);
     resolvers.forEach(this::inject);
     sourceProcessors.forEach(this::inject);
     assetProcessors.forEach(this::inject);
     bundleProcessors.forEach(this::inject);
     pipelineListeners.forEach(this::inject);
-    
-    this.pipeline = new Pipeline(mode, bundleResolvers, resolvers, sourceProcessors, assetProcessors, bundleProcessors, pipelineListeners);
   }
   
   @Override

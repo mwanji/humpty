@@ -2,6 +2,7 @@ package co.mewf.humpty;
 
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -149,6 +150,15 @@ public class PipelineTest {
     TracerPipelineListener tracerPipelineListener = new HumptyBootstrap("/humpty.toml", Configuration.Mode.EXTERNAL).createPipeline().getPipelineListener(TracerPipelineListener.class).get();
     
     assertEquals(Configuration.Mode.EXTERNAL, tracerPipelineListener.mode);
+  }
+  
+  @Test
+  public void should_inject_pipeline() throws Exception {
+    Pipeline pipeline = new HumptyBootstrap().createPipeline();
+    
+    TracerPipelineListener tracerPipelineListener = pipeline.getPipelineListener(TracerPipelineListener.class).get();
+    
+    assertSame(pipeline, tracerPipelineListener.pipeline);
   }
   
   private String read(String filename) {

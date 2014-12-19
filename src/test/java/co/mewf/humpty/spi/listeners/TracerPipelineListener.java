@@ -14,6 +14,7 @@ public class TracerPipelineListener implements PipelineListener {
   public boolean onAssetProcessedCalled;
   public int onAssetProcessedCalledCount;
   public Mode mode;
+  public Pipeline pipeline;
 
   @Override
   public String getName() {
@@ -33,6 +34,7 @@ public class TracerPipelineListener implements PipelineListener {
 
   @Inject
   public void configure(Configuration.Options options, Pipeline pipeline, Configuration.Mode mode) {
+    this.pipeline = pipeline;
     this.mode = mode;
     this.active = options.get("active", Boolean.TRUE);
     
