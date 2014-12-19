@@ -1,8 +1,8 @@
-[[bundles]]
+[[bundle]]
 name = "asset1.js"
 assets = ["/users/user.js", "http://mycdn.com/jquery.js", "bootstrap.js"]
 
-[[bundles]]
+[[bundle]]
 name = "asset2.css"
 assets = ["bootstrap.css", "/app/app.css"]
 

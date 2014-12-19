@@ -1,8 +1,8 @@
-[[bundles]]
+[[bundle]]
   name = "asset.js"
   assets = ["blocks.coffee"]
   
-[[bundles]]
+[[bundle]]
   name = "unresolvable.css"
   assets = ["scheme:asset"]
 

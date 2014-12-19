@@ -1,4 +1,4 @@
-[[bundles]]
+[[bundle]]
   name = "asset.js"
   assets = ["blocks.coffee"]
 

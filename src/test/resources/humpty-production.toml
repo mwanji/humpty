@@ -1,24 +1,24 @@
-[[bundles]]
+[[bundle]]
 	name = "singleAsset.js"
 	assets = ["blocks.js"]
 
-[[bundles]]
+[[bundle]]
 	name = "multipleAssets.js"
 	assets = ["blocks.js", "web_server.js"]
 
-[[bundles]]
+[[bundle]]
 	name = "compilableAsset.js"
 	assets = ["blocks.coffee"]
 
-[[bundles]]
+[[bundle]]
 	name = "multipleCompilableAssets.js"
 	assets = ["blocks.coffee", "web_server.coffee"]
 
-[[bundles]]
+[[bundle]]
 	name = "tags.js"
 	assets = ["jquery", "/app"]
 
-[[bundles]]
+[[bundle]]
 	name = "tags.css"
 	assets = ["/app1", "/app2"]
 

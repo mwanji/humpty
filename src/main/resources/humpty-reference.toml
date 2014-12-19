@@ -1,8 +1,8 @@
-[[bundles]] # Must have at least one bundle.
+[[bundle]] # Must have at least one bundle.
   name = "asset1.js" # Must have file extension
   assets = ["/users/user.js", "http://mycdn.com/jquery.js", "bootstrap.js"] # array of resolvable resource names
 
-[[bundles]] # Second bundle
+[[bundle]] # Second bundle
   name = "asset2.css"
   assets = ["bootstrap", "/app/app.css"] # If there is no extension, the one from the name is used
 

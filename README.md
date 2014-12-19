@@ -60,11 +60,11 @@ Add the following WebJars to make the JS and CSS libraries available:
 humpty uses [TOML](https://github.com/toml-lang/toml/tree/v0.2.0) as its configuration language. Create a file called `humpty.toml` in `src/main/resources`:
 
 ````toml
-[[bundles]] # defines any number of files that will be concatenated together
+[[bundle]] # defines any number of files that will be concatenated together
   name = "example.js" # The resultant file will be called example.js. The file extension is required. It will be added to assets that don't have an extension.
   assets = ["jquery", "underscore", "bootstrap", "app"] # assets to be concatenated, in the order they are listed
   
-[[bundles]]
+[[bundle]]
   name = "example.css"
   assets = ["bootstrap", "app.less"] # will be concatenated into a single CSS file called example.css. app.less will be compiled into CSS
 ````
@@ -140,7 +140,7 @@ If an asset does not have an extension, the one in the name of the bundle will b
 You can use `*` as a wildcard to get all the files in a folder: `/assets/*`, `/assets/*.tpl`. The same extension rules apply.
 
 ````toml
-[[bundles]]
+[[bundle]]
   name = "example.js"
   assets = ["underscore.js",
             "otherLib.coffee"
@@ -203,11 +203,11 @@ By default, configuration is done via a TOML object in a file called `humpty.tom
 Required. An array of tables. Must contain at least one bundle. Each bundle has a name (required) and an array of assets (required).
 
 ````toml
-[[bundles]]
+[[bundle]]
 	name = "app.js"
 	assets = ["jquery", "/assets/app.js"]
 
-[[bundles]]
+[[bundle]]
   name = "app.css",
   assets = ["bootstrap.less", "theme"]
 ````

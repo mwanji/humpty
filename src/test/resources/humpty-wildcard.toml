@@ -1,12 +1,12 @@
-[[bundles]]
+[[bundle]]
 	name = "folder_and_extension.js"
 	assets = ["humpty/1.0.0/*.js"]
 
-[[bundles]]
+[[bundle]]
 	name = "folder_without_extension.coffee"
 	assets = ["humpty/1.0.0/*"]
 
-[[bundles]]
+[[bundle]]
 	name = "no_extension.js"
 	assets = ["blocks", "web_server"]
 

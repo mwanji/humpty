@@ -44,7 +44,7 @@ public class Configuration {
     }
   }
 
-  private List<Bundle> bundles;
+  private List<Bundle> bundle;
   private Map<String, Object> options;
   
   public static Configuration load(String tomlPath) {
@@ -52,7 +52,7 @@ public class Configuration {
   }
 
   public List<Bundle> getBundles() {
-    return bundles;
+    return bundle;
   }
   
   @SuppressWarnings("unchecked")

@@ -1,4 +1,4 @@
-[[bundles]]
+[[bundle]]
   name = "bundle.js"
   assets = ["alert.js"]
 
