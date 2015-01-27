@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BinaryOperator;
 import java.util.function.Supplier;
 
@@ -23,6 +24,24 @@ import co.mewf.humpty.spi.processors.SourceProcessor.CompilationResult;
 import co.mewf.humpty.spi.resolvers.Resolver;
 
 public class Pipeline {
+  
+  public static class Output {
+    private final String fileName;
+    private final String asset;
+    
+    public Output(String fileName, String asset) {
+      this.fileName = fileName;
+      this.asset = asset;
+    }
+
+    public String getFileName() {
+      return fileName;
+    }
+
+    public String getAsset() {
+      return asset;
+    }
+  }
 
   private final List<Resolver> resolvers;
   private final List<AssetProcessor> assetProcessors;
@@ -42,31 +61,36 @@ public class Pipeline {
     this.pipelineListeners = Collections.unmodifiableList(pipelineListeners);
   }
 
-  public String process(String originalAssetName) {
+  public Pipeline.Output process(String originalAssetName) {
     return process(originalAssetName, mode);
   }
 
-  public String process(String originalAssetName, Mode mode) {
+  public Pipeline.Output process(String originalAssetName, Mode mode) {
     Bundle bundle = getBundle(originalAssetName);
 
     Context context = new Context(mode, bundle);
+    AtomicReference<String> finalAssetName = new AtomicReference<String>();
     
     String processedBundle = bundle.stream().map(bundledAsset -> {
-        Resolver resolver = resolvers.stream().filter(r -> r.accepts(bundledAsset)).findFirst().orElseThrow(illegal("There is no resolver for asset: " + bundledAsset));
-        return resolver.resolve(bundledAsset, context);
+        return resolvers.stream()
+          .filter(r -> r.accepts(bundledAsset))
+          .findFirst()
+          .orElseThrow(illegal("There is no resolver for asset: " + bundledAsset))
+          .resolve(bundledAsset, context);
       })
       .flatMap(List::stream)
       .map(assetFile -> {
         PreProcessorContext preprocessorContext = context.getPreprocessorContext(assetFile.getPath());
         SourceProcessor.CompilationResult compilationResult = compile(assetFile.getPath(), assetFile.getContents(), preprocessorContext);
         String processedAsset = processAsset(compilationResult.getAssetName(), compilationResult.getAsset(), preprocessorContext);
+        finalAssetName.set(compilationResult.getAssetName());
         
         return processedAsset;
       })
       .collect(joining("\n", "", "\n"));
 
     try {
-      return processBundle(processedBundle, context);
+      return new Output(finalAssetName.get(), processBundle(processedBundle, context));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

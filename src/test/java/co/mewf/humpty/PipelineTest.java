@@ -23,7 +23,7 @@ public class PipelineTest {
 
   @Test
   public void should_process_bundle() throws IOException {
-    String result = new HumptyBootstrap("/should_process_bundle.toml").createPipeline().process("singleAsset.js");
+    String result = new HumptyBootstrap("/should_process_bundle.toml").createPipeline().process("singleAsset.js").getAsset();
 
     assertTrue(result.startsWith("Preprocessed!Compiled!"));
     assertTrue(result.endsWith("Postprocessed!"));
@@ -36,7 +36,7 @@ public class PipelineTest {
 
   @Test
   public void should_compile_bundle() throws IOException {
-    String result = new HumptyBootstrap("/should_compile_bundle.toml").createPipeline().process("compilableAsset.js");
+    String result = new HumptyBootstrap("/should_compile_bundle.toml").createPipeline().process("compilableAsset.js").getAsset();
 
     String expected = read("blocks.js") + "\n";
     assertEquals(expected, result);
@@ -44,7 +44,7 @@ public class PipelineTest {
 
   @Test
   public void should_concatenate_bundle_with_multiple_assets() throws IOException {
-    String result = new HumptyBootstrap("/should_concatenate_bundle_with_multiple_assets.toml").createPipeline().process("multipleAssets.js");
+    String result = new HumptyBootstrap("/should_concatenate_bundle_with_multiple_assets.toml").createPipeline().process("multipleAssets.js").getAsset();
 
     String expected = read("blocks.js") + "\n" + read("web_server.js") + "\n";
 
@@ -55,7 +55,7 @@ public class PipelineTest {
   public void should_pass_configuration_options_via_toml() throws IOException {
     Pipeline pipeline = new HumptyBootstrap("/should_pass_configuration_options_via_toml.toml").createPipeline();
 
-    String actual = pipeline.process("singleAsset.js");
+    String actual = pipeline.process("singleAsset.js").getAsset();
 
     assertEquals("configured from TOML!configured from TOML!\nconfigured from TOML!", actual);
   }
@@ -65,7 +65,7 @@ public class PipelineTest {
     ClassLoader classLoader = getClass().getClassLoader();
     Pipeline pipeline = new HumptyBootstrap("/humpty-wildcard.toml").createPipeline();
 
-    String output = pipeline.process("no_extension.js");
+    String output = pipeline.process("no_extension.js").getAsset();
 
     assertThat("Did not include blocks.js", output, containsString(IOUtils.toString(classLoader.getResourceAsStream(locator.getFullPath("blocks.js")))));
     assertThat("Did not include web_server.js", output, containsString(IOUtils.toString(classLoader.getResourceAsStream(locator.getFullPath("web_server.js")))));
@@ -76,7 +76,7 @@ public class PipelineTest {
     ClassLoader classLoader = getClass().getClassLoader();
     Pipeline pipeline = new HumptyBootstrap("/humpty-wildcard.toml").createPipeline();
 
-    String output = pipeline.process("folder_and_extension.js");
+    String output = pipeline.process("folder_and_extension.js").getAsset();
 
     assertThat("Did not include blocks.js", output, containsString(IOUtils.toString(classLoader.getResourceAsStream(locator.getFullPath("blocks.js")))));
     assertThat("Did not include web_server.js", output, containsString(IOUtils.toString(classLoader.getResourceAsStream(locator.getFullPath("web_server.js")))));
@@ -87,7 +87,7 @@ public class PipelineTest {
     ClassLoader classLoader = getClass().getClassLoader();
     Pipeline pipeline = new HumptyBootstrap("/humpty-wildcard.toml").createPipeline();
 
-    String output = pipeline.process("folder_without_extension.coffee");
+    String output = pipeline.process("folder_without_extension.coffee").getAsset();
 
     assertThat("Did not include blocks.coffee", output, containsString(IOUtils.toString(classLoader.getResourceAsStream(locator.getFullPath("blocks.coffee")))));
     assertThat("Did not include web_server.coffee", output, containsString(IOUtils.toString(classLoader.getResourceAsStream(locator.getFullPath("web_server.coffee")))));
@@ -97,7 +97,7 @@ public class PipelineTest {
   public void should_sort_processors_in_configured_order() throws Exception {
     Pipeline pipeline = new HumptyBootstrap("/should_sort_processors_in_configured_order.toml").createPipeline();
     
-    String result = pipeline.process("bundle.js");
+    String result = pipeline.process("bundle.js").getAsset();
     
     assertEquals(read("alert.js") + "appender2appender1appender2appender1\nappender2appender1", result);
   }
@@ -106,7 +106,7 @@ public class PipelineTest {
   public void should_not_use_processors_that_do_not_accept_asset() {
     Pipeline pipeline = new HumptyBootstrap("/should_not_use_processors_that_do_not_accept_asset.toml").createPipeline();
     
-    String result = pipeline.process("bundle.js");
+    String result = pipeline.process("bundle.js").getAsset();
     
     assertEquals(read("alert.js").trim(), result.trim());
   }

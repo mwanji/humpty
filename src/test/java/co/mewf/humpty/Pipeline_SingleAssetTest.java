@@ -23,7 +23,7 @@ public class Pipeline_SingleAssetTest {
 
   @Test
   public void should_process_asset_within_bundle() throws Exception {
-    String result = pipeline.process("asset.js/blocks.coffee");
+    String result = pipeline.process("asset.js/blocks.coffee").getAsset();
     
     assertEquals(read("blocks.js") + "\n", result);
   }

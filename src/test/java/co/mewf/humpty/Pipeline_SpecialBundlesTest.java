@@ -19,14 +19,14 @@ public class Pipeline_SpecialBundlesTest {
 
   @Test
   public void should_find_source_maps() throws Exception {
-    String sourceMap = pipeline.process("jquery.min.map");
+    String sourceMap = pipeline.process("jquery.min.map").getAsset();
     
     assertEquals(IOUtils.toString(getClass().getClassLoader().getResourceAsStream(new WebJarAssetLocator().getFullPath("jquery.min.map"))), sourceMap.trim());
   }
   
   @Test
   public void should_find_loose_webjar() throws Exception {
-    String jquery = pipeline.process("jquery.min.js");
+    String jquery = pipeline.process("jquery.min.js").getAsset();
     
     assertEquals(IOUtils.toString(getClass().getClassLoader().getResourceAsStream(new WebJarAssetLocator().getFullPath("jquery.min.js"))).trim(), jquery.trim());
   }
