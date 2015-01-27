@@ -43,6 +43,10 @@ public class Pipeline {
   }
 
   public String process(String originalAssetName) {
+    return process(originalAssetName, mode);
+  }
+
+  public String process(String originalAssetName, Mode mode) {
     Bundle bundle = getBundle(originalAssetName);
 
     Context context = new Context(mode, bundle);
