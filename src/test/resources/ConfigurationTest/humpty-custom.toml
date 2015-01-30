@@ -1,0 +1,5 @@
+[options]
+  mode = "DEVELOPMENT"
+  assetsDir = "def"
+  buildDir = "abc"
+  digestFile = "ghi.toml"

@@ -1,5 +1,7 @@
 package co.mewf.humpty.config;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -43,15 +45,51 @@ public class Configuration {
       return new HashMap<>(options);
     }
   }
+  
+  public static class GlobalOptions {
+    private String assetsDir;
+    private String buildDir;
+    private Mode mode;
+    private String digestFile;
+    
+    public Path getAssetsDir() {
+      return Paths.get(assetsDir != null ? assetsDir : "src/main/resources/assets");
+    }
+
+    public Path getBuildDir() {
+      return Paths.get(buildDir != null ? buildDir : "src/main/resources/META-INF/resources");
+    }
+
+    public Configuration.Mode getMode() {
+      return mode != null ? mode : Mode.PRODUCTION;
+    }
+
+    public Path getDigestFile() {
+      return Paths.get(digestFile != null ? digestFile : "src/main/resources/humpty-digest.toml");
+    }
+  }
 
   private List<Bundle> bundle;
   private Map<String, Object> options;
+  private GlobalOptions globalOptions;
   
   public static Configuration load(String tomlPath) {
     if (tomlPath.startsWith("/")) {
       tomlPath = tomlPath.substring(1);
     }
-    return new Toml().parse(Thread.currentThread().getContextClassLoader().getResourceAsStream(tomlPath)).to(Configuration.class);
+    Toml toml = new Toml().parse(Thread.currentThread().getContextClassLoader().getResourceAsStream(tomlPath));
+    Configuration configuration = toml.to(Configuration.class);
+    configuration.globalOptions = toml.getTable("options").to(GlobalOptions.class);
+    
+    return configuration;
+  }
+  
+  public static Configuration load(Path tomlPath) {
+    Toml toml = new Toml().parse(tomlPath.toFile());
+    Configuration configuration = toml.to(Configuration.class);
+    configuration.globalOptions = toml.getTable("options").to(GlobalOptions.class);
+    
+    return configuration;
   }
 
   public List<Bundle> getBundles() {
@@ -67,5 +105,9 @@ public class Configuration {
     }
     
     return new Options((Map<String, Object>) options.get(name));
+  }
+
+  public Configuration.GlobalOptions getGlobalOptions() {
+    return globalOptions;
   }
 }
