@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.webjars.WebJarAssetLocator;
 
 import co.mewf.humpty.config.Bundle;
 import co.mewf.humpty.config.Configuration;
@@ -25,7 +26,7 @@ public class WebJarResolverTest {
   @Before
   public void before() {
     options.put("rootDir", "src/test/resources");
-    resolver.configure(new Configuration.Options(options));
+    resolver.configure(new WebJarAssetLocator(), new Configuration.Options(options));
   }
 
   @Test
@@ -69,7 +70,7 @@ public class WebJarResolverTest {
   @Test
   public void should_not_provide_minified_asset_when_preferMin_is_false() throws Exception {
     options.put("preferMin", Boolean.FALSE);
-    resolver.configure(new Configuration.Options(options));
+    resolver.configure(new WebJarAssetLocator(), new Configuration.Options(options));
     
     Context context = new Context(Configuration.Mode.PRODUCTION, libs);
     List<String> assetFilePaths = resolver.resolve("jquery.js", context).stream().map(AssetFile::getPath).collect(toList());
@@ -81,7 +82,7 @@ public class WebJarResolverTest {
   @Test
   public void should_provide_minified_assets_in_development_mode_when_preferMin_is_true() throws Exception {
     options.put("preferMin", Boolean.TRUE);
-    resolver.configure(new Configuration.Options(options));
+    resolver.configure(new WebJarAssetLocator(), new Configuration.Options(options));
 
     Context context = new Context(Configuration.Mode.DEVELOPMENT, libs);
     List<String> assetFilePaths = resolver.resolve("jquery.js", context).stream().map(AssetFile::getPath).collect(toList());

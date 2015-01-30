@@ -30,7 +30,7 @@ import co.mewf.humpty.config.Context;
  * to always use the minified equivalent, or to false to never use it.
  */
 public class WebJarResolver implements Resolver {
-  private final WebJarAssetLocator webJarAssetLocator = new WebJarAssetLocator();
+  private WebJarAssetLocator webJarAssetLocator;
   private Path rootDir;
   private Optional<Boolean> preferMin;
   
@@ -40,7 +40,8 @@ public class WebJarResolver implements Resolver {
   }
   
   @Inject
-  public void configure(Configuration.Options options) {
+  public void configure(WebJarAssetLocator webJarAssetLocator, Configuration.Options options) {
+    this.webJarAssetLocator = webJarAssetLocator;
     this.rootDir = Paths.get(options.get("rootDir", "src/main/resources"));
     this.preferMin = options.get("preferMin");
   }

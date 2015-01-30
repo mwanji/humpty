@@ -3,6 +3,7 @@ package co.mewf.humpty.config;
 import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,7 @@ public class HumptyBootstrap implements PipelineElement {
   private final Configuration.Mode mode;
   private Pipeline pipeline;
   private final Configuration configuration;
+  private final WebJarAssetLocator locator;
   
   public HumptyBootstrap(Object... resources) {
     this("/humpty.toml", resources);
@@ -68,7 +70,12 @@ public class HumptyBootstrap implements PipelineElement {
     this.bundleProcessors = getElements(BundleProcessor.class, getConfiguration("bundles"));
     this.pipelineListeners = getElements(PipelineListener.class, getConfiguration("listeners"));
     this.mode = getMode(humptyOptions);
-
+    this.locator = Arrays.stream(resources)
+      .filter(resource -> resource instanceof WebJarAssetLocator)
+      .map(resource -> (WebJarAssetLocator) resource)
+      .findFirst()
+      .orElseGet(WebJarAssetLocator::new);
+    
     this.pipeline = new Pipeline(mode, bundleResolvers, resolvers, sourceProcessors, assetProcessors, bundleProcessors, pipelineListeners);
     
     bundleResolvers.forEach(this::inject);
@@ -90,8 +97,8 @@ public class HumptyBootstrap implements PipelineElement {
   
   private List<PipelineElement> loadPipelineElements() {
     List<PipelineElement> elements = new ArrayList<>();
-    ServiceLoader.load(PipelineElement.class).forEach(e -> elements.add(e));
-    
+    ServiceLoader.load(PipelineElement.class).forEach(elements::add);
+
     return elements;
   }
   
@@ -112,21 +119,20 @@ public class HumptyBootstrap implements PipelineElement {
   
   private <T extends PipelineElement> List<T> getElements(Class<T> elementClass, Optional<List<String>> configuration) {
     Stream<T> stream = pipelineElements.stream()
-        .filter(e -> elementClass.isAssignableFrom(e.getClass()))
-        .map(e -> elementClass.cast(e));
-    
+      .filter(e -> elementClass.isAssignableFrom(e.getClass()))
+      .map(e -> elementClass.cast(e));
+
     if (configuration.isPresent()) {
       List<String> conf = configuration.get();
       stream = stream
-          .filter(e -> conf.contains(e.getName()))
-          .sorted((e1, e2) -> conf.indexOf(e1.getName()) < conf.indexOf(e2.getName()) ? -1 : 1);
+        .filter(e -> conf.contains(e.getName()))
+        .sorted((e1, e2) -> conf.indexOf(e1.getName()) < conf.indexOf(e2.getName()) ? -1 : 1);
     }
-    
+
     return stream.collect(toList());
   }
   
   private void inject(PipelineElement element) {
-    WebJarAssetLocator locator = new WebJarAssetLocator();
     Stream.of(element.getClass().getMethods())
     .filter(m -> m.isAnnotationPresent(Inject.class))
     .forEach(method -> {
