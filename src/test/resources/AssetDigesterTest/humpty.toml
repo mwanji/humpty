@@ -1,0 +1,7 @@
+[[bundle]]
+  name = "app.js"
+  assets = ["jquery", "webjars-requirejs"]
+  
+[[bundle]]
+  name = "bapp.js"
+  assets = ["webjars-requirejs", "jquery"]
