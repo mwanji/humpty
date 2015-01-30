@@ -26,16 +26,16 @@ import co.mewf.humpty.config.HumptyBootstrap;
 
 import com.moandjiezana.toml.Toml;
 
-public class AssetDigesterTest {
+public class DigesterTest {
   
   @Rule
   public TemporaryFolder tmpDir = new TemporaryFolder();
   private Path digestTomlPath;
   private Path buildDir;
   
-  private final Configuration configuration = Configuration.load("AssetDigesterTest/humpty.toml");
+  private final Configuration configuration = Configuration.load("DigesterTest/humpty.toml");
   private final Pipeline pipeline = new HumptyBootstrap(configuration).createPipeline();
-  private final AssetDigester digest = new AssetDigester();
+  private final Digester digest = new Digester();
   
   @Before
   public void before() {
@@ -54,7 +54,7 @@ public class AssetDigesterTest {
   
   @Test
   public void should_return_null_for_unknown_asset() throws Exception {
-    digest.processBundles(pipeline, Configuration.load("AssetDigesterTest/humpty.toml").getBundles(), buildDir, digestTomlPath);
+    digest.processBundles(pipeline, configuration.getBundles(), buildDir, digestTomlPath);
     
     Toml digestToml = new Toml().parse(digestTomlPath.toFile());
     

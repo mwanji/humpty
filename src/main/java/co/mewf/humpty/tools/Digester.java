@@ -25,7 +25,7 @@ import co.mewf.humpty.config.Configuration;
 
 import com.moandjiezana.toml.Toml;
 
-public class AssetDigester {
+public class Digester {
   
   public Toml processBundles(Pipeline pipeline, List<Bundle> bundles, Path buildDir, Path humptyDigestToml) {
     if (humptyDigestToml.toFile().exists()) {
