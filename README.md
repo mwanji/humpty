@@ -2,11 +2,11 @@
 
 humpty puts your web assets back together.
 
-humpty is a library that strives to be small, understandable and easy to use. It works out of the box with [WebJars](http://webjars.org) for 3rd-party libraries and application code in WebJar-style folders.
+humpty is a library that strives to be small, understandable and easy to use. It works out of the box with [WebJars](http://webjars.org) for 3rd-party libraries.
 
-humpty builds a pipeline to process assets. Customising that pipeline is as easy as adding dependencies to your project.
+humpty builds a pipeline to process assets. Customising that pipeline is often as easy as adding dependencies to your project.
 
-Requires Java 8 and Servlet 3.
+Requires Java 8. humpty-servlet requires Servlet 3.
 
 ## Getting Started
 
@@ -57,13 +57,13 @@ Add the following WebJars to make the JS and CSS libraries available:
 </dependency>
 ````
 
-humpty uses [TOML](https://github.com/toml-lang/toml/tree/v0.2.0) as its configuration language. Create a file called `humpty.toml` in `src/main/resources`:
+humpty uses [TOML](https://github.com/toml-lang/toml/tree/v0.3.1) as its configuration language. Create a file called `humpty.toml` in `src/main/resources`:
 
 ````toml
 [[bundle]] # defines any number of files that will be concatenated together
   name = "example.js" # The resultant file will be called example.js. The file extension is required. It will be added to assets that don't have an extension.
   assets = ["jquery", "underscore", "bootstrap", "app"] # assets to be concatenated, in the order they are listed
-  
+
 [[bundle]]
   name = "example.css"
   assets = ["bootstrap", "app.less"] # will be concatenated into a single CSS file called example.css. app.less will be compiled into CSS
@@ -79,7 +79,7 @@ Now we can include our concatenated and minified files in index.html:
   </head>
   <body>
     Hello, humpty!
-    
+
     <script src="${CONTEXT_PATH}/humpty/example.js"></script>
   </body>
 </html>
@@ -103,7 +103,7 @@ For each file, add the asset's name behind the bundle's name:
   </head>
   <body>
     Hello, humpty!
-    
+
     <script src="${CONTEXT_PATH}/humpty/example.js/jquery.js"></script>
     <script src="${CONTEXT_PATH}/humpty/example.js/underscore.js"></script>
     <script src="${CONTEXT_PATH}/humpty/example.js/bootstrap.js"></script>
@@ -117,9 +117,43 @@ and so on.
 Thankfully, this can be automated. humpty-servlet adds an instance of `Includes` to the servlet context.
 
 * Get it by calling `servletContext.getAttribute(Includes.class.getName())`
-* Call `Includes#generate("example.css")` in your HTML template
+* Add the result of `Includes#generate("example.css")` and `Includes#generate("example.js")` to your HTML template
 
-In production mode, this will create the HTML to include the concatenated file, but in development mode it will include each file separately. 
+In production mode, this will create the HTML to include the concatenated file, but in development mode it will include each file separately.
+
+## Configuration
+
+### Global Options
+
+Option|Default|Description
+-----|-----|--------
+mode|"PRODUCTION"|Determines the behaviour of the pipeline. Can be one of "PRODUCTION", "DEVELOPMENT" or "EXTERNAL"
+assetsDir|"src/main/resources/assets"|The root folder containing the application's assets
+buildDir|"src/main/resources/META-INF/resources"|The root folder where assets are put after they've been through the pipeline. The default allows the assets to be served directly in environments such as Servlet 3.
+digestFile|"src/main/resources/humpty-digest.toml"|The path to the file that tracks digested assets
+
+```toml
+[options]
+  mode = "PRODUCTION"
+  assetsDir = "src/main/resources/assets"
+  buildDir = "src/main/resources/META-INF/resources"
+  digestFile = "src/main/resources/humpty-digest.toml"
+```
+
+For example, the file `${assetsDir}/path/to/app.js` would be copied to `${buildDir}/path/to/app.js`.
+
+### Element-specific options
+
+Each pipeline element has a name that can be used to set its options.
+
+```toml
+[options.element_name]
+  option1 = value1
+  option2 = [value2, value3, value4]
+
+  [options.element_name.option3]
+    option3_1 = value5
+```
 
 ## Pipeline Elements
 
@@ -160,7 +194,11 @@ Bundled with humpty. Looks up resources in a [WebJar](http://webjars.org). For e
 Configuration:
 
 * preferMin: boolean. If true, `WebJarResolver` looks for a minified version of the requested asset by adding `.min` to the asset's base name (ie. jquery.js becomes jquery.min.js). If no such version exists or preferMin is set to false, the requested version is used. If preferMin is not set, it falls back to true in production mode and to false otherwise.
-* rootDir: string, defaults to "src/main/resources". This is the base location of assets using the webjar directory format, but that are not in a JAR, such as an application's custom assets.
+
+```toml
+[options.webjars]
+  preferMin = false
+```
 
 ### Processors
 
@@ -228,8 +266,8 @@ Options that determine how the asset pipeline itself is created. By default, all
 ````toml
 [options.pipeline]
   mode = "DEVELOPMENT" # Defaults to "PRODUCTION". Processors are made aware of the mode and may modify their behaviour or even not run at all
-  
-[options.pipeline.elements] # Used to customise the processors that will be applied and their ordering 
+
+[options.pipeline.elements] # Used to customise the processors that will be applied and their ordering
   sources = ["coffee", "emberJs"] # Only these SourceProcessors will run
   assets = [] # No AssetProcessors will run
   # As bundles is commented out, the default BundleProcessors will run
