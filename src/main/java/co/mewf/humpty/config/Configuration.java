@@ -48,7 +48,10 @@ public class Configuration {
   private Map<String, Object> options;
   
   public static Configuration load(String tomlPath) {
-    return new Toml().parse(Configuration.class.getResourceAsStream(tomlPath)).to(Configuration.class);
+    if (tomlPath.startsWith("/")) {
+      tomlPath = tomlPath.substring(1);
+    }
+    return new Toml().parse(Thread.currentThread().getContextClassLoader().getResourceAsStream(tomlPath)).to(Configuration.class);
   }
 
   public List<Bundle> getBundles() {
