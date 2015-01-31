@@ -150,6 +150,8 @@ public class HumptyBootstrap implements PipelineElement {
           args[i] = configuration.getOptionsFor(element);
         } else if (parameterType == Configuration.Mode.class) {
           args[i] = mode;
+        } else if (parameterType == Configuration.GlobalOptions.class) {
+          args[i] = configuration.getGlobalOptions();
         } else {
           args[i] = getExtra(parameterType).orElseThrow(() -> new IllegalArgumentException("Cannot inject the type " + parameterType.getName() + " into " + element.getClass().getName()));
         }

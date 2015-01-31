@@ -161,6 +161,19 @@ public class PipelineTest {
     assertSame(pipeline, tracerPipelineListener.pipeline);
   }
   
+  @Test
+  public void should_inject_global_options() throws Exception {
+    Configuration configuration = Configuration.load("PipelineTest/should_inject_global_options.toml");
+    Pipeline pipeline = new HumptyBootstrap(configuration).createPipeline();
+    
+    TracerPipelineListener tracerPipelineListener = pipeline.getPipelineListener(TracerPipelineListener.class).get();
+    
+    assertEquals(tracerPipelineListener.globalOptions.getAssetsDir(), configuration.getGlobalOptions().getAssetsDir());
+    assertEquals(tracerPipelineListener.globalOptions.getBuildDir(), configuration.getGlobalOptions().getBuildDir());
+    assertEquals(tracerPipelineListener.globalOptions.getDigestFile(), configuration.getGlobalOptions().getDigestFile());
+    assertEquals(tracerPipelineListener.globalOptions.getMode(), configuration.getGlobalOptions().getMode());
+  }
+  
   private String read(String filename) {
     try (InputStream is = getClass().getClassLoader().getResourceAsStream(locator.getFullPath(filename))) {
       return IOUtils.toString(is);

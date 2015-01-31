@@ -15,6 +15,7 @@ public class TracerPipelineListener implements PipelineListener {
   public int onAssetProcessedCalledCount;
   public Mode mode;
   public Pipeline pipeline;
+  public Configuration.GlobalOptions globalOptions;
 
   @Override
   public String getName() {
@@ -33,9 +34,10 @@ public class TracerPipelineListener implements PipelineListener {
   }
 
   @Inject
-  public void configure(Configuration.Options options, Pipeline pipeline, Configuration.Mode mode) {
+  public void configure(Configuration.Options options, Pipeline pipeline, Configuration.Mode mode, Configuration.GlobalOptions globalOptions) {
     this.pipeline = pipeline;
     this.mode = mode;
+    this.globalOptions = globalOptions;
     this.active = options.get("active", Boolean.TRUE);
     
     if (options.get("fail", Boolean.FALSE)) {
