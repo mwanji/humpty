@@ -236,7 +236,7 @@ In your configuration file, add:
 
 By default, configuration is done via a TOML object in a file called `humpty.toml` at the root of the classpath. The configuration's properties are:
 
-### bundles
+### bundle
 
 Required. An array of tables. Must contain at least one bundle. Each bundle has a name (required) and an array of assets (required).
 
@@ -252,11 +252,14 @@ Required. An array of tables. Must contain at least one bundle. Each bundle has 
 
 ### options
 
-Optional. A table of processor-specific settings. The name to use is in each processor's documentation.
+Optional. A table of global and pipeline element-specific settings. The pipeline element name to use is in each element's documentation.
 
 ````toml
-[options.bootstrap_less]
-  responsive = false
+[options]
+  mode = "DEVELOPMENT"
+
+[options.pipeline_element_name]
+  key = value
 ````
 
 ### options.pipeline
@@ -273,17 +276,6 @@ Options that determine how the asset pipeline itself is created. By default, all
   # As bundles is commented out, the default BundleProcessors will run
   #bundles = ["compression"]
 ````
-
-### options.cache
-
-Controls how assets are cached in memory.
-
-````toml
-[options.cache]
-  devWebJars = ["myApp", "myApp2"] # Excludes assets in these WebJars from being cached in development mode
-````
-
-`devWebJars` only works if your application code is in WebJar-style folders, meaning: `META-INF/resources/webjars/$NAME/$VERSION_NUMBER/`.
 
 ## Extension Points
 
@@ -308,6 +300,7 @@ The sub-interfaces are:
 While constructor injection is not allowed because resources must be instantiatable by a ServiceLoader, a limited form of method injection is available. One method may be annotated with the `javax.inject.Inject` annotation. Dependencies that can be injected:
 
 * `Configuration` is the Java representation of the entire configuration file
+* `Configuration.GlobalOptions` the global options
 * `Configuration.Options` contains the options set for the current processor
 * `Configuration.Mode` is the defined mode
 * `Pipeline` the asset pipeline itself
