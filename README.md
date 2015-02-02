@@ -14,37 +14,37 @@ In this example, we will bundle Jquery, underscore, Bootstrap, an application JS
 
 Add humpty to your dependencies:
 
-````xml
+```xml
 <dependency>
   <groupId>co.mewf.humpty</groupId>
   <artifactId>humpty</artifactId>
   <version>1.0.0-SNAPSHOT</version>
 </dependency>
-````
+```
 
 To have humpty process requests to `http://${DOMAIN}/${CONTEXT_PATH}/humpty`, add [humpty-servlet](https://github.com/mwanji/humpty-servlet) to your dependencies:
 
-````xml
+```xml
 <dependency>
   <groupId>co.mewf.humpty</groupId>
   <artifactId>humpty-servlet</artifactId>
   <version>1.0.0-SNAPSHOT</version>
 </dependency>
-````
+```
 
 To compile LESS files, add [humpty-less](https://github.com/mwanji/humpty-less):
 
-````xml
+```xml
 <dependency>
   <groupId>co.mewf.humpty</groupId>
   <artifactId>humpty-less</artifactId>
   <version>1.0.0-SNAPSHOT</version>
 </dependency>
-````
+```
 
 Add the following WebJars to make the JS and CSS libraries available:
 
-````xml
+```xml
 <dependency>
   <groupId>org.webjars</groupId>
   <artifactId>bootstrap</artifactId> <!-- includes Jquery transitively -->
@@ -55,23 +55,24 @@ Add the following WebJars to make the JS and CSS libraries available:
   <artifactId>underscore</artifactId>
   <version>1.4.4</version>
 </dependency>
-````
+```
+
+Create `app.js` and `app.less` in `src/main/resources/assets`.
 
 humpty uses [TOML](https://github.com/toml-lang/toml/tree/v0.3.1) as its configuration language. Create a file called `humpty.toml` in `src/main/resources`:
 
-````toml
-[[bundle]] # defines any number of files that will be concatenated together
-  name = "example.js" # The resultant file will be called example.js. The file extension is required. It will be added to assets that don't have an extension.
-  assets = ["jquery", "underscore", "bootstrap", "app"] # assets to be concatenated, in the order they are listed
+```toml
+example.js = ["jquery", "underscore", "bootstrap", "/app"]
+"example.css" = ["bootstrap", "/app.less"]
+```
 
-[[bundle]]
-  name = "example.css"
-  assets = ["bootstrap", "app.less"] # will be concatenated into a single CSS file called example.css. app.less will be compiled into CSS
-````
+This will create two files: example.js which is a concatenation of jquery.js, underscore.js, bootstrap.js and app.js and example.css which is a concatenation of bootstrap.css and the compiled version of app.less. The file extension can be omitted if it is the same as the bundle's extension.
+
+`/app.js` and `/app.less` refer to files in the `assets` folder. All the other files are in WebJars.
 
 Now we can include our concatenated and minified files in index.html:
 
-````html
+```html
 <!DOCTYPE html>
 <html>
   <head>
@@ -83,18 +84,18 @@ Now we can include our concatenated and minified files in index.html:
     <script src="${CONTEXT_PATH}/humpty/example.js"></script>
   </body>
 </html>
-````
+```
 
 While developing, you may want to include files separately, for easier debugging. First, switch to development mode by adding the following to `humpty.toml`:
 
-````toml
+```toml
 [options.pipeline]
   mode = "DEVELOPMENT" # defaults to "PRODUCTION"
-````
+```
 
 For each file, add the asset's name behind the bundle's name:
 
-````html
+```html
 <!DOCTYPE html>
 <html>
   <head>
@@ -110,7 +111,7 @@ For each file, add the asset's name behind the bundle's name:
     <script src="${CONTEXT_PATH}/humpty/example.js/app.js"></script>
   </body>
 </html>
-````
+```
 
 and so on.
 
@@ -126,7 +127,7 @@ In production mode, this will create the HTML to include the concatenated file, 
 ### Global Options
 
 Option|Default|Description
------|-----|--------
+------|-------|-----------
 mode|"PRODUCTION"|Determines the behaviour of the pipeline. Can be one of "PRODUCTION", "DEVELOPMENT" or "EXTERNAL"
 assetsDir|"src/main/resources/assets"|The root folder containing the application's assets
 buildDir|"src/main/resources/META-INF/resources"|The root folder where assets are put after they've been through the pipeline. The default allows the assets to be served directly in environments such as Servlet 3.
@@ -173,21 +174,38 @@ If an asset does not have an extension, the one in the name of the bundle will b
 
 You can use `*` as a wildcard to get all the files in a folder: `/assets/*`, `/assets/*.tpl`. The same extension rules apply.
 
-````toml
+There are two ways of writing bundles:
+
+```toml
+# shorthand
+example.js = ["underscore.js", "otherLib.coffee", "jquery", "myApp"]
+
 [[bundle]]
   name = "example.js"
   assets = ["underscore.js",
-            "otherLib.coffee"
-            "jquery", # File extension is optional if it is the same as the one in the bundle's name
-            "myApp" # Application code should be packaged like a WebJar, ie. located under META-INF/resources/webjars, but does not need to be in a separate JAR
+            "otherLib.coffee",
+            "jquery",
+            "myApp"
            ]
-````
+```
 
 ### Resolvers
 
 Resolvers take an asset's name and turn it into one or more (in case of wildcards) files whose contents can be read. Creating custom resolvers is discussed in the [Extension Points](#extension-points) section.
 
-__WebJarResolver__
+#### FileResolver
+
+Bundled with humpty. Looks for files in your application's folders. The root folder is determined in the global `assetsDir` option.
+
+In your `humpty.toml`, prefix asset names with a `/` to indicate that it is part of your application.
+
+Example:
+
+```toml
+"mybundle.js" = ["/myApp.js"]
+```
+
+#### WebJarResolver
 
 Bundled with humpty. Looks up resources in a [WebJar](http://webjars.org). For example, if `org.webjars:jquery:2.1.1` has been added to the dependencies, the resolver will find `jquery.js`.
 
@@ -199,6 +217,10 @@ Configuration:
 [options.webjars]
   preferMin = false
 ```
+
+Note:
+
+WebJars are typically in JAR files, but they can also be "faked" by reproducing the appropriate folder structure: `META-INF/resources/webjars/${WEBJAR_NAME}/${WEBJAR_VERSION}/`. This can be useful when a third-party library does not have a WebJar.
 
 ### Processors
 
@@ -227,10 +249,10 @@ humpty has 3 different modes, which may change how pipeline elements behave.
 
 In your configuration file, add:
 
-````toml
-[options.humpty]
+```toml
+[options]
   mode = "DEVELOPMENT"
-````
+```
 
 ## Configuration Reference
 
@@ -238,17 +260,20 @@ By default, configuration is done via a TOML object in a file called `humpty.tom
 
 ### bundle
 
-Required. An array of tables. Must contain at least one bundle. Each bundle has a name (required) and an array of assets (required).
+An array of tables which must contain at least one bundle. Each bundle has a name (required) and an array of assets (required).
 
-````toml
+```toml
 [[bundle]]
 	name = "app.js"
-	assets = ["jquery", "/assets/app.js"]
+	assets = ["jquery", "/app.js"]
 
 [[bundle]]
   name = "app.css",
-  assets = ["bootstrap.less", "theme"]
-````
+  assets = ["bootstrap.less", "/theme"]
+
+# shorthand  
+"libs.js" = ["jquery", "underscore"]
+```
 
 ### options
 
