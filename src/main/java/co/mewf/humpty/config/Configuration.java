@@ -73,13 +73,22 @@ public class Configuration {
   private Map<String, Object> options;
   private GlobalOptions globalOptions;
   
+  @SuppressWarnings("unchecked")
   public static Configuration load(String tomlPath) {
     if (tomlPath.startsWith("/")) {
       tomlPath = tomlPath.substring(1);
     }
+
     Toml toml = new Toml().parse(Thread.currentThread().getContextClassLoader().getResourceAsStream(tomlPath));
     Configuration configuration = toml.to(Configuration.class);
     configuration.globalOptions = toml.getTable("options").to(GlobalOptions.class);
+
+    Map<String, List<String>> map = toml.to(Map.class);
+    map.entrySet().stream()
+      .filter(e -> !e.getKey().toString().equals("options"))
+      .filter(e -> !e.getKey().toString().equals("bundle"))
+      .map(e -> new Bundle(e.getKey().toString(), (List<String>) e.getValue()))
+      .forEach(configuration.bundle::add);
     
     return configuration;
   }
