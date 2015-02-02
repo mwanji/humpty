@@ -1,3 +1,4 @@
+co.mewf.humpty.spi.resolvers.FileResolver
 co.mewf.humpty.spi.resolvers.WebJarResolver
 co.mewf.humpty.spi.bundles.ConfigurationBundleResolver
 co.mewf.humpty.spi.bundles.WebJarAssetBundleResolver

@@ -1,0 +1,3 @@
+[[bundle]]
+  name = "libs.js"
+  assets = ["jquery", "alert", "web_server"]

@@ -1,7 +1,6 @@
 package co.mewf.humpty.spi.resolvers;
 
 import java.io.InputStreamReader;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -31,7 +30,6 @@ import co.mewf.humpty.config.Context;
  */
 public class WebJarResolver implements Resolver {
   private WebJarAssetLocator webJarAssetLocator;
-  private Path rootDir;
   private Optional<Boolean> preferMin;
   
   @Override
@@ -42,7 +40,6 @@ public class WebJarResolver implements Resolver {
   @Inject
   public void configure(WebJarAssetLocator webJarAssetLocator, Configuration.Options options) {
     this.webJarAssetLocator = webJarAssetLocator;
-    this.rootDir = Paths.get(options.get("rootDir", "src/main/resources"));
     this.preferMin = options.get("preferMin");
   }
 
@@ -53,39 +50,27 @@ public class WebJarResolver implements Resolver {
 
   @Override
   public List<AssetFile> resolve(String uri, Context context) {
-    boolean useMin = (preferMin.isPresent() ? preferMin.get() : context.getMode() == Configuration.Mode.PRODUCTION) && !uri.contains(".min.");
+    boolean useMin = preferMin.orElse(context.getMode() == Configuration.Mode.PRODUCTION) && !uri.contains(".min.");
     try {
       WildcardHelper helper = new WildcardHelper(uri);
 
       ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
       
       if (!helper.hasWildcard()) {
-        String fullPath = webJarAssetLocator.getFullPath(uri);
         String minifiedUri = FilenameUtils.getBaseName(uri) + ".min." + FilenameUtils.getExtension(uri);
-        Path assetPath = rootDir.resolve(fullPath);
+        Path uriPath = Paths.get(uri);
+        Path minUriPath = uriPath.getParent() != null ? uriPath.getParent().resolve(minifiedUri) : Paths.get(minifiedUri);
         
         String contents;
-        if (assetPath.toFile().exists()) {
-          if (useMin) {
-            String minifiedFullPath = fullPath.substring(0, fullPath.lastIndexOf('/') + 1) + minifiedUri;
-            Path minifiedAssetPath = rootDir.resolve(minifiedFullPath);
-            if (minifiedAssetPath.toFile().exists()) {
-              assetPath = minifiedAssetPath;
-              fullPath = minifiedFullPath;
-            }
+        String fullPath = webJarAssetLocator.getFullPath(uri);
+        if (useMin) {
+          try {
+            fullPath = webJarAssetLocator.getFullPath(minUriPath.toString());
+          } catch (IllegalArgumentException e) {
+            // minified resource does not exist
           }
-          
-          contents = new String(Files.readAllBytes(assetPath));
-        } else {
-          if (useMin) {
-            try {
-              fullPath = webJarAssetLocator.getFullPath(minifiedUri);
-            } catch (IllegalArgumentException e) {
-              // minified resource does not exist
-            }
-          }
-          contents = IOUtils.toString(new InputStreamReader(classLoader.getResourceAsStream(fullPath)));
         }
+        contents = IOUtils.toString(new InputStreamReader(classLoader.getResourceAsStream(fullPath)));
         
         AssetFile assetFile = new AssetFile(context.getBundle(), fullPath, contents);
 

@@ -14,12 +14,10 @@ import co.mewf.humpty.config.Configuration;
 import co.mewf.humpty.config.HumptyBootstrap;
 import co.mewf.humpty.spi.listeners.TracerPipelineListener;
 
-import com.moandjiezana.toml.Toml;
-
 public class Pipeline_SingleAssetTest {
   
   private final WebJarAssetLocator locator = new WebJarAssetLocator();
-  private final Pipeline pipeline = new HumptyBootstrap(new Toml().parse(getClass().getResourceAsStream("should_process_asset_in_bundle.toml")).to(Configuration.class)).createPipeline();
+  private final Pipeline pipeline = new HumptyBootstrap(Configuration.load("co/mewf/humpty/should_process_asset_in_bundle.toml")).createPipeline();
 
   @Test
   public void should_process_asset_within_bundle() throws Exception {
