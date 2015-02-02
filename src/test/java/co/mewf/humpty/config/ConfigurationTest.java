@@ -37,13 +37,24 @@ public class ConfigurationTest {
   }
   
   @Test
-  public void should_get_bundle_shorthands() throws Exception {
-    List<Bundle> bundles = Configuration.load("ConfigurationTest/humpty-bundle-shorthand.toml").getBundles();
+  public void should_get_bundle_shorthands_and_longhands() throws Exception {
+    List<Bundle> bundles = Configuration.load("ConfigurationTest/humpty-bundle-shorthand-and-longhand.toml").getBundles();
     
     List<String> names = bundles.stream().map(Bundle::getName).sorted().collect(toList());
     List<String> assets = bundles.stream().map(Bundle::stream).flatMap(s -> s).sorted().collect(toList());
     
     assertThat(names, contains("bundle1.js", "bundle2.css", "bundle3.js"));
     assertThat(assets, contains("app1.css", "app1.js", "app2.css", "app2.js", "app3.js"));
+  }
+  
+  @Test
+  public void should_get_bundle_short_hands() throws Exception {
+    List<Bundle> bundles = Configuration.load("ConfigurationTest/humpty-bundle-shorthand.toml").getBundles();
+    
+    List<String> names = bundles.stream().map(Bundle::getName).sorted().collect(toList());
+    List<String> assets = bundles.stream().map(Bundle::stream).flatMap(s -> s).sorted().collect(toList());
+    
+    assertThat(names, contains("bundle1.js", "bundle2.css"));
+    assertThat(assets, contains("app1.css", "app1.js", "app2.css", "app2.js"));
   }
 }

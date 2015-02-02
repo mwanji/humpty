@@ -2,6 +2,7 @@ package co.mewf.humpty.config;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -69,7 +70,7 @@ public class Configuration {
     }
   }
 
-  private List<Bundle> bundle;
+  private List<Bundle> bundle = new ArrayList<>();
   private Map<String, Object> options;
   private GlobalOptions globalOptions;
   
