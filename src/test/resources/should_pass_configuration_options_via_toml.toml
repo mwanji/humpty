@@ -2,9 +2,6 @@
   name = "singleAsset.js"
   assets = ["blocks.js"]
   
-[options.pipeline]
-  mode = "DEVELOPMENT"
-  
 [options.pipeline.elements]
   assets = ["configurable"]  
   sources = ["configurable"]

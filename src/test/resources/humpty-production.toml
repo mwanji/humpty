@@ -24,9 +24,6 @@
 
 [options.configurable]
 	message = "aliased from JSON!"
-
-[options.pipeline]
-	mode = "PRODUCTION"
   
 [options.pipeline.elements]
   assets = ["counting"]

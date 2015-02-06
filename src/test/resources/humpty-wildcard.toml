@@ -9,9 +9,6 @@
 [[bundle]]
 	name = "no_extension.js"
 	assets = ["blocks", "web_server"]
-
-[options.pipeline]
-  mode = "DEVELOPMENT"
   
 [options.pipeline.elements]
   assets = ["echo"]

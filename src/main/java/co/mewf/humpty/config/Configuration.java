@@ -50,7 +50,6 @@ public class Configuration {
   public static class GlobalOptions {
     private String assetsDir;
     private String buildDir;
-    private Mode mode;
     private String digestFile;
     
     public Path getAssetsDir() {
@@ -59,10 +58,6 @@ public class Configuration {
 
     public Path getBuildDir() {
       return Paths.get(buildDir != null ? buildDir : "src/main/resources/META-INF/resources");
-    }
-
-    public Configuration.Mode getMode() {
-      return mode != null ? mode : Mode.PRODUCTION;
     }
 
     public Path getDigestFile() {
@@ -74,30 +69,29 @@ public class Configuration {
   private Map<String, Object> options;
   private GlobalOptions globalOptions;
   
-  @SuppressWarnings("unchecked")
   public static Configuration load(String tomlPath) {
     if (tomlPath.startsWith("/")) {
       tomlPath = tomlPath.substring(1);
     }
 
-    Toml toml = new Toml().parse(Thread.currentThread().getContextClassLoader().getResourceAsStream(tomlPath));
+    return load(new Toml().parse(Thread.currentThread().getContextClassLoader().getResourceAsStream(tomlPath)));
+  }
+  
+  public static Configuration load(Path tomlPath) {
+    return load(new Toml().parse(tomlPath.toFile()));
+  }
+  
+  private static Configuration load(Toml toml) {
     Configuration configuration = toml.to(Configuration.class);
     configuration.globalOptions = toml.getTable("options").to(GlobalOptions.class);
 
+    @SuppressWarnings("unchecked")
     Map<String, List<String>> map = toml.to(Map.class);
     map.entrySet().stream()
       .filter(e -> !e.getKey().toString().equals("options"))
       .filter(e -> !e.getKey().toString().equals("bundle"))
       .map(e -> new Bundle(e.getKey().toString(), (List<String>) e.getValue()))
       .forEach(configuration.bundle::add);
-    
-    return configuration;
-  }
-  
-  public static Configuration load(Path tomlPath) {
-    Toml toml = new Toml().parse(tomlPath.toFile());
-    Configuration configuration = toml.to(Configuration.class);
-    configuration.globalOptions = toml.getTable("options").to(GlobalOptions.class);
     
     return configuration;
   }

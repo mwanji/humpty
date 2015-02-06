@@ -1,9 +1,6 @@
 [[bundle]]
 name = "compilableAsset.js"
 assets = ["blocks.coffee"]
-
-[options.pipeline]
-  mode = "DEVELOPMENT"
   
 [options.pipeline.elements]
   sources = ["coffee"]

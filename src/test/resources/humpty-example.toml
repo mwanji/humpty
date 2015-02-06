@@ -6,8 +6,5 @@ assets = ["/users/user.js", "http://mycdn.com/jquery.js", "bootstrap.js"]
 name = "asset2.css"
 assets = ["bootstrap.css", "/app/app.css"]
 
-[options]
-mode = "DEVELOPMENT"
-
 [options.coffee]
 BARE = true

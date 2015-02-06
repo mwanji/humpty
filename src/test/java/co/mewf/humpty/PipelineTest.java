@@ -171,7 +171,6 @@ public class PipelineTest {
     assertEquals(tracerPipelineListener.globalOptions.getAssetsDir(), configuration.getGlobalOptions().getAssetsDir());
     assertEquals(tracerPipelineListener.globalOptions.getBuildDir(), configuration.getGlobalOptions().getBuildDir());
     assertEquals(tracerPipelineListener.globalOptions.getDigestFile(), configuration.getGlobalOptions().getDigestFile());
-    assertEquals(tracerPipelineListener.globalOptions.getMode(), configuration.getGlobalOptions().getMode());
   }
   
   private String read(String filename) {

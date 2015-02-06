@@ -19,7 +19,6 @@ public class ConfigurationTest {
     Configuration configuration = Configuration.load("ConfigurationTest/humpty-custom.toml");
     GlobalOptions globalOptions = configuration.getGlobalOptions();
     
-    assertEquals(Configuration.Mode.DEVELOPMENT, globalOptions.getMode());
     assertEquals(Paths.get("def"), globalOptions.getAssetsDir());
     assertEquals(Paths.get("abc"), globalOptions.getBuildDir());
     assertEquals(Paths.get("ghi.toml"), globalOptions.getDigestFile());
@@ -32,7 +31,6 @@ public class ConfigurationTest {
     
     assertEquals(Paths.get("src/main/resources/assets"), globalOptions.getAssetsDir());
     assertEquals(Paths.get("src/main/resources/META-INF/resources"), globalOptions.getBuildDir());
-    assertEquals(Configuration.Mode.PRODUCTION, globalOptions.getMode());
     assertEquals(Paths.get("src/main/resources/humpty-digest.toml"), globalOptions.getDigestFile());
   }
   
@@ -50,6 +48,28 @@ public class ConfigurationTest {
   @Test
   public void should_get_bundle_short_hands() throws Exception {
     List<Bundle> bundles = Configuration.load("ConfigurationTest/humpty-bundle-shorthand.toml").getBundles();
+    
+    List<String> names = bundles.stream().map(Bundle::getName).sorted().collect(toList());
+    List<String> assets = bundles.stream().map(Bundle::stream).flatMap(s -> s).sorted().collect(toList());
+    
+    assertThat(names, contains("bundle1.js", "bundle2.css"));
+    assertThat(assets, contains("app1.css", "app1.js", "app2.css", "app2.js"));
+  }
+  
+  @Test
+  public void should_get_bundle_shorthands_and_longhands_from_path() throws Exception {
+    List<Bundle> bundles = Configuration.load(Paths.get("src/test/resources/ConfigurationTest/humpty-bundle-shorthand-and-longhand.toml")).getBundles();
+    
+    List<String> names = bundles.stream().map(Bundle::getName).sorted().collect(toList());
+    List<String> assets = bundles.stream().map(Bundle::stream).flatMap(s -> s).sorted().collect(toList());
+    
+    assertThat(names, contains("bundle1.js", "bundle2.css", "bundle3.js"));
+    assertThat(assets, contains("app1.css", "app1.js", "app2.css", "app2.js", "app3.js"));
+  }
+  
+  @Test
+  public void should_get_bundle_short_hands_from_path() throws Exception {
+    List<Bundle> bundles = Configuration.load(Paths.get("src/test/resources/ConfigurationTest/humpty-bundle-shorthand.toml")).getBundles();
     
     List<String> names = bundles.stream().map(Bundle::getName).sorted().collect(toList());
     List<String> assets = bundles.stream().map(Bundle::stream).flatMap(s -> s).sorted().collect(toList());

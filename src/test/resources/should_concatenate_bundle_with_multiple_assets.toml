@@ -1,9 +1,6 @@
 [[bundle]]
   name = "multipleAssets.js"
   assets = ["blocks.coffee", "web_server.coffee"]
-
-[options.pipeline]
-  mode = "DEVELOPMENT"
   
 [options.pipeline.elements]
   sources = ["coffee"]

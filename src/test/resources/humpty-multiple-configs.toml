@@ -8,9 +8,6 @@
 [options.echo]
 	echoMessage = "incorrect"
 
-[options.pipeline]
-	mode = "DEVELOPMENT"
-
 [options.pipeline.processors]
   assets = ["configurable", "echo"]
   sources = []
