@@ -75,8 +75,8 @@ public class DigesterTest {
   @Test
   public void should_always_process_bundles_in_production_mode() throws Exception {
     Pipeline pipeline = mock(Pipeline.class);
-    when(pipeline.process("app.js", Configuration.Mode.PRODUCTION)).thenReturn(new Pipeline.Output("", "abc"));
-    when(pipeline.process("bapp.js", Configuration.Mode.PRODUCTION)).thenReturn(new Pipeline.Output("", "abc"));
+    when(pipeline.process("app.js")).thenReturn(new Pipeline.Output("", "abc"));
+    when(pipeline.process("bapp.js")).thenReturn(new Pipeline.Output("", "abc"));
     
     digest.processBundles(pipeline, configuration.getBundles(), buildDir, digestTomlPath);
   }

@@ -62,10 +62,10 @@ public class Pipeline {
   }
 
   public Pipeline.Output process(String originalAssetName) {
-    return process(originalAssetName, mode);
+    return process(originalAssetName, originalAssetName.indexOf('/') > -1 ? Configuration.Mode.DEVELOPMENT : Configuration.Mode.PRODUCTION);
   }
 
-  public Pipeline.Output process(String originalAssetName, Mode mode) {
+  private Pipeline.Output process(String originalAssetName, Mode mode) {
     Bundle bundle = getBundle(originalAssetName);
 
     Context context = new Context(mode, bundle);

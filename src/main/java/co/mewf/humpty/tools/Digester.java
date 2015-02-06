@@ -41,7 +41,7 @@ public class Digester {
     
     bundles.forEach(b -> {
       String bundleName = b.getName();
-      String asset = pipeline.process(bundleName, Configuration.Mode.PRODUCTION).getAsset();
+      String asset = pipeline.process(bundleName).getAsset();
       
       String digest;
       try {
