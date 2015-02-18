@@ -81,16 +81,26 @@ public class Configuration {
     return load(new Toml().parse(tomlPath.toFile()));
   }
   
+  @SuppressWarnings("unchecked")
   private static Configuration load(Toml toml) {
     Configuration configuration = toml.to(Configuration.class);
     configuration.globalOptions = toml.getTable("options").to(GlobalOptions.class);
 
-    @SuppressWarnings("unchecked")
     Map<String, List<String>> map = toml.to(Map.class);
     map.entrySet().stream()
       .filter(e -> !e.getKey().toString().equals("options"))
       .filter(e -> !e.getKey().toString().equals("bundle"))
-      .map(e -> new Bundle(e.getKey().toString(), (List<String>) e.getValue()))
+      .map(e -> {
+        String key = e.getKey().toString().substring(1, e.getKey().toString().length() -1);
+        Bundle bundle;
+        if (e.getValue() instanceof List) {
+          bundle = new Bundle(key, (List<String>) e.getValue());
+        } else {
+          List<String> assets = (List<String>) ((Map<String, Object>) e.getValue()).get("assets");
+          bundle = new Bundle(key, assets);
+        }
+        return bundle;
+      })
       .forEach(configuration.bundle::add);
     
     return configuration;

@@ -41,8 +41,8 @@ public class ConfigurationTest {
     List<String> names = bundles.stream().map(Bundle::getName).sorted().collect(toList());
     List<String> assets = bundles.stream().map(Bundle::stream).flatMap(s -> s).sorted().collect(toList());
     
-    assertThat(names, contains("bundle1.js", "bundle2.css", "bundle3.js"));
-    assertThat(assets, contains("app1.css", "app1.js", "app2.css", "app2.js", "app3.js"));
+    assertThat(names, contains("bundle1.js", "bundle2.css", "bundle3.js", "bundle4.js", "bundle5.js"));
+    assertThat(assets, contains("app1.css", "app1.js", "app2.css", "app2.js", "app3.js", "app4.js", "app5.js", "app6.js"));
   }
   
   @Test
@@ -63,8 +63,8 @@ public class ConfigurationTest {
     List<String> names = bundles.stream().map(Bundle::getName).sorted().collect(toList());
     List<String> assets = bundles.stream().map(Bundle::stream).flatMap(s -> s).sorted().collect(toList());
     
-    assertThat(names, contains("bundle1.js", "bundle2.css", "bundle3.js"));
-    assertThat(assets, contains("app1.css", "app1.js", "app2.css", "app2.js", "app3.js"));
+    assertThat(names, contains("bundle1.js", "bundle2.css", "bundle3.js", "bundle4.js", "bundle5.js"));
+    assertThat(assets, contains("app1.css", "app1.js", "app2.css", "app2.js", "app3.js", "app4.js", "app5.js", "app6.js"));
   }
   
   @Test

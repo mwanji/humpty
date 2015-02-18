@@ -60,7 +60,7 @@ public class Digester {
         }
 
         Path bundlePathFile = bundleDigestPath.getFileName();
-        Files.write(humptyDigestToml, (bundleName + " = \"" + bundlePathFile + "\"\n").getBytes(UTF_8), CREATE, WRITE, APPEND);
+        Files.write(humptyDigestToml, ("\"" + bundleName + "\" = \"" + bundlePathFile + "\"\n").getBytes(UTF_8), CREATE, WRITE, APPEND);
         
       } catch (Exception e) {
         throw new RuntimeException(e);
@@ -71,7 +71,7 @@ public class Digester {
   }
   
   @Inject
-  public void configure(Configuration.Mode mode, Pipeline pipeline, Configuration configuration, Configuration.Options options) {
+  public void configure(Pipeline pipeline, Configuration configuration, Configuration.Options options) {
 //    this.digestDir = Paths.get(options.get("digestDir", "src/main/resources"));
 //    this.compiledDir = Paths.get(options.get("compiledDir", "src/main/webapp/assets"));
     

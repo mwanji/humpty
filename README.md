@@ -63,14 +63,14 @@ humpty uses [TOML](https://github.com/toml-lang/toml/tree/v0.3.1) as its configu
 
 ```toml
 example.js = ["jquery", "underscore", "bootstrap", "/app"]
-"example.css" = ["bootstrap", "/app.less"]
+example.css = ["bootstrap", "/app.less"]
 ```
 
-This will create two files: example.js which is a concatenation of jquery.js, underscore.js, bootstrap.js and app.js and example.css which is a concatenation of bootstrap.css and the compiled version of app.less. The file extension can be omitted if it is the same as the bundle's extension.
+This will create two files: example.js which is a concatenation of jquery.js, underscore.js, bootstrap.js and app.js and example.css which is a concatenation of bootstrap.css and the compiled version of app.less. The file extension can be omitted if it is the same as the bundle's extension. Note: files containing things such as ".min" must include the extension, eg. "jquery.min.js".
 
 `/app.js` and `/app.less` refer to files in the `assets` folder. All the other files are in WebJars.
 
-Now we can include our concatenated and minified files in index.html:
+Now we can include our concatenated and fully processed files in index.html:
 
 ```html
 <!DOCTYPE html>
@@ -86,12 +86,7 @@ Now we can include our concatenated and minified files in index.html:
 </html>
 ```
 
-While developing, you may want to include files separately, for easier debugging. First, switch to development mode by adding the following to `humpty.toml`:
-
-```toml
-[options.pipeline]
-  mode = "DEVELOPMENT" # defaults to "PRODUCTION"
-```
+While developing, you may want to include files separately, for easier debugging.
 
 For each file, add the asset's name behind the bundle's name:
 
@@ -124,18 +119,26 @@ In production mode, this will create the HTML to include the concatenated file, 
 
 ## Configuration
 
+### Development or Production Mode?
+
+If you request a bundle from the pipeline, it will be processed in production mode, meaning that minification, obfuscation and other expensive operations may occur.
+
+If you request an asset within a bundle, it will be processed in development mode, meaning that a minimal set of processors will run.
+
+It is up to each processor to decide if and how it runs in either mode.
+
+By running the humpty-maven-plugin's digest goal, you can create optimised, fingerprinted and gzipped (and non-gzipped) versions of each bundle that can be served with far-future expires headers. It also creates a humpty-digest.toml file that may affect how the pipeline is used.
+
 ### Global Options
 
 Option|Default|Description
 ------|-------|-----------
-mode|"PRODUCTION"|Determines the behaviour of the pipeline. Can be one of "PRODUCTION", "DEVELOPMENT" or "EXTERNAL"
 assetsDir|"src/main/resources/assets"|The root folder containing the application's assets
 buildDir|"src/main/resources/META-INF/resources"|The root folder where assets are put after they've been through the pipeline. The default allows the assets to be served directly in environments such as Servlet 3.
 digestFile|"src/main/resources/humpty-digest.toml"|The path to the file that tracks digested assets
 
 ```toml
 [options]
-  mode = "PRODUCTION"
   assetsDir = "src/main/resources/assets"
   buildDir = "src/main/resources/META-INF/resources"
   digestFile = "src/main/resources/humpty-digest.toml"
@@ -189,6 +192,8 @@ example.js = ["underscore.js", "otherLib.coffee", "jquery", "myApp"]
            ]
 ```
 
+__WARNING__: shorthand bundles MUST appear before any other table, or they will not work!
+
 ### Resolvers
 
 Resolvers take an asset's name and turn it into one or more (in case of wildcards) files whose contents can be read. Creating custom resolvers is discussed in the [Extension Points](#extension-points) section.
@@ -239,21 +244,6 @@ There are a number of processors available:
 
 Creating custom processors is discussed in the [Extension Points](#extension-points) section.
 
-## Modes
-
-humpty has 3 different modes, which may change how pipeline elements behave.
-
-* "PRODUCTION": default. Typically enables optimisations such as minification.
-* "EXTERNAL": Indicates that assets have already been processed and no runtime processing is needed.
-* "DEVELOPMENT": Enables a fast development cycle. For example, may shut off caching or minification, and allow assets to be linked individually in HTML.
-
-In your configuration file, add:
-
-```toml
-[options]
-  mode = "DEVELOPMENT"
-```
-
 ## Configuration Reference
 
 By default, configuration is done via a TOML object in a file called `humpty.toml` at the root of the classpath. The configuration's properties are:
@@ -263,6 +253,9 @@ By default, configuration is done via a TOML object in a file called `humpty.tom
 An array of tables which must contain at least one bundle. Each bundle has a name (required) and an array of assets (required).
 
 ```toml
+# shorthand  
+libs.js = ["jquery", "underscore"]
+
 [[bundle]]
 	name = "app.js"
 	assets = ["jquery", "/app.js"]
@@ -270,9 +263,6 @@ An array of tables which must contain at least one bundle. Each bundle has a nam
 [[bundle]]
   name = "app.css",
   assets = ["bootstrap.less", "/theme"]
-
-# shorthand  
-"libs.js" = ["jquery", "underscore"]
 ```
 
 ### options
@@ -327,7 +317,6 @@ While constructor injection is not allowed because resources must be instantiata
 * `Configuration` is the Java representation of the entire configuration file
 * `Configuration.GlobalOptions` the global options
 * `Configuration.Options` contains the options set for the current processor
-* `Configuration.Mode` is the defined mode
 * `Pipeline` the asset pipeline itself
 * `WebJarAssetLocator` to find assets in a WebJar, avoids pipeline elements having to create their own instance
 * any object that was added programatically to `HumptyBootstrap`

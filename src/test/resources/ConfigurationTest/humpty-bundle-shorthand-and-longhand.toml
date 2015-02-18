@@ -1,6 +1,11 @@
-bundle1.js = ["app1.js", "app2.js"]
-bundle2.css = ["app1.css", "app2.css"]
+"bundle1.js" = ["app1.js", "app2.js"]
+"bundle2.css" = ["app1.css", "app2.css"]
+  
+"bundle5.js" = { assets = ["app5", "app6"] }
 
-[[bundle]]
-  name = "bundle3.js"
+["bundle3.js"]
   assets = ["app3.js"]
+  
+[[bundle]]
+  name = "bundle4.js"
+  assets = ["app4.js"]

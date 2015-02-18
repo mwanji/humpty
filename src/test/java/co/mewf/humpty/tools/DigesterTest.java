@@ -49,7 +49,7 @@ public class DigesterTest {
     
     Toml digestToml = new Toml().parse(digestTomlPath.toFile());
     
-    assertEquals("app-humpty" + hash(pipeline.process("app.js").getAsset()) + ".js", digestToml.getString("app.js"));
+    assertEquals("app-humpty" + hash(pipeline.process("app.js").getAsset()) + ".js", digestToml.getString("\"app.js\""));
   }
   
   @Test
@@ -69,7 +69,7 @@ public class DigesterTest {
     
     List<String> compiledAssets = Files.list(buildDir).map(Path::getFileName).map(Path::toString).sorted().collect(Collectors.toList());
     
-    assertThat(compiledAssets, contains(digestToml.getString("app.js"), digestToml.getString("app.js") + ".gz", digestToml.getString("bapp.js"), digestToml.getString("bapp.js") + ".gz"));
+    assertThat(compiledAssets, contains(digestToml.getString("\"app.js\""), digestToml.getString("\"app.js\"") + ".gz", digestToml.getString("\"bapp.js\""), digestToml.getString("\"bapp.js\"") + ".gz"));
   }
   
   @Test

@@ -1,4 +1,4 @@
-bundle.js = ["/file.js", "/FileResolverTest/fileResolverAsset.js"]
+"bundle.js" = ["/file.js", "/FileResolverTest/fileResolverAsset.js"]
 
 [options]
   assetsDir = "src/test/resources"
