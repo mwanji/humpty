@@ -76,7 +76,7 @@ public class HumptyBootstrap implements PipelineElement {
       .findFirst()
       .orElseGet(WebJarAssetLocator::new);
     
-    this.pipeline = new Pipeline(mode, bundleResolvers, resolvers, sourceProcessors, assetProcessors, bundleProcessors, pipelineListeners);
+    this.pipeline = new Pipeline(bundleResolvers, resolvers, sourceProcessors, assetProcessors, bundleProcessors, pipelineListeners);
     
     bundleResolvers.forEach(this::inject);
     resolvers.forEach(this::inject);
@@ -148,8 +148,6 @@ public class HumptyBootstrap implements PipelineElement {
           args[i] = configuration;
         } else if (parameterType == Configuration.Options.class) {
           args[i] = configuration.getOptionsFor(element);
-        } else if (parameterType == Configuration.Mode.class) {
-          args[i] = mode;
         } else if (parameterType == Configuration.GlobalOptions.class) {
           args[i] = configuration.getGlobalOptions();
         } else {

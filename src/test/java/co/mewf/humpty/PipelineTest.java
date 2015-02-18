@@ -146,13 +146,6 @@ public class PipelineTest {
   }
   
   @Test
-  public void bootstrap_can_override_mode() throws Exception {
-    TracerPipelineListener tracerPipelineListener = new HumptyBootstrap("/humpty.toml", Configuration.Mode.EXTERNAL).createPipeline().getPipelineListener(TracerPipelineListener.class).get();
-    
-    assertEquals(Configuration.Mode.EXTERNAL, tracerPipelineListener.mode);
-  }
-  
-  @Test
   public void should_inject_pipeline() throws Exception {
     Pipeline pipeline = new HumptyBootstrap().createPipeline();
     

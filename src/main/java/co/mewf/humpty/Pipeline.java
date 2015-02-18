@@ -47,13 +47,11 @@ public class Pipeline {
   private final List<AssetProcessor> assetProcessors;
   private final List<BundleProcessor> bundleProcessors;
   private final List<SourceProcessor> compilingProcessors;
-  private final Mode mode;
   private final List<PipelineListener> pipelineListeners;
   private final List<? extends BundleResolver> bundleResolvers;
 
-  public Pipeline(Configuration.Mode mode, List<? extends BundleResolver> bundleResolvers, List<? extends Resolver> resolvers, List<? extends SourceProcessor> compilingProcessors, List<? extends AssetProcessor> assetProcessors, List<? extends BundleProcessor> bundleProcessors, List<PipelineListener> pipelineListeners) {
+  public Pipeline(List<? extends BundleResolver> bundleResolvers, List<? extends Resolver> resolvers, List<? extends SourceProcessor> compilingProcessors, List<? extends AssetProcessor> assetProcessors, List<? extends BundleProcessor> bundleProcessors, List<PipelineListener> pipelineListeners) {
     this.bundleResolvers = bundleResolvers;
-    this.mode = mode;
     this.resolvers = Collections.unmodifiableList(resolvers);
     this.compilingProcessors = Collections.unmodifiableList(compilingProcessors);
     this.assetProcessors = Collections.unmodifiableList(assetProcessors);
