@@ -9,15 +9,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
 import javax.inject.Inject;
-import javax.xml.bind.DatatypeConverter;
-
-import org.apache.commons.io.FilenameUtils;
 
 import co.mewf.humpty.Pipeline;
 import co.mewf.humpty.config.Bundle;
@@ -43,15 +38,7 @@ public class Digester {
       String bundleName = b.getName();
       String asset = pipeline.process(bundleName).getAsset();
       
-      String digest;
-      try {
-        MessageDigest messageDigest = MessageDigest.getInstance("md5");
-        digest = DatatypeConverter.printHexBinary(messageDigest.digest(asset.getBytes()));
-      } catch (NoSuchAlgorithmException e) {
-        throw new RuntimeException(e);
-      }
-      
-      Path bundleDigestPath = buildDir.resolve(getFullDigestName(bundleName, digest));
+      Path bundleDigestPath = buildDir.resolve(getFullDigestName(bundleName, asset.hashCode()));
       Path bundlePathGzip = buildDir.resolve(bundleDigestPath.getFileName() + ".gz");
       try {
         Files.write(bundleDigestPath, asset.getBytes(UTF_8));
@@ -82,7 +69,7 @@ public class Digester {
 //    }
   }
   
-  private String getFullDigestName(String name, String digest) {
-    return name.substring(0, name.lastIndexOf('.')) + "-humpty" + digest + "." + FilenameUtils.getExtension(name);
+  private String getFullDigestName(String name, int digest) {
+    return name.substring(0, name.lastIndexOf('.')) + "-humpty" + digest + name.substring(name.lastIndexOf('.'));
   }
 }
