@@ -12,6 +12,8 @@ Requires Java 8. humpty-servlet requires Servlet 3.
 
 In this example, we will bundle Jquery, underscore, Bootstrap, an application JS file and an application LESS file together into one JS file and one CSS file.
 
+### Add Dependencies
+
 Add humpty to your dependencies:
 
 ```xml
@@ -57,16 +59,23 @@ Add the following WebJars to make the JS and CSS libraries available:
 </dependency>
 ```
 
+### Define Bundles
+
 Create `app.js` and `app.less` in `src/main/resources/assets`.
 
 humpty uses [TOML](https://github.com/toml-lang/toml/tree/v0.3.1) as its configuration language. Create a file called `humpty.toml` in `src/main/resources`:
 
 ```toml
-example.js = ["jquery", "underscore", "bootstrap", "/app"]
-example.css = ["bootstrap", "/app.less"]
+"example.js" = ["jquery", "underscore", "bootstrap", "/app"]
+"example.css" = ["bootstrap", "/app.less"]
 ```
 
-This will create two files: example.js which is a concatenation of jquery.js, underscore.js, bootstrap.js and app.js and example.css which is a concatenation of bootstrap.css and the compiled version of app.less. The file extension can be omitted if it is the same as the bundle's extension. Note: files containing things such as ".min" must include the extension, eg. "jquery.min.js".
+This defines two bundles:
+
+* __example.js__ which is a concatenation of jquery.js, underscore.js, bootstrap.js and app.js
+* __example.css__ which is a concatenation of bootstrap.css and the compiled version of app.less.
+
+Note that where the asset's file extension matches the bundle's, it can be omitted. Beware that files containing things such as ".min" must include the extension, eg. "jquery.min.js".
 
 `/app.js` and `/app.less` refer to files in the `assets` folder. All the other files are in WebJars.
 
@@ -115,19 +124,38 @@ Thankfully, this can be automated. humpty-servlet adds an instance of `Includes`
 * Get it by calling `servletContext.getAttribute(Includes.class.getName())`
 * Add the result of `Includes#generate("example.css")` and `Includes#generate("example.js")` to your HTML template
 
-In production mode, this will create the HTML to include the concatenated file, but in development mode it will include each file separately.
+### Processing Bundles vs. Assets
+
+The pipeline works differently when an entire bundle is requested, as opposed to a single asset. Exactly how differently depends on what processors are running in your pipeline. Here are a few examples:
+
+* a compiler might produce a source map for a single asset, but not for a bundle
+* a minifier or linter might not run for a single asset
+
+### Prepare for Production
+
+Add the Maven plugin:
+
+```xml
+<build>
+  <plugins>
+    <plugin>
+      <groupId>co.mewf.humpty</groupId>
+      <artifactId>humpty-maven-plugin</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+    </plugin>
+  </plugins>
+</build>
+```
+
+Run the following from the project's root directory: `mvn humpty:digest`.
+
+This will create  a fingerprinted file for each bundle in `src/main/resources/META-INF/resources`, such as `example-humpty586985585.js`. The fingerprint will change when the bundle's content changes, so the file can be served with far-future HTTP caching headers.
+
+This also creates a `humpty-digest.toml` file that indicates that the application is in production mode. To return to development mode, delete the file. In practice, this file might only exist on the source control branch from which you deploy.
+
+In production mode, `Includes#generate` will link to the fingerprinted version, rather than the individual assets.
 
 ## Configuration
-
-### Development or Production Mode?
-
-If you request a bundle from the pipeline, it will be processed in production mode, meaning that minification, obfuscation and other expensive operations may occur.
-
-If you request an asset within a bundle, it will be processed in development mode, meaning that a minimal set of processors will run.
-
-It is up to each processor to decide if and how it runs in either mode.
-
-By running the humpty-maven-plugin's digest goal, you can create optimised, fingerprinted and gzipped (and non-gzipped) versions of each bundle that can be served with far-future expires headers. It also creates a humpty-digest.toml file that may affect how the pipeline is used.
 
 ### Global Options
 
@@ -169,22 +197,20 @@ humpty is a modular system that builds a pipeline composed of pipeline elements,
 
 ### Bundles and Assets
 
-A bundle is a named list of files that are accessed and processed together. The result of processing a bundle is made available at the URL defined by the `name` property. The `name` must contain a file extension (.js or .css). The bundle's contents and the order in which they are processed are set in the `assets` array.
+A bundle is a named list of files that are accessed and processed together. The result of processing a bundle is made available at the URL defined by the `name` property. The `name` must contain a file extension (e.g. .js or .css). The bundle's contents and the order in which they are processed are set in the `assets` array.
 
 By default, each asset is considered to be in a [WebJar](http://webjars.org). Add WebJars to your classpath and refer to them by name in the `assets` array. The name can be a file name if there is no ambiguity (eg. `jquery`), or a longer path if the are other files with the same name, eg. `smoothness/theme.css` in the case of JqueryUI.
 
 If an asset does not have an extension, the one in the name of the bundle will be used.
 
-You can use `*` as a wildcard to get all the files in a folder: `/assets/*`, `/assets/*.tpl`. The same extension rules apply.
-
 There are two ways of writing bundles:
 
 ```toml
 # shorthand
-example.js = ["underscore.js", "otherLib.coffee", "jquery", "myApp"]
+"example.js" = ["underscore.js", "otherLib.coffee", "jquery", "myApp"]
 
-[[bundle]]
-  name = "example.js"
+# longhand 
+["example.js"]
   assets = ["underscore.js",
             "otherLib.coffee",
             "jquery",
@@ -196,11 +222,11 @@ __WARNING__: shorthand bundles MUST appear before any other table, or they will 
 
 ### Resolvers
 
-Resolvers take an asset's name and turn it into one or more (in case of wildcards) files whose contents can be read. Creating custom resolvers is discussed in the [Extension Points](#extension-points) section.
+Resolvers take an asset's name and turn it into files whose contents can be read. Creating custom resolvers is discussed in the [Extension Points](#extension-points) section.
 
 #### FileResolver
 
-Bundled with humpty. Looks for files in your application's folders. The root folder is determined in the global `assetsDir` option.
+Bundled with humpty. Looks for files in your application's folders. The root folder is set by the global `assetsDir` option.
 
 In your `humpty.toml`, prefix asset names with a `/` to indicate that it is part of your application.
 
@@ -216,7 +242,9 @@ Bundled with humpty. Looks up resources in a [WebJar](http://webjars.org). For e
 
 Configuration:
 
-* preferMin: boolean. If true, `WebJarResolver` looks for a minified version of the requested asset by adding `.min` to the asset's base name (ie. jquery.js becomes jquery.min.js). If no such version exists or preferMin is set to false, the requested version is used. If preferMin is not set, it falls back to true in production mode and to false otherwise.
+option|type|default|description
+------|----|-------|-----------
+preferMin|boolean|(auto)|If true, `WebJarResolver` looks for a minified version of the requested asset by adding `.min` to the asset's base name (ie. jquery.js becomes jquery.min.js). If no such version exists or preferMin is set to false, the requested version is used. If preferMin is not set, it falls back to true in production mode and to false otherwise.
 
 ```toml
 [options.webjars]
