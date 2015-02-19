@@ -46,7 +46,6 @@ public class HumptyBootstrap implements PipelineElement {
   private final List<AssetProcessor> assetProcessors;
   private final Configuration.Options humptyOptions;
   private final List<PipelineListener> pipelineListeners;
-  private final Configuration.Mode mode;
   private Pipeline pipeline;
   private final Configuration configuration;
   private final WebJarAssetLocator locator;
@@ -69,7 +68,6 @@ public class HumptyBootstrap implements PipelineElement {
     this.assetProcessors = getElements(AssetProcessor.class, getConfiguration("assets"));
     this.bundleProcessors = getElements(BundleProcessor.class, getConfiguration("bundles"));
     this.pipelineListeners = getElements(PipelineListener.class, getConfiguration("listeners"));
-    this.mode = getMode(humptyOptions);
     this.locator = Arrays.stream(resources)
       .filter(resource -> resource instanceof WebJarAssetLocator)
       .map(resource -> (WebJarAssetLocator) resource)
@@ -100,15 +98,6 @@ public class HumptyBootstrap implements PipelineElement {
     ServiceLoader.load(PipelineElement.class).forEach(elements::add);
 
     return elements;
-  }
-  
-  private Configuration.Mode getMode(Configuration.Options humptyOptions) {
-    for (Object resource : resources) {
-      if (resource instanceof Configuration.Mode) {
-        return (Configuration.Mode) resource;
-      }
-    }
-    return Configuration.Mode.valueOf(humptyOptions.get("mode", Configuration.Mode.PRODUCTION.toString()));
   }
   
   private Optional<List<String>> getConfiguration(String key) {
