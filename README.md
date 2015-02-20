@@ -8,6 +8,8 @@ humpty builds a pipeline to process assets. Customising that pipeline is often a
 
 Requires Java 8. humpty-servlet requires Servlet 3.
 
+[![Dependency Status](https://www.versioneye.com/user/projects/54e6361cd1ec5734f40009b0/badge.svg?style=flat)](https://www.versioneye.com/user/projects/54e6361cd1ec5734f40009b0)
+
 ## Getting Started
 
 In this example, we will bundle Jquery, underscore, Bootstrap, an application JS file and an application LESS file together into one JS file and one CSS file.
