@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.junit.Before;
@@ -23,8 +24,6 @@ import org.junit.rules.TemporaryFolder;
 import co.mewf.humpty.Pipeline;
 import co.mewf.humpty.config.Configuration;
 import co.mewf.humpty.config.HumptyBootstrap;
-
-import com.moandjiezana.toml.Toml;
 
 public class DigesterTest {
   
@@ -45,33 +44,27 @@ public class DigesterTest {
   
   @Test
   public void should_provide_bundle_digest() throws Exception {
-    digest.processBundles(pipeline, configuration.getBundles(), buildDir, digestTomlPath);
+    Map<String, Path> digestToml = digest.processBundles(pipeline, configuration.getBundles(), buildDir);
     
-    Toml digestToml = new Toml().parse(digestTomlPath.toFile());
-    
-    String digestValue = digestToml.getString("\"app.js\"");
+    String digestValue = digestToml.get("app.js").toString();
     assertThat(digestValue, allOf(startsWith("app-humpty"), endsWith(".js")));
     assertThat(digestValue.length(), greaterThan(13));
   }
   
   @Test
   public void should_return_null_for_unknown_asset() throws Exception {
-    digest.processBundles(pipeline, configuration.getBundles(), buildDir, digestTomlPath);
+    Map<String, Path> digestToml = digest.processBundles(pipeline, configuration.getBundles(), buildDir);
     
-    Toml digestToml = new Toml().parse(digestTomlPath.toFile());
-    
-    assertNull(digestToml.getString("unknown"));
+    assertNull(digestToml.get("unknown"));
   }
   
   @Test
   public void should_write_bundles_to_build_directory() throws Exception {
-    digest.processBundles(pipeline, configuration.getBundles(), buildDir, digestTomlPath);
-
-    Toml digestToml = new Toml().parse(digestTomlPath.toFile());
+    Map<String, Path> digestToml = digest.processBundles(pipeline, configuration.getBundles(), buildDir);
     
     List<String> compiledAssets = Files.list(buildDir).map(Path::getFileName).map(Path::toString).sorted().collect(Collectors.toList());
     
-    assertThat(compiledAssets, contains(digestToml.getString("\"app.js\""), digestToml.getString("\"app.js\"") + ".gz", digestToml.getString("\"bapp.js\""), digestToml.getString("\"bapp.js\"") + ".gz"));
+    assertThat(compiledAssets, contains(digestToml.get("app.js").toString(), digestToml.get("app.js").toString() + ".gz", digestToml.get("bapp.js").toString(), digestToml.get("bapp.js").toString() + ".gz"));
   }
   
   @Test
@@ -80,6 +73,6 @@ public class DigesterTest {
     when(pipeline.process("app.js")).thenReturn(new Pipeline.Output("", "abc"));
     when(pipeline.process("bapp.js")).thenReturn(new Pipeline.Output("", "abc"));
     
-    digest.processBundles(pipeline, configuration.getBundles(), buildDir, digestTomlPath);
+    digest.processBundles(pipeline, configuration.getBundles(), buildDir);
   }
 }

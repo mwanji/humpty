@@ -2,13 +2,21 @@ package co.mewf.humpty.config;
 
 import static java.util.stream.Collectors.toList;
 
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -72,8 +80,7 @@ public class HumptyBootstrap implements PipelineElement {
       .filter(resource -> resource instanceof WebJarAssetLocator)
       .map(resource -> (WebJarAssetLocator) resource)
       .findFirst()
-      .orElseGet(WebJarAssetLocator::new);
-    
+      .orElseGet(this::getDefaultLocator);
     this.pipeline = new Pipeline(bundleResolvers, resolvers, sourceProcessors, assetProcessors, bundleProcessors, pipelineListeners);
     
     bundleResolvers.forEach(this::inject);
@@ -160,5 +167,36 @@ public class HumptyBootstrap implements PipelineElement {
     }
 
     return Optional.empty();
+  }
+  
+  private WebJarAssetLocator getDefaultLocator() {
+    try {
+      String assetsDir = configuration.getGlobalOptions().getAssetsDir().toString();
+      Enumeration<URL> urls = Thread.currentThread().getContextClassLoader().getResources(assetsDir);
+      if (!assetsDir.startsWith("/")) {
+        assetsDir = "/" + assetsDir;
+      }
+      if (!assetsDir.endsWith("/")) {
+        assetsDir += "/";
+      }
+      String fullAssetsDir = assetsDir;
+      
+      Set<String> assetPaths = new HashSet<>();
+      
+      while (urls.hasMoreElements()) {
+        URL url = urls.nextElement();
+        Files.walk(Paths.get(url.getFile()))
+          .filter(path -> path.toFile().isFile())
+          .map(Path::toString)
+          .map(path -> path.substring(path.indexOf(fullAssetsDir) + 1))
+          .forEach(assetPaths::add);
+      }
+      
+      assetPaths.addAll(new WebJarAssetLocator().getFullPathIndex().values());
+      
+      return new WebJarAssetLocator(assetPaths);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

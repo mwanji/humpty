@@ -68,8 +68,8 @@ Create `app.js` and `app.less` in `src/main/resources/assets`.
 humpty uses [TOML](https://github.com/toml-lang/toml/tree/v0.3.1) as its configuration language. Create a file called `humpty.toml` in `src/main/resources`:
 
 ```toml
-"example.js" = ["jquery", "underscore", "bootstrap", "/app"]
-"example.css" = ["bootstrap", "/app.less"]
+"example.js" = ["jquery", "underscore", "bootstrap", "app"]
+"example.css" = ["bootstrap", "app.less"]
 ```
 
 This defines two bundles:
@@ -79,7 +79,7 @@ This defines two bundles:
 
 Note that where the asset's file extension matches the bundle's, it can be omitted. Beware that files containing things such as ".min" must include the extension, eg. "jquery.min.js".
 
-`/app.js` and `/app.less` refer to files in the `assets` folder. All the other files are in WebJars.
+Out of the box, humpty handles assets located in WebJars (`jquery.js`, `bootstrap.css`, etc.) and in the`assets` folder (`app.js` and `app.less`).
 
 Now we can include our concatenated and fully processed files in index.html:
 
@@ -131,7 +131,8 @@ Thankfully, this can be automated. humpty-servlet adds an instance of `Includes`
 The pipeline works differently when an entire bundle is requested, as opposed to a single asset. Exactly how differently depends on what processors are running in your pipeline. Here are a few examples:
 
 * a compiler might produce a source map for a single asset, but not for a bundle
-* a minifier or linter might not run for a single asset
+* a minifier might run only for bundles
+* a linter might run only for single assets
 
 ### Prepare for Production
 
@@ -151,7 +152,7 @@ Add the Maven plugin:
 
 Run the following from the project's root directory: `mvn humpty:digest`.
 
-This will create  a fingerprinted file for each bundle in `src/main/resources/META-INF/resources`, such as `example-humpty586985585.js`. The fingerprint will change when the bundle's content changes, so the file can be served with far-future HTTP caching headers.
+Digesting creates a fingerprinted file for each bundle, such as `example-humpty586985585.js`, which is written to the build directory (`src/main/resources/META-INF/resources` by default). The fingerprint will change when the bundle's content changes, so the file can be served with far-future HTTP caching headers.
 
 This also creates a `humpty-digest.toml` file that indicates that the application is in production mode. To return to development mode, delete the file. In practice, this file might only exist on the source control branch from which you deploy.
 
@@ -163,13 +164,13 @@ In production mode, `Includes#generate` will link to the fingerprinted version, 
 
 Option|Default|Description
 ------|-------|-----------
-assetsDir|"src/main/resources/assets"|The root folder containing the application's assets
+assetsDir|"assets"|The folder containing the application's assets, relative to the root of the classpath.
 buildDir|"src/main/resources/META-INF/resources"|The root folder where assets are put after they've been through the pipeline. The default allows the assets to be served directly in environments such as Servlet 3.
-digestFile|"src/main/resources/humpty-digest.toml"|The path to the file that tracks digested assets
+digestFile|"src/main/resources/humpty-digest.toml"|The path to the file that tracks digested assets.
 
 ```toml
 [options]
-  assetsDir = "src/main/resources/assets"
+  assetsDir = "assets"
   buildDir = "src/main/resources/META-INF/resources"
   digestFile = "src/main/resources/humpty-digest.toml"
 ```

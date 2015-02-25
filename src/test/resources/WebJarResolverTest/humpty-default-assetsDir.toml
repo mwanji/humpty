@@ -1,0 +1,6 @@
+"bundle1.js" = ["asset1.js"]
+
+[options.pipeline.elements]
+  sources = []
+  assets = []
+  bundles = []

@@ -29,7 +29,7 @@ public class ConfigurationTest {
     Configuration configuration = Configuration.load("ConfigurationTest/humpty.toml");
     GlobalOptions globalOptions = configuration.getGlobalOptions();
     
-    assertEquals(Paths.get("src/main/resources/assets"), globalOptions.getAssetsDir());
+    assertEquals(Paths.get("assets"), globalOptions.getAssetsDir());
     assertEquals(Paths.get("src/main/resources/META-INF/resources"), globalOptions.getBuildDir());
     assertEquals(Paths.get("src/main/resources/humpty-digest.toml"), globalOptions.getDigestFile());
   }

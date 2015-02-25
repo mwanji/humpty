@@ -1,0 +1,9 @@
+"bundle1.js" = ["asset1.js"]
+
+[options]
+  assetsDir = "WebJarResolverTest"
+
+[options.pipeline.elements]
+  sources = []
+  assets = []
+  bundles = []

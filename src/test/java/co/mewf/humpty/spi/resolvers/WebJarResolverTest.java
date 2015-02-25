@@ -2,6 +2,7 @@ package co.mewf.humpty.spi.resolvers;
 
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.contains;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -16,6 +17,7 @@ import org.webjars.WebJarAssetLocator;
 import co.mewf.humpty.config.Bundle;
 import co.mewf.humpty.config.Configuration;
 import co.mewf.humpty.config.Context;
+import co.mewf.humpty.config.HumptyBootstrap;
 
 public class WebJarResolverTest {
 
@@ -77,5 +79,26 @@ public class WebJarResolverTest {
     assetFilePaths.addAll(resolver.resolve("web_server.js", context).stream().map(AssetFile::getPath).collect(toList()));
 
     assertThat(assetFilePaths, contains("META-INF/resources/webjars/jquery/2.1.1/jquery.js", "META-INF/resources/webjars/humpty/1.0.0/web_server.js"));
+  }
+  
+  @Test
+  public void should_resolve_files_in_default_assetsDir() throws Exception {
+    String asset = new HumptyBootstrap("WebJarResolverTest/humpty-default-assetsDir.toml").createPipeline().process("bundle1.js/asset1.js").getAsset();
+    
+    assertEquals("alert(\"asset1\");", asset.trim());
+  }
+  
+  @Test
+  public void should_resolve_files_in_custom_assetsDir() throws Exception {
+    String asset = new HumptyBootstrap("WebJarResolverTest/humpty-custom-assetsDir.toml").createPipeline().process("bundle1.js/asset1.js").getAsset();
+    
+    assertEquals("alert(\"asset1_custom\");", asset.trim());
+  }
+  
+  @Test
+  public void should_resolve_files_in_subdirectory_of_custom_assetsDir() throws Exception {
+    String asset = new HumptyBootstrap("WebJarResolverTest/humpty-custom-assetsDir.toml").createPipeline().process("bundle1.js/sub/asset2.js").getAsset();
+    
+    assertEquals("alert(\"asset2\");", asset.trim());
   }
 }

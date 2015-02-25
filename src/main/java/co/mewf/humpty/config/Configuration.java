@@ -53,7 +53,7 @@ public class Configuration {
     private String digestFile;
     
     public Path getAssetsDir() {
-      return Paths.get(assetsDir != null ? assetsDir : "src/main/resources/assets");
+      return Paths.get(assetsDir != null ? assetsDir : "assets");
     }
 
     public Path getBuildDir() {

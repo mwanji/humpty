@@ -1,9 +1,6 @@
 package co.mewf.humpty.tools;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.StandardOpenOption.APPEND;
-import static java.nio.file.StandardOpenOption.CREATE;
-import static java.nio.file.StandardOpenOption.WRITE;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -11,8 +8,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.IntStream;
+import java.util.Map;
 import java.util.zip.GZIPOutputStream;
 
 import javax.inject.Inject;
@@ -21,18 +19,11 @@ import co.mewf.humpty.Pipeline;
 import co.mewf.humpty.config.Bundle;
 import co.mewf.humpty.config.Configuration;
 
-import com.moandjiezana.toml.Toml;
-
 public class Digester {
   
   private static final char[] HEX_CHARS = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
-
   
-  public Toml processBundles(Pipeline pipeline, List<Bundle> bundles, Path buildDir, Path humptyDigestToml) {
-    if (humptyDigestToml.toFile().exists()) {
-      humptyDigestToml.toFile().delete();
-    }
-    
+  public Map<String, Path> processBundles(Pipeline pipeline, List<Bundle> bundles, Path buildDir) {
     buildDir.toFile().mkdirs();
     try {
       Files.walk(buildDir).filter(path -> path != buildDir).forEach(path -> path.toFile().delete());
@@ -40,27 +31,35 @@ public class Digester {
       throw new RuntimeException(e);
     }
     
-    bundles.forEach(b -> {
-      String bundleName = b.getName();
-      String asset = pipeline.process(bundleName).getAsset();
-      
-      Path bundleDigestPath = buildDir.resolve(getFullDigestName(bundleName, asset));
-      Path bundlePathGzip = buildDir.resolve(bundleDigestPath.getFileName() + ".gz");
-      try {
-        Files.write(bundleDigestPath, asset.getBytes(UTF_8));
+    Map<String, Path> digests = new HashMap<>();
+    
+    bundles.stream()
+      .map(Bundle::getName)
+      .map(bundleName -> {
+        String asset = pipeline.process(bundleName).getAsset();
+        Path bundleDigestPath = buildDir.resolve(getFullDigestName(bundleName, asset));
+        Path bundlePathFile = bundleDigestPath.getFileName();
+        digests.put(bundleName, bundlePathFile);
+
+        try {
+          Files.write(bundleDigestPath, asset.getBytes(UTF_8));
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+        
+        return bundleDigestPath;
+      })
+      .forEach(bundleDigestPath -> {
+        Path bundlePathGzip = buildDir.resolve(bundleDigestPath.getFileName() + ".gz");
+        
         try (GZIPOutputStream out = new GZIPOutputStream(new FileOutputStream(bundlePathGzip.toFile()))) {
           Files.copy(bundleDigestPath, out);
+        } catch (Exception e) {
+          throw new RuntimeException(e);
         }
-
-        Path bundlePathFile = bundleDigestPath.getFileName();
-        Files.write(humptyDigestToml, ("\"" + bundleName + "\" = \"" + bundlePathFile + "\"\n").getBytes(UTF_8), CREATE, WRITE, APPEND);
-        
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    });
+      });
     
-    return new Toml().parse(humptyDigestToml.toFile());
+    return digests;
   }
   
   @Inject
@@ -88,12 +87,12 @@ public class Digester {
 
   // Adapted from org.springframework.util.DigestUtils
   private static String encodeHex(byte[] bytes) {
-    StringBuilder sb = new StringBuilder();
-    IntStream.range(0, 32).forEach(i -> {
+    StringBuilder sb = new StringBuilder(32);
+    for (int i = 0; i < 32; i = i + 2) {
       byte b = bytes[i / 2];
       sb.append(HEX_CHARS[(b >>> 0x4) & 0xf])
         .append(HEX_CHARS[b & 0xf]);
-    });
+    };
 
     return sb.toString();
   }
