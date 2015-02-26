@@ -61,7 +61,11 @@ public class Configuration {
     }
 
     public Path getDigestFile() {
-      return Paths.get(digestFile != null ? digestFile : "src/main/resources/humpty-digest.toml");
+      return Paths.get("humpty-digest.toml");
+    }
+
+    public Path getWatchFile() {
+      return Paths.get("humpty-watch.toml");
     }
   }
 

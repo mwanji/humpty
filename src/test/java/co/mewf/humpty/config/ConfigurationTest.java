@@ -21,7 +21,6 @@ public class ConfigurationTest {
     
     assertEquals(Paths.get("def"), globalOptions.getAssetsDir());
     assertEquals(Paths.get("abc"), globalOptions.getBuildDir());
-    assertEquals(Paths.get("ghi.toml"), globalOptions.getDigestFile());
   }
 
   @Test
@@ -31,7 +30,8 @@ public class ConfigurationTest {
     
     assertEquals(Paths.get("assets"), globalOptions.getAssetsDir());
     assertEquals(Paths.get("src/main/resources/META-INF/resources"), globalOptions.getBuildDir());
-    assertEquals(Paths.get("src/main/resources/humpty-digest.toml"), globalOptions.getDigestFile());
+    assertEquals(Paths.get("humpty-digest.toml"), globalOptions.getDigestFile());
+    assertEquals(Paths.get("humpty-watch.toml"), globalOptions.getWatchFile());
   }
   
   @Test
