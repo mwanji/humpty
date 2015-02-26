@@ -103,6 +103,8 @@ public class Configuration {
       })
       .forEach(configuration.bundle::add);
     
+    configuration.bundle.forEach(bundle -> bundle.normaliseAssets());
+    
     return configuration;
   }
 

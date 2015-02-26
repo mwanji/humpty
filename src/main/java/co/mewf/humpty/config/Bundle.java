@@ -1,5 +1,7 @@
 package co.mewf.humpty.config;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -40,7 +42,11 @@ public class Bundle implements Iterable<String> {
   }
   
   public Stream<String> stream() {
-    return assets.stream().map(this::normaliseName);
+    return assets.stream();
+  }
+  
+  void normaliseAssets() {
+    this.assets = assets.stream().map(this::normaliseName).collect(toList());
   }
 
   private String normaliseName(String assetName) {

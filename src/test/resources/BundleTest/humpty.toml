@@ -1,0 +1,8 @@
+"bundle1.js" = ["app1"]
+
+["bundle2.css"]
+  assets = ["app2", "app2_1", "app2_2.css"]
+  
+[[bundle]]
+  name = "bundle3.js"
+  assets = ["app3"]
