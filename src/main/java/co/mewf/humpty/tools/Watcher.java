@@ -1,84 +1,73 @@
 package co.mewf.humpty.tools;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import co.mewf.humpty.Pipeline;
-import co.mewf.humpty.Pipeline.Output;
 import co.mewf.humpty.config.Configuration;
 
 public class Watcher {
 
   private final WatchService watchService;
-  private final List<Path> sources;
   private final Pipeline pipeline;
   private Configuration config;
   private final Path destination;
   private final Map<Path, Optional<Path>> assetToSource = new HashMap<>();
   private final Appendable out;
-  private final Path configPath;
+  private final BiConsumer<Path, String> afterProcessingHandler;
   
-  public Watcher(Pipeline pipeline, List<Path> sources, Path destination, Path configPath, Appendable out) {
+  public Watcher(Pipeline pipeline, Path assetsDir, Configuration config, Appendable out, BiConsumer<Path, String> afterProcessingHandler) {
     this.pipeline = pipeline;
-    this.sources = sources;
-    this.destination = destination;
-    this.configPath = configPath;
-    this.config = Configuration.load(configPath.toString());
+    this.config = config;
+    this.afterProcessingHandler = afterProcessingHandler;
     this.out = out;
     
     try {
+      this.destination = Files.createTempDirectory(null);
       this.watchService = FileSystems.getDefault().newWatchService();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
     
-    this.sources.stream()
-      .map(source -> {
-        try {
-          out.append("Watching: " + source + "\n");
-  
-          Files.walk(source)
-          .filter(path -> path.toFile().isDirectory())
-          .forEach(path -> {
-            try {
-              path.register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
-            } catch (Exception e) {
-              throw new RuntimeException(e);
-            }
-          });
-  
-          return source;
-        } catch (Exception e) {
-          throw new RuntimeException(e);
+    try (Stream<Path> paths = Files.walk(assetsDir)) {
+      paths.map(path -> {
+        if (path.toFile().isDirectory()) {
+          try {
+            path.register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
         }
+        
+        return path;
       })
-      .forEach(source -> {
-        try {
-          String watchedFilesMessage = Files.walk(source)
-            .filter(path -> path.toFile().isFile())
-            .map(path -> {
-              assetToSource.put(path.toAbsolutePath(), Optional.ofNullable(source.relativize(path).getParent()));
-              return source.relativize(path).toString();
-            })
-            .collect(Collectors.joining(", ", "Watching Files [", "]\n"));
-  
-          out.append(watchedFilesMessage);
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
+      .filter(path -> path.toFile().isFile())
+      .forEach(path -> {
+        assetToSource.put(path.toAbsolutePath(), Optional.ofNullable(assetsDir.relativize(path).getParent()));
       });
+      
+      out.append(assetToSource.keySet().stream()
+        .map(assetsDir::relativize)
+        .map(Path::toString)
+        .sorted()
+        .collect(Collectors.joining(", ", "Watching " + new File(".").getAbsoluteFile().getParentFile().toPath().relativize(assetsDir).normalize() + "\n\t[", "]\n")));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
     
     Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
       @Override
@@ -97,7 +86,7 @@ public class Watcher {
       WatchKey watchKey;
       try {
         watchKey = watchService.take();
-      } catch (InterruptedException e) {
+      } catch (InterruptedException | ClosedWatchServiceException e) {
         return;
       }
       
@@ -124,15 +113,13 @@ public class Watcher {
                 try {
                   out.append("Process: " + b.getName() + "/" + path.getFileName().toString() + "\n");
                   
-                  Output output = pipeline.process(b.getName() + "/" + path.getFileName().toString());
+                  Pipeline.Output output = pipeline.process(b.getName() + "/" + path.getFileName().toString());
                   Path outputPath = relative.resolve(Paths.get(output.getFileName()).getFileName()).toAbsolutePath();
                   
                   if (absolutePath.equals(outputPath)) {
                     out.append("Skip: Source and destination files are the same\n");
                   } else {
-                    out.append("From: " + absolutePath + "\n");
-                    out.append("To  : " + outputPath + "\n");
-                    Files.write(outputPath, output.getAsset().getBytes(), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+                    afterProcessingHandler.accept(path, output.getAsset());
                   }
                   
                   return b;
@@ -143,7 +130,7 @@ public class Watcher {
               })
               .orElseGet(() -> {
                 try {
-                  out.append("No bundle contains " + path + ". Check that it is defined in the humpty config file.");
+                  out.append("No bundle contains " + path.getFileName() + ". Check that it is defined in the humpty config file.");
                 } catch (Exception e) {}
                 return null;
               });
