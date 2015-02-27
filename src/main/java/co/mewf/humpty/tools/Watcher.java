@@ -62,8 +62,14 @@ public class Watcher {
       
       out.append(assetToSource.keySet().stream()
         .map(assetsDir::relativize)
+        .sorted((p1, p2) -> {
+          if (p1.getNameCount() != p2.getNameCount()) {
+            return p1.getNameCount() - p2.getNameCount();
+          }
+          
+          return p1.toString().compareTo(p2.toString());
+        })
         .map(Path::toString)
-        .sorted()
         .collect(Collectors.joining(", ", "Watching " + new File(".").getAbsoluteFile().getParentFile().toPath().relativize(assetsDir).normalize() + "\n\t[", "]\n")));
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -95,11 +101,12 @@ public class Watcher {
           .filter(event -> event.kind() != StandardWatchEventKinds.OVERFLOW)
           .forEach(watchEvent -> {
             Path path = (Path) watchEvent.context();
-            Path absolutePath = ((Path) watchKey.watchable()).resolve(path).toAbsolutePath();
+            Path resolvedPath = ((Path) watchKey.watchable()).resolve(path);
+            Path absolutePath = resolvedPath.toAbsolutePath();
             
             if (!assetToSource.containsKey(absolutePath)) {
               try {
-                out.append("Unknown file: " + ((Path) watchKey.watchable()).resolve(path));
+                out.append("Unknown file: " + resolvedPath);
               } catch (Exception e) {}
               return;
             }
@@ -119,7 +126,7 @@ public class Watcher {
                   if (absolutePath.equals(outputPath)) {
                     out.append("Skip: Source and destination files are the same\n");
                   } else {
-                    afterProcessingHandler.accept(path, output.getAsset());
+                    afterProcessingHandler.accept(Paths.get(b.getName()).resolve(path.getFileName()), output.getAsset());
                   }
                   
                   return b;
