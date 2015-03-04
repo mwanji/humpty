@@ -4,7 +4,7 @@
   <parent>
     <groupId>co.mewf.humpty</groupId>
     <artifactId>humpty-parent</artifactId>
-    <version>0.9.0-SNAPSHOT</version>
+    <version>0.9.0</version>
   </parent>
   <artifactId>humpty</artifactId>
   <version>1.0.0-SNAPSHOT</version>
@@ -49,7 +49,7 @@
     </dependency>
     <dependency>
       <groupId>org.webjars</groupId>
-      <artifactId>webjars-locator</artifactId>
+      <artifactId>webjars-locator-core</artifactId>
     </dependency>
     <dependency>
       <groupId>javax.inject</groupId>
