@@ -2,7 +2,7 @@
 name = "compilableAsset.js"
 assets = ["blocks.coffee"]
   
-[options.pipeline.elements]
+[options.pipeline]
   sources = ["coffee"]
   assets = []
   bundles = []

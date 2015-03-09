@@ -2,7 +2,7 @@
   name = "singleAsset.js"
   assets = ["blocks.js"]
   
-[options.pipeline.elements]
+[options.pipeline]
   assets = ["configurable"]  
   sources = ["configurable"]
   bundles = ["configurable"]

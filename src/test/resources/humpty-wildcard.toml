@@ -10,7 +10,7 @@
 	name = "no_extension.js"
 	assets = ["blocks", "web_server"]
   
-[options.pipeline.elements]
+[options.pipeline]
   assets = ["echo"]
   sources = []
   bundles = []

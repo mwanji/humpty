@@ -9,11 +9,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.Set;
@@ -106,10 +104,9 @@ public class HumptyBootstrap implements PipelineElement {
     return elements;
   }
   
+  @SuppressWarnings("unchecked")
   private Optional<List<String>> getConfiguration(String key) {
-    Map<String, List<String>> elements = humptyOptions.get("elements", Collections.<String, List<String>>emptyMap());
-    
-    return Optional.ofNullable(elements.get(key));
+    return humptyOptions.get(key).map(o -> (List<String>) o);
   }
   
   private <T extends PipelineElement> List<T> getElements(Class<T> elementClass, Optional<List<String>> configuration) {

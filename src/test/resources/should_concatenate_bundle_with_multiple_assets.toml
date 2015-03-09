@@ -2,7 +2,7 @@
   name = "multipleAssets.js"
   assets = ["blocks.coffee", "web_server.coffee"]
   
-[options.pipeline.elements]
+[options.pipeline]
   sources = ["coffee"]
   assets = []
   bundles = []

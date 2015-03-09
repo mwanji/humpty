@@ -1,17 +1,17 @@
-shorthand.js = ["jquery", "bootstrap"] # bundle shorthand, must come before any tables
+"shorthand.js" = ["jquery", "bootstrap"] # bundle shorthand, must come before any tables
 
-[[bundle]] # Must have at least one bundle.
+[[bundle]] # Longhand bundle definition
   name = "asset1.js" # Must have file extension
   assets = ["/users/user.js", "jquery.js", "bootstrap.js"] # array of resolvable resource names
 
-[[bundle]] # Second bundle
+[[bundle]] # Third bundle
   name = "asset2.css"
   assets = ["bootstrap", "/app/app.css"] # If there is no extension, the one from the name is used
 
 [options.coffee] # Options for the processor with the alias "coffee"
   BARE = true
   
-[options.pipeline.elements] # Arrays of names of pipeline elements to use, in the given order
+[options.pipeline] # Arrays of names of pipeline elements to use, in the given order
   sources = [] 
   assets = []
   bundles = []

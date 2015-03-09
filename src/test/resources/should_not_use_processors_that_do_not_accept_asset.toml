@@ -2,7 +2,7 @@
   name = "bundle.js"
   assets = ["alert"]
   
-[options.pipeline.elements]
+[options.pipeline]
   sources = ["configurable"]
   assets = ["configurable"]
   bundles = ["configurable"]

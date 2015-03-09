@@ -2,7 +2,7 @@
   name = "bundle.js"
   assets = ["alert.js"]
 
-[options.pipeline.elements]
+[options.pipeline]
   sources = ["appender2", "appender"]
   assets = ["appender2", "appender"]
   bundles = ["appender2", "appender"]

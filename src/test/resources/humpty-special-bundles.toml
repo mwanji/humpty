@@ -2,7 +2,7 @@
   name = "asset.js"
   assets = ["blocks.coffee"]
 
-[options.pipeline.elements]
+[options.pipeline]
   bundleResolvers = ["sourceMapBundleResolver", "webJarAssetBundleResolver"]
   sources = []
   assets = []

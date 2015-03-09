@@ -285,15 +285,15 @@ An array of tables which must contain at least one bundle. Each bundle has a nam
 
 ```toml
 # shorthand  
-libs.js = ["jquery", "underscore"]
+"libs.js" = ["jquery", "underscore"]
 
 [[bundle]]
 	name = "app.js"
-	assets = ["jquery", "/app.js"]
+	assets = ["jquery", "app.js"]
 
 [[bundle]]
   name = "app.css",
-  assets = ["bootstrap.less", "/theme"]
+  assets = ["bootstrap.less", "theme"]
 ```
 
 ### options
@@ -310,17 +310,21 @@ Optional. A table of global and pipeline element-specific settings. The pipeline
 
 ### options.pipeline
 
-Options that determine how the asset pipeline itself is created. By default, all processors loaded via ServiceLoaders are run.
+Options that determine how the asset pipeline itself is created.
+
+By default, all processors loaded via ServiceLoaders are run. For each processor type, a String array can be given to override the service loading mechanism. Each array contains the names of the processors that will run, in the given order. The options are:
+
+* sources
+* assets
+* bundles
+* listeners
+* bundleResolvers
 
 ````toml
 [options.pipeline]
-  mode = "DEVELOPMENT" # Defaults to "PRODUCTION". Processors are made aware of the mode and may modify their behaviour or even not run at all
-
-[options.pipeline.elements] # Used to customise the processors that will be applied and their ordering
   sources = ["coffee", "emberJs"] # Only these SourceProcessors will run
   assets = [] # No AssetProcessors will run
-  # As bundles is commented out, the default BundleProcessors will run
-  #bundles = ["compression"]
+  # All other processor types will use the service loading mechanism
 ````
 
 ## Extension Points

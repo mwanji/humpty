@@ -2,7 +2,7 @@
   name = "singleAsset.js"
   assets = ["blocks"]
   
-[options.pipeline.elements]
+[options.pipeline]
   assets = ["test"]
   sources = ["test"]
   bundles = ["test"]
