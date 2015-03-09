@@ -39,7 +39,6 @@ import co.mewf.humpty.spi.resolvers.Resolver;
  * Uses a {@link ServiceLoader} to get the {@link Resolver}s, {@link AssetProcessor}s and {@link BundleProcessor}s.
  *
  * <b>Configuration</b>
- * <p>Use {@link HumptyBootstrap.Builder} to construct a custom bootstrapper, e.g. to specify the order in which processors must be used.</p>
  * <p>Falls back to {@link ServiceLoader} on a per-resource type basis if none is provided.</p>
  *
  */

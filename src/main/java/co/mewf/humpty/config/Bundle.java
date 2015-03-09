@@ -26,7 +26,8 @@ public class Bundle implements Iterable<String> {
   }
 
   /**
-   * @return a list of asset names. Each asset name has an extension (taken from the bundle's name if none was provided), but wildcards are not expanded.
+   * @param uri The name of the child bundle, as well as its only asset. 
+   * @return A child Bundle with uri as its only asset.
    */
   public Bundle getBundleFor(String uri) {
     return new Bundle(name + "/" + uri, Collections.singletonList(uri));
