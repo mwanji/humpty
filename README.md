@@ -126,9 +126,11 @@ Thankfully, this can be automated. humpty-servlet adds an instance of `Includes`
 * Get it by calling `servletContext.getAttribute(Includes.class.getName())`
 * Add the result of `Includes#generate("example.css")` and `Includes#generate("example.js")` to your HTML template
 
-### Processing Bundles vs. Assets
+#### Processing Bundles vs. Assets
 
-The pipeline works differently when an entire bundle is requested, as opposed to a single asset. Exactly how differently depends on what processors are running in your pipeline. Here are a few examples:
+The pipeline works differently when an entire bundle is requested (`example.js`), as opposed to a single asset (`example.js/app.js`). Typically, bundles are requested when running in production and individual assets are used to make development easier.
+
+The differences depend on what processors are running in your pipeline. Here are a few examples:
 
 * a compiler might produce a source map for a single asset, but not for a bundle
 * a minifier might run only for bundles
@@ -154,9 +156,29 @@ Run the following from the project's root directory: `mvn humpty:digest`.
 
 Digesting creates a fingerprinted file for each bundle, such as `example-humpty586985585.js`, which is written to the build directory (`src/main/resources/META-INF/resources` by default). The fingerprint will change when the bundle's content changes, so the file can be served with far-future HTTP caching headers.
 
-This also creates a `humpty-digest.toml` file that indicates that the application is in production mode. To return to development mode, delete the file. In practice, this file might only exist on the source control branch from which you deploy.
+In Tomcat, HTTP caching headers can be configured with a filter:
 
-In production mode, `Includes#generate` will link to the fingerprinted version, rather than the individual assets.
+```xml
+<filter>
+  <filter-name>ExpiresFilter</filter-name>
+  <filter-class>org.apache.catalina.filters.ExpiresFilter</filter-class>
+  <init-param>
+    <param-name>ExpiresDefault</param-name>
+    <param-value>access plus 1 year</param-value>
+  </init-param>
+</filter>
+
+<filter-mapping>
+  <filter-name>ExpiresFilter</filter-name>
+  <url-pattern>/webjars/*</url-pattern> <!-- In case any WebJar files are refereneced directly, for example from CSS -->
+  <url-pattern>/assets/*</url-pattern> <!-- add a URL pattern if you've customised the build directory -->
+  <dispatcher>REQUEST</dispatcher>
+</filter-mapping>
+```
+
+Digesting also creates a `humpty-digest.toml` file that indicates that the application is in production mode. Delete it to return to development mode. In practice, this file might only exist on the source control branch from which you deploy.
+
+In production mode, `Includes#generate` will link to the fingerprinted version, rather than the individual assets. Digested resources are expected to be served by the server, not by humpty.
 
 ## Configuration
 
@@ -166,13 +188,11 @@ Option|Default|Description
 ------|-------|-----------
 assetsDir|"assets"|The folder containing the application's assets, relative to the root of the classpath.
 buildDir|"src/main/resources/META-INF/resources"|The root folder where assets are put after they've been through the pipeline. The default allows the assets to be served directly in environments such as Servlet 3.
-digestFile|"src/main/resources/humpty-digest.toml"|The path to the file that tracks digested assets.
 
 ```toml
 [options]
   assetsDir = "assets"
   buildDir = "src/main/resources/META-INF/resources"
-  digestFile = "src/main/resources/humpty-digest.toml"
 ```
 
 For example, the file `${assetsDir}/path/to/app.js` would be copied to `${buildDir}/path/to/app.js`.
@@ -292,7 +312,7 @@ An array of tables which must contain at least one bundle. Each bundle has a nam
 	assets = ["jquery", "app.js"]
 
 [[bundle]]
-  name = "app.css",
+  name = "app.css"
   assets = ["bootstrap.less", "theme"]
 ```
 
@@ -361,4 +381,4 @@ If a dependency cannot be satisfied, an exception is thrown.
 ## Licensing
 
 humpty is copyright Moandji Ezana 2013 - 2014.
-humpty is licensed under the MIT License.
+humpty is licensed under the [MIT License](LICENSE).
