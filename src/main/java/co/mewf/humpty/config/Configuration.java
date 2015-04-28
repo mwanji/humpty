@@ -107,7 +107,7 @@ public class Configuration {
       })
       .forEach(configuration.bundle::add);
     
-    configuration.bundle.forEach(bundle -> bundle.normaliseAssets());
+    configuration.bundle.forEach(Bundle::normaliseAssets);
     
     return configuration;
   }
