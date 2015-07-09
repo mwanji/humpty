@@ -4,6 +4,7 @@ import static java.util.stream.Collectors.toList;
 
 import java.io.IOException;
 import java.net.URL;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -181,7 +182,7 @@ public class HumptyBootstrap implements PipelineElement {
       
       while (urls.hasMoreElements()) {
         URL url = urls.nextElement();
-        Files.walk(Paths.get(url.getFile()))
+        Files.walk(Paths.get(url.toURI()))
           .filter(path -> path.toFile().isFile())
           .map(Path::toString)
           .map(path -> path.substring(path.indexOf(fullAssetsDir) + 1))
@@ -191,7 +192,7 @@ public class HumptyBootstrap implements PipelineElement {
       assetPaths.addAll(new WebJarAssetLocator().getFullPathIndex().values());
       
       return new WebJarAssetLocator(assetPaths);
-    } catch (IOException e) {
+    } catch (IOException | URISyntaxException e) {
       throw new RuntimeException(e);
     }
   }
